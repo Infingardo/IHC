@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IHC Cascade - ASST FBF</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #f8f9fb;
+    --surface: #ffffff;
+    --surface2: #f0f2f5;
+    --border: #d8dde3;
+    --text: #1a2028;
+    --text-dim: #4a5568;
+    --text-muted: #8899aa;
+    --pos: #16a34a;
+    --pos-bg: rgba(22,163,74,0.08);
+    --pos-border: rgba(22,163,74,0.25);
+    --neg: #dc2626;
+    --neg-bg: rgba(220,38,38,0.06);
+    --neg-border: rgba(220,38,38,0.2);
+    --nt: #64748b;
+    --nt-bg: rgba(100,116,139,0.08);
+    --accent: #0369a1;
+    --accent-bg: rgba(3,105,161,0.06);
+    --accent-border: rgba(3,105,161,0.2);
+    --gold: #b45309;
+    --gold-bg: rgba(180,83,9,0.06);
+    --gold-border: rgba(180,83,9,0.2);
+    --purple: #7c3aed;
+    --purple-bg: rgba(124,58,237,0.06);
+    --purple-border: rgba(124,58,237,0.2);
+    --teal: #0f766e;
+    --teal-bg: rgba(15,118,110,0.06);
+    --teal-border: rgba(15,118,110,0.2);
+    --radius: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; min-height: 100vh; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 24px 16px; }
+
+  header { text-align: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+  header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  header h1 span { color: var(--accent); }
+  header .subtitle { font-size: 0.85rem; color: var(--text-dim); font-weight: 300; }
+  header .algo-ref { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; font-style: italic; }
+
+  .step { margin-bottom: 28px; }
+  .step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .step-num {
+    width: 28px; height: 28px; background: var(--accent-bg); border: 1px solid var(--accent-border);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 600; color: var(--accent); font-family: 'IBM Plex Mono', monospace; flex-shrink: 0;
+  }
+  .step-title { font-size: 1rem; font-weight: 600; }
+  .step-desc { font-size: 0.8rem; color: var(--text-dim); margin-left: 38px; margin-top: -8px; margin-bottom: 12px; }
+  .ml38 { margin-left: 38px; }
+
+  /* Section sub-headers within a step */
+  .section-label {
+    margin-left: 38px; margin-top: 16px; margin-bottom: 8px;
+    font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-muted); padding-bottom: 4px; border-bottom: 1px dashed var(--border);
+  }
+  .section-label:first-of-type { margin-top: 0; }
+
+  .ab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 8px; margin-left: 38px; }
+  .ab-grid.big-four { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+
+  .ab-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .ab-card.positive { border-color: var(--pos-border); background: var(--pos-bg); }
+  .ab-card.negative { border-color: var(--neg-border); background: var(--neg-bg); }
+  .ab-card.nottested { border-color: rgba(100,116,139,0.3); background: var(--nt-bg); }
+  .ab-card.sacco-marker { border-style: dashed; }
+  .ab-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; font-weight: 500; }
+  .ab-alias { font-size: 0.7rem; color: var(--text-dim); font-weight: 300; }
+
+  .ab-toggles { display: flex; gap: 4px; flex-shrink: 0; }
+  .toggle-btn {
+    width: 32px; height: 28px; border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text-muted); border-radius: 4px; cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; font-weight: 600;
+    transition: all 0.15s; display: flex; align-items: center; justify-content: center;
+  }
+  .toggle-btn:hover { border-color: var(--text-dim); color: var(--text); background: #e8ecf0; }
+  .toggle-btn.active-pos { background: var(--pos); border-color: var(--pos); color: #fff; }
+  .toggle-btn.active-neg { background: var(--neg); border-color: var(--neg); color: #fff; }
+  .toggle-btn.active-nt { background: var(--nt); border-color: var(--nt); color: #fff; }
+
+  .sacco-tag {
+    font-size: 0.55rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--gold); background: var(--gold-bg); border: 1px solid var(--gold-border);
+    padding: 1px 4px; border-radius: 3px; margin-left: 4px; vertical-align: middle;
+  }
+  .sacco-legend { margin-left: 38px; margin-top: 10px; font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+
+  /* Interpretation */
+  .interp-box {
+    margin-left: 38px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 18px; margin-top: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .interp-box.lineage-epithelial { border-left: 3px solid var(--accent); }
+  .interp-box.lineage-hematolymphoid { border-left: 3px solid var(--purple); }
+  .interp-box.lineage-melanocytic { border-left: 3px solid var(--gold); }
+  .interp-box.lineage-mesenchymal { border-left: 3px solid var(--pos); }
+  .interp-box.lineage-undifferentiated { border-left: 3px solid var(--neg); }
+  .interp-box.lineage-mixed { border-left: 3px solid var(--gold); }
+  .interp-lineage { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+  .interp-detail { font-size: 0.82rem; color: var(--text-dim); line-height: 1.6; }
+  .interp-pattern { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--text-muted); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .pattern-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+    padding: 3px 8px; border-radius: 4px; background: var(--surface2); border: 1px solid var(--border); margin: 2px;
+  }
+  .pattern-badge .p { color: var(--pos); font-weight: 700; }
+  .pattern-badge .n { color: var(--neg); font-weight: 700; }
+
+  /* Alert boxes */
+  .alert-box {
+    margin-left: 38px; border-radius: var(--radius); padding: 12px 16px; margin-bottom: 8px; font-size: 0.82rem; line-height: 1.5;
+  }
+  .alert-box.curable { background: var(--teal-bg); border: 1px solid var(--teal-border); color: var(--teal); }
+  .alert-box.curable .alert-title { font-weight: 700; margin-bottom: 2px; }
+  .alert-box.curable .alert-detail { color: var(--text-dim); font-size: 0.78rem; }
+  .alert-box.warning { background: var(--gold-bg); border: 1px solid var(--gold-border); }
+  .alert-box.warning .alert-title { color: var(--gold); font-weight: 700; margin-bottom: 2px; }
+  .alert-box.warning .alert-detail { color: var(--text-dim); font-size: 0.78rem; }
+
+  /* Diagnosis cards */
+  .dx-list { margin-left: 38px; display: flex; flex-direction: column; gap: 8px; }
+  .dx-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .dx-card.high { border-left: 3px solid var(--pos); }
+  .dx-card.medium { border-left: 3px solid var(--gold); }
+  .dx-card.low { border-left: 3px solid var(--text-muted); }
+  .dx-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 2px; }
+  .dx-detail { font-size: 0.78rem; color: var(--text-dim); line-height: 1.5; }
+  .dx-confidence {
+    display: inline-block; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 2px 6px; border-radius: 3px; margin-left: 8px;
+  }
+  .dx-confidence.high { background: var(--pos-bg); color: var(--pos); }
+  .dx-confidence.medium { background: var(--gold-bg); color: var(--gold); }
+  .dx-confidence.low { background: var(--nt-bg); color: var(--nt); }
+
+  .suggest-box { margin-left: 38px; background: var(--gold-bg); border: 1px solid var(--gold-border); border-radius: var(--radius); padding: 12px 16px; margin-top: 12px; }
+  .suggest-title { font-size: 0.82rem; font-weight: 600; color: var(--gold); margin-bottom: 4px; }
+  .suggest-text { font-size: 0.78rem; color: var(--text-dim); line-height: 1.5; }
+  .suggest-text code { font-family: 'IBM Plex Mono', monospace; background: #e8ecf0; padding: 1px 5px; border-radius: 3px; font-size: 0.75rem; color: var(--text); }
+
+  .gap-box { margin-left: 38px; background: var(--purple-bg); border: 1px solid var(--purple-border); border-radius: var(--radius); padding: 12px 16px; margin-top: 8px; }
+  .gap-title { font-size: 0.82rem; font-weight: 600; color: var(--purple); margin-bottom: 4px; }
+  .gap-text { font-size: 0.78rem; color: var(--text-dim); line-height: 1.5; }
+  .gap-text code { font-family: 'IBM Plex Mono', monospace; background: #e8ecf0; padding: 1px 5px; border-radius: 3px; font-size: 0.75rem; color: var(--text); }
+
+  .reset-btn {
+    margin-left: 38px; margin-top: 16px; padding: 8px 18px;
+    background: var(--surface); border: 1px solid var(--border); color: var(--text-dim);
+    border-radius: var(--radius); cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.82rem; transition: all 0.15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .reset-btn:hover { border-color: var(--neg-border); color: var(--neg); background: var(--neg-bg); }
+
+  .disclaimer {
+    margin-top: 40px; padding: 14px 18px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); font-size: 0.72rem; color: var(--text-muted); line-height: 1.6;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .refs { margin-top: 12px; padding: 14px 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.68rem; color: var(--text-muted); line-height: 1.8; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .refs summary { cursor: pointer; font-weight: 600; font-size: 0.75rem; color: var(--text-dim); }
+
+  .fade-in { animation: fadeIn 0.3s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .hidden { display: none; }
+
+  @media (max-width: 600px) {
+    .ab-grid, .ab-grid.big-four { grid-template-columns: 1fr; margin-left: 0; }
+    .interp-box, .dx-list, .suggest-box, .gap-box, .alert-box, .step-desc, .reset-btn, .disclaimer, .refs, .sacco-legend, .ml38, .section-label { margin-left: 0; }
+    .container { padding: 16px 12px; }
+    header h1 { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>IHC <span>Cascade</span> Diagnostica</h1>
+    <div class="subtitle">ASST Fatebenefratelli-Sacco — Pannello Anticorpale FBF</div>
+    <div class="algo-ref">Algoritmo SEOM-GECOD 2022 / ESMO CUP 2023 (Kramer et al.) — adattato al workflow di laboratorio</div>
+  </header>
+
+  <!-- STEP 1: BIG FOUR -->
+  <div class="step" id="step1">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div class="step-title">Lineage — I Big Four</div>
+    </div>
+    <div class="step-desc">Definire la linea cellulare. Minimo: CK e CD45.</div>
+    <div class="ab-grid big-four" id="bigFourGrid"></div>
+  </div>
+
+  <div id="interpSection" class="hidden step fade-in"></div>
+
+  <!-- STEP 2: UNIFIED PANEL -->
+  <div id="step2" class="hidden step fade-in">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div class="step-title" id="step2Title">Pannello Carcinoma</div>
+    </div>
+    <div class="step-desc" id="step2Desc"></div>
+    <div id="step2Content"></div>
+    <div id="alertsContainer" style="margin-top:12px"></div>
+  </div>
+
+  <!-- STEP 3: DIAGNOSES -->
+  <div id="step3dx" class="hidden step fade-in">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div class="step-title">Diagnosi Differenziali</div>
+    </div>
+    <div class="dx-list" id="dxList"></div>
+  </div>
+
+  <div id="suggestSection" class="hidden fade-in"></div>
+  <div id="gapSection" class="hidden fade-in"></div>
+
+  <button class="reset-btn" onclick="resetAll()">↻ Reset tutto</button>
+
+  <div class="disclaimer">
+    <strong>⚕ Disclaimer</strong> — Strumento a supporto didattico e decisionale per il percorso CUP e la diagnostica IHC di routine.
+    Non sostituisce il giudizio clinico-patologico integrato (morfologia EE, correlazione clinica, biologia molecolare).
+    I pannelli riflettono gli anticorpi disponibili presso ASST FBF. Pattern atipici e coespressioni aberranti richiedono valutazione esperta.
+    L'accuratezza IHC nel predire il sito primitivo è ~70-80% e scende nei tumori scarsamente differenziati.
+    <strong>Il vetrino non mente, il reagente sì.</strong>
+  </div>
+
+  <details class="refs">
+    <summary>📚 Riferimenti bibliografici</summary>
+    <p>
+      [1] Losa F. et al. — SEOM-GECOD clinical guideline for unknown primary cancer (2022). <em>Clin Transl Oncol</em>.<br>
+      [2] Kramer A. et al. — Cancer of unknown primary: ESMO CPG. <em>Ann Oncol</em> 2023;34:228-246.<br>
+      [3] CUP update for histopathologists. <em>Histopathology</em> 2023;83:309-324.<br>
+      [4] Zhao T. et al. — Advancements in CUP diagnostics/therapeutics. <em>Front Oncol</em> 2025.<br>
+      [5] Greco F.A. — CUP: A New Era. <em>JCO</em> 2024.<br>
+      [6] CUPISCO Trial. <em>Oncologist</em> 2021;26(5):e769.<br>
+      [7] Park S.Y. — IHC for metastatic carcinomas of unknown primary. <em>Arch Pathol Lab Med</em> 2007.<br>
+      [8] IASLC Pathology Committee — IHC in lung cancer (2021).<br>
+      [9] Wakefield C. — IHC in bone/soft tissue tumors (2024).<br>
+      [10] Jayagopal D. — IHC as diagnostic tool. <em>Bioinformation</em> 2025.<br>
+      [11] Rooper L.M. — INSM1 superior to SYN+CgA+CD56. <em>Am J Surg Pathol</em> 2017;41:1561.<br>
+      [12] Voiculescu V.M. — IHC for skin cancers (2025).<br>
+      [13] Yan B.C. — Arginase-1 for HCC. <em>Am J Surg Pathol</em> 2010;34:1147.<br>
+      [14] NKX3.1: sensitivity 98.6% for metastatic prostate carcinoma. Multiple series.<br>
+    </p>
+  </details>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  bigFour: { CK: null, CD45: null, S100: null, VIM: null },
+  panel: {},  // unified second-level panel
+};
+
+const BIG_FOUR = [
+  { id: 'CK', name: 'CK (AE1/AE3)', alias: 'Citocheratine PAN' },
+  { id: 'CD45', name: 'CD45', alias: 'LCA' },
+  { id: 'S100', name: 'S100', alias: 'Proteina S100' },
+  { id: 'VIM', name: 'Vimentina', alias: 'VIM' },
+];
+
+// ============================================================
+// PANELS — grouped markers for each lineage
+// ============================================================
+const PANELS = {
+
+  carcinoma: {
+    title: 'Pannello Carcinoma — Prima tornata',
+    desc: 'Sottotipizzazione + CK7/CK20 + organo-specifici in un\'unica tornata. Alert per subset curabili.',
+    sections: [
+      { label: 'CK7 / CK20', markers: [
+        { id: 'CK7', name: 'CK 7' },
+        { id: 'CK20', name: 'CK 20' },
+      ]},
+      { label: 'Sottotipizzazione — subset curabili', markers: [
+        { id: 'p63', name: 'p63' },
+        { id: 'p40', name: 'p40' },
+        { id: 'CK56', name: 'CK 5/6' },
+        { id: 'Synapt', name: 'Sinaptofisina' },
+        { id: 'Cromo', name: 'Cromogranina' },
+        { id: 'CD56ne', name: 'CD56' },
+        { id: 'SALL4', name: 'SALL4' },
+        { id: 'OCT34', name: 'OCT-3/4', sacco: true },
+        { id: 'PLAP', name: 'PLAP' },
+      ]},
+      { label: 'Organo-specifici first-line', markers: [
+        { id: 'TTF1', name: 'TTF1' },
+        { id: 'Napsina', name: 'Napsina A' },
+        { id: 'CDX2', name: 'CDX-2' },
+        { id: 'SATB2', name: 'SATB2' },
+        { id: 'GATA3', name: 'GATA3' },
+        { id: 'PAX8', name: 'PAX-8' },
+        { id: 'ER', name: 'ER' },
+        { id: 'PR', name: 'PR' },
+        { id: 'WT1', name: 'WT1' },
+        { id: 'PSA', name: 'PSA' },
+        { id: 'NKX3', name: 'NKX3.1' },
+        { id: 'HSA', name: 'Hepatocyte (HepPar-1)' },
+        { id: 'Arginasi', name: 'Arginasi' },
+        { id: 'Calret', name: 'Calretinina' },
+        { id: 'D240', name: 'D2-40 (Podoplanina)' },
+      ]},
+      { label: 'Second-line / reflex', markers: [
+        { id: 'Glyp3', name: 'Glypican 3' },
+        { id: 'CEAm', name: 'CEA mono' },
+        { id: 'EMA', name: 'EMA' },
+        { id: 'GCDFP', name: 'GCDFP-15', sacco: true },
+        { id: 'Mammoglob', name: 'Mammoglobina' },
+        { id: 'Thyrogl', name: 'Thyroglobulina' },
+        { id: 'Galect3', name: 'Galectina 3' },
+        { id: 'RCC', name: 'RCC' },
+        { id: 'CAIX', name: 'CA-IX' },
+        { id: 'Racemasi', name: 'Racemasi (p504s)' },
+        { id: 'Ecad', name: 'E-Caderina' },
+        { id: 'HER2', name: 'HER-2' },
+        { id: 'AFP', name: 'α-Fetoproteina' },
+        { id: 'HCG', name: 'βHCG' },
+        { id: 'p16', name: 'p16' },
+        { id: 'HPV', name: 'HPV' },
+      ]},
+      { label: 'MMR / SWI-SNF', markers: [
+        { id: 'MLH1', name: 'MLH1' },
+        { id: 'MSH2', name: 'MSH2' },
+        { id: 'MSH6', name: 'MSH6' },
+        { id: 'PMS2', name: 'PMS2 O A' },
+        { id: 'INI1', name: 'INI-1 (SMARCB1)' },
+        { id: 'SMARCA4', name: 'BRG-1/SMARCA4' },
+      ]},
+    ],
+  },
+
+  hematolymphoid: {
+    title: 'Neoplasia Emolinfopoietica',
+    desc: 'CD3/CD20 per lineage B/T, poi sottotipizzazione. ⚠ Subset potenzialmente curabile.',
+    sections: [
+      { label: 'Lineage B / T', markers: [
+        { id: 'CD3', name: 'CD3' },
+        { id: 'CD20', name: 'CD20' },
+        { id: 'PAX5', name: 'PAX-5' },
+      ]},
+      { label: 'B-cell subtyping', markers: [
+        { id: 'CD5', name: 'CD5' },
+        { id: 'CD10', name: 'CD10' },
+        { id: 'CD23', name: 'CD23' },
+        { id: 'CycD1', name: 'Ciclina D1' },
+        { id: 'SOX11', name: 'SOX-11' },
+        { id: 'BCL2', name: 'BCL-2' },
+        { id: 'BCL6', name: 'BCL-6' },
+        { id: 'Cmyc', name: 'C-myc' },
+        { id: 'MUM1', name: 'MUM-1' },
+        { id: 'CD138', name: 'CD138' },
+      ]},
+      { label: 'T-cell / Hodgkin / altro', markers: [
+        { id: 'CD4', name: 'CD4' },
+        { id: 'CD8', name: 'CD8' },
+        { id: 'CD30', name: 'CD30' },
+        { id: 'CD15', name: 'CD15' },
+        { id: 'CD56', name: 'CD56' },
+        { id: 'ALK', name: 'ALK' },
+        { id: 'TIA1', name: 'TIA-1', sacco: true },
+        { id: 'Perfor', name: 'Perforina', sacco: true },
+        { id: 'CD1a', name: 'CD-1a' },
+        { id: 'CD43', name: 'CD43', sacco: true },
+        { id: 'Ki67', name: 'Ki-67' },
+      ]},
+    ],
+  },
+
+  melanocytic: {
+    title: 'Melanocitico / Neurale',
+    desc: 'S100+/CK-/CD45-. Conferma melanocitaria e DDx neurale.',
+    sections: [
+      { label: 'Melanocitari', markers: [
+        { id: 'MelanA', name: 'Melan-A (Mart-1)' },
+        { id: 'HMB45', name: 'HMB45' },
+        { id: 'SOX10', name: 'SOX-10' },
+        { id: 'PRAME', name: 'PRAME' },
+      ]},
+      { label: 'Neurali / DDx', markers: [
+        { id: 'GFAP', name: 'GFAP' },
+        { id: 'NF', name: 'Neurofilamenti' },
+        { id: 'CD56', name: 'CD56' },
+        { id: 'Synapt', name: 'Sinaptofisina' },
+        { id: 'Cromo', name: 'Cromogranina' },
+        { id: 'CD34', name: 'CD34' },
+        { id: 'STAT6', name: 'STAT6' },
+        { id: 'EMA', name: 'EMA' },
+        { id: 'Ki67', name: 'Ki-67' },
+        { id: 'Desmina', name: 'Desmina' },
+      ]},
+    ],
+  },
+
+  mesenchymal: {
+    title: 'Sarcoma / Mesenchimale',
+    desc: 'VIM+/CK-/CD45-/S100-. Pannello mirato in base alla morfologia EE [Wakefield 2024].',
+    sections: [
+      { label: 'Muscolo liscio / striato', markers: [
+        { id: 'Desmina', name: 'Desmina' },
+        { id: 'SMA', name: 'Actina m.l.' },
+        { id: 'HHF35', name: 'Actina HHF35' },
+        { id: 'Calponina', name: 'Calponina' },
+        { id: 'Caldesmon', name: 'Caldesmone' },
+        { id: 'MYOD1', name: 'MyoD1', sacco: true },
+        { id: 'Miogenina', name: 'Miogenina' },
+      ]},
+      { label: 'Vascolare / GIST / SFT', markers: [
+        { id: 'CD34', name: 'CD34' },
+        { id: 'STAT6', name: 'STAT6' },
+        { id: 'CD31', name: 'CD31' },
+        { id: 'ERG', name: 'ERG' },
+        { id: 'FattVIII', name: 'Fattore VIII' },
+        { id: 'DOG1', name: 'DOG1' },
+        { id: 'CD117', name: 'CD117' },
+      ]},
+      { label: 'Liposarcoma / SWI-SNF / altro', markers: [
+        { id: 'MDM2', name: 'MDM2' },
+        { id: 'CDK4', name: 'CDK4' },
+        { id: 'INI1', name: 'INI-1 (SMARCB1)' },
+        { id: 'SMARCA4', name: 'BRG-1/SMARCA4' },
+        { id: 'CD99', name: 'CD99' },
+        { id: 'BCL2', name: 'BCL-2' },
+        { id: 'EMA', name: 'EMA' },
+        { id: 'CK_check', name: 'CK (AE1/AE3)' },
+        { id: 'Synapt', name: 'Sinaptofisina' },
+        { id: 'Ki67', name: 'Ki-67' },
+      ]},
+    ],
+  },
+
+  undifferentiated: {
+    title: 'Neoplasia Indifferenziata',
+    desc: 'Big Four tutti negativi. Escludere subset curabili: Ewing, GCT, NEC, ALCL.',
+    sections: [
+      { label: 'Germinale / NE', markers: [
+        { id: 'SALL4', name: 'SALL4' },
+        { id: 'OCT34', name: 'OCT-3/4', sacco: true },
+        { id: 'PLAP', name: 'PLAP' },
+        { id: 'AFP', name: 'α-Fetoproteina' },
+        { id: 'HCG', name: 'HCG' },
+        { id: 'Synapt', name: 'Sinaptofisina' },
+        { id: 'Cromo', name: 'Cromogranina' },
+        { id: 'CD56', name: 'CD56' },
+        { id: 'CD117', name: 'CD117' },
+      ]},
+      { label: 'Ewing / Rabdoide / linfoma', markers: [
+        { id: 'CD99', name: 'CD99' },
+        { id: 'ERG', name: 'ERG' },
+        { id: 'Desmina', name: 'Desmina' },
+        { id: 'MYOD1', name: 'MyoD1', sacco: true },
+        { id: 'Miogenina', name: 'Miogenina' },
+        { id: 'INI1', name: 'INI-1 (SMARCB1)' },
+        { id: 'SMARCA4', name: 'BRG-1/SMARCA4' },
+        { id: 'CD30', name: 'CD30' },
+        { id: 'CD3', name: 'CD3' },
+        { id: 'CD20', name: 'CD20' },
+        { id: 'EMA', name: 'EMA' },
+        { id: 'Ki67', name: 'Ki-67' },
+      ]},
+    ],
+  },
+};
+
+// ============================================================
+// LINEAGE
+// ============================================================
+function getLineage() {
+  const r = state.bigFour;
+  const CK = r.CK === 'nt' ? null : r.CK;
+  const CD45 = r.CD45 === 'nt' ? null : r.CD45;
+  const S100 = r.S100 === 'nt' ? null : r.S100;
+  const VIM = r.VIM === 'nt' ? null : r.VIM;
+
+  if (CK === null || CD45 === null) return null;
+
+  if (CK === '+' && CD45 === '-') return { lineage: (VIM === '+' && S100 === '+') ? 'epithelial_s100' : (VIM === '+') ? 'epithelial_vim' : 'epithelial', panel: 'carcinoma' };
+  if (CD45 === '+') return { lineage: CK === '+' ? 'hematolymphoid_ck' : 'hematolymphoid', panel: 'hematolymphoid' };
+  if (CK === '-' && CD45 === '-' && S100 === '+') return { lineage: 'melanocytic', panel: 'melanocytic' };
+  if (CK === '-' && CD45 === '-' && (S100 === '-' || S100 === null) && VIM === '+') return { lineage: 'mesenchymal', panel: 'mesenchymal' };
+  if (CK === '-' && CD45 === '-') return { lineage: 'undifferentiated', panel: 'undifferentiated' };
+
+  return null;
+}
+
+const LINEAGE_INFO = {
+  epithelial: { name: 'Carcinoma', css: 'lineage-epithelial', detail: 'CK+/CD45−: neoplasia epiteliale. Pannello unico: sottotipizzazione + CK7/CK20 + organo-specifici in un\'unica tornata [SEOM-GECOD 2022].' },
+  epithelial_vim: { name: 'Carcinoma con coespressione VIM', css: 'lineage-epithelial', detail: 'CK+/VIM+: renale, mesotelioma, endometriale, tiroideo, sarcomatoide. Procedere con pannello carcinoma.' },
+  epithelial_s100: { name: 'Carcinoma CK+/VIM+/S100+', css: 'lineage-mixed', detail: 'Pattern raro. Acinare salivare, adenoido-cistico, mammario (subset), melanoma desmoplastico con CK aberrante.' },
+  hematolymphoid: { name: 'Neoplasia Emolinfopoietica', css: 'lineage-hematolymphoid', detail: 'CD45+: ⚠ subset potenzialmente curabile — tipizzare immediatamente.' },
+  hematolymphoid_ck: { name: 'CD45+ con coespressione CK', css: 'lineage-hematolymphoid', detail: '⚠ CK+/CD45+: plasmablastico, timico, artefatto, intrappolamento. Ripetere su sezioni seriate.' },
+  melanocytic: { name: 'Melanocitico / Neurale', css: 'lineage-melanocytic', detail: 'S100+/CK−/CD45−: melanoma, schwannoma, MPNST, tumore a cellule granulari.' },
+  mesenchymal: { name: 'Sarcoma / Mesenchimale', css: 'lineage-mesenchymal', detail: 'VIM+/CK−/CD45−/S100−: pannello mirato in base alla morfologia EE [Wakefield 2024].' },
+  undifferentiated: { name: 'Neoplasia Indifferenziata', css: 'lineage-undifferentiated', detail: 'Big Four negativi: escludere Ewing, GCT, NEC, ALCL. ⚠ Priorità: identificare subset curabili [ESMO 2023].' },
+};
+
+// ============================================================
+// DIAGNOSIS ENGINE
+// ============================================================
+function getDiagnoses(panelId) {
+  const sl = state.panel;
+  const dx = [];
+  const p = (id) => sl[id] === '+';
+  const n = (id) => sl[id] === '-';
+  const t = (id) => sl[id] === '+' || sl[id] === '-';
+
+  if (panelId === 'carcinoma') {
+    // === SQUAMOUS ===
+    if (p('p63') || p('p40') || p('CK56')) {
+      dx.push({ name: 'Carcinoma squamocellulare', conf: 'high', detail: 'p63/p40/CK5-6+. SCC cervicale da primitivo occulto H&N → trattare come H&N (approccio trimodale, NON come CUP) [SEOM-GECOD]. HPV/p16 per orofaringe/cervice.' });
+      if (p('HPV') || p('p16')) dx.push({ name: 'SCC HPV-correlato', conf: 'high', detail: 'HPV+/p16+: orofaringe, cervice, anale. p16 surrogato HPV in orofaringe.' });
+      if (p('CK7') && n('CK20')) dx.push({ name: 'SCC: polmone, cervice, esofago', conf: 'medium', detail: 'CK7+/CK20−: polmone, cervice, esofago alto, testa-collo.' });
+      if (n('CK7') && n('CK20')) dx.push({ name: 'SCC: cute, testa-collo', conf: 'medium', detail: 'CK7−/CK20−: cute, testa-collo, esofago.' });
+      if (p('GATA3')) dx.push({ name: 'SCC uroteliale variant', conf: 'medium', detail: 'GATA3+ nel SCC: uroteliale con diff. squamosa.' });
+    }
+
+    // === NEUROENDOCRINE ===
+    if (p('Synapt') || p('Cromo') || p('CD56ne')) {
+      dx.push({ name: 'Neoplasia neuroendocrina', conf: 'high', detail: '⚠ Subset trattabile. Ki-67 mandatorio: <3% G1, 3-20% G2, >20% G3/NEC. NEC (tipicamente Ki67>55%): platino-etoposide. NET ben diff.: SSA, PRRT [SEOM-GECOD].' });
+      if (p('TTF1')) dx.push({ name: 'NEN polmonare', conf: 'medium', detail: 'TTF1+: NET/NEC polmonare. Napsina A tipicamente negativa nel NEN.' });
+      if (p('CDX2')) dx.push({ name: 'NET GI (midgut/hindgut)', conf: 'medium', detail: 'CDX2+: ileo, appendice, colon-retto.' });
+      if (p('PAX8')) dx.push({ name: 'NEN pancreatico o renale', conf: 'medium', detail: 'PAX8+: ~70% dei NET pancreatici.' });
+      if (p('PSA') || p('NKX3')) dx.push({ name: 'NEC prostatico', conf: 'high', detail: 'Transdifferenziazione NE prostatica. Raro ma critico per terapia.' });
+    }
+
+    // === GERM CELL ===
+    if (p('SALL4') || p('OCT34') || p('PLAP') || p('AFP') || p('HCG')) {
+      dx.push({ name: '⚠ Tumore a cellule germinali', conf: 'high', detail: 'SUBSET CURABILE — chemioterapia tipo BEP, altamente efficace. Non trattare come CUP [SEOM-GECOD, ESMO 2023].' });
+      if (p('SALL4') && p('OCT34')) dx.push({ name: 'Seminoma / Disgerminoma', conf: 'high', detail: 'SALL4+/OCT3-4+: seminoma (♂) / disgerminoma (♀). CD117 tipicamente +. EMA−.' });
+      if (p('SALL4') && (p('AFP') || p('Glyp3'))) dx.push({ name: 'Yolk Sac Tumor', conf: 'high', detail: 'SALL4+/AFP+/GPC3+: tumore del seno endodermico.' });
+      if (p('HCG')) dx.push({ name: 'Coriocarcinoma (componente)', conf: 'high', detail: 'βHCG+: coriocarcinoma o componente coriocarcinomatosa.' });
+    }
+
+    // === ADENOCARCINOMA — CK7/CK20 DRIVEN ===
+    if (!(p('p63') || p('p40') || p('CK56')) && !(p('Synapt') || p('Cromo') || p('CD56ne')) && !(p('SALL4') || p('OCT34') || p('PLAP'))) {
+
+      // CK7+ CK20−
+      if (p('CK7') && n('CK20')) {
+        if (p('TTF1') && p('Napsina')) dx.push({ name: 'Adenocarcinoma polmonare', conf: 'high', detail: 'TTF1+/Napsina A+: polmone [IASLC 2021]. Richiedere EGFR, ALK, ROS1, PD-L1.' });
+        else if (p('TTF1') && !p('Napsina')) dx.push({ name: 'Adenoca polmonare o tiroideo', conf: 'medium', detail: 'TTF1+ senza Napsina. Thyroglobulina per tiroide.' });
+        if (p('Thyrogl')) dx.push({ name: 'Carcinoma tiroideo differenziato', conf: 'high', detail: 'Thyroglobulina+.' });
+        if (p('GATA3') && (p('ER') || p('GCDFP') || p('Mammoglob'))) dx.push({ name: 'Carcinoma mammario', conf: 'high', detail: 'GATA3+/ER+ ± GCDFP-15/Mammoglobina. Completare: HER2, Ki67, PR.' });
+        if (p('GATA3') && n('ER') && !p('GCDFP')) dx.push({ name: 'Uroteliale o mammario TN', conf: 'medium', detail: 'GATA3+/ER−: uroteliale (più frequente) o mammario triple-neg.' });
+        if (p('PAX8') && (p('ER') || p('PR'))) dx.push({ name: 'Carcinoma endometriale/ovarico', conf: 'high', detail: 'PAX8+/ER+. WT1+ → ovaio sieroso HG. WT1− → endometrioide.' });
+        if (p('PAX8') && p('WT1')) dx.push({ name: 'Carcinoma ovarico sieroso HG', conf: 'high', detail: 'PAX8+/WT1+. p53 mutato tipico.' });
+        if (p('Calret') && p('WT1') && n('CEAm')) dx.push({ name: 'Mesotelioma', conf: 'high', detail: 'Calretinina+/WT1+/CEA−: mesotelioma. D2-40 supporta.' });
+        if (p('Calret') && p('D240') && n('CEAm')) dx.push({ name: 'Mesotelioma epitelioide', conf: 'high', detail: 'Calretinina+/D2-40+/CEA−: confermato.' });
+      }
+
+      // CK7− CK20+
+      if (n('CK7') && p('CK20')) {
+        if (p('CDX2')) dx.push({ name: 'Adenocarcinoma colorettale', conf: 'high', detail: 'CK7−/CK20+/CDX2+: pattern classico. SATB2 conferma. Pannello MMR mandatorio [SEOM-GECOD].' });
+        if (p('CDX2') && p('SATB2')) dx.push({ name: 'Adenocarcinoma colorettale (confermato)', conf: 'high', detail: 'CDX2+/SATB2+: elevata specificità.' });
+        if (!p('CDX2') && t('CDX2')) dx.push({ name: 'Merkel o appendice', conf: 'medium', detail: 'CK7−/CK20+/CDX2−: se NE (SYN+, CK20 dot-like) → Merkel.' });
+      }
+
+      // CK7+ CK20+
+      if (p('CK7') && p('CK20')) {
+        if (p('GATA3')) dx.push({ name: 'Carcinoma uroteliale', conf: 'high', detail: 'CK7+/CK20+/GATA3+. p63/CK5/6 supportano.' });
+        if (p('CDX2')) dx.push({ name: 'Adenoca pancreatobiliare/appendicolare', conf: 'medium', detail: 'CK7+/CK20+/CDX2+.' });
+        if (p('PAX8')) dx.push({ name: 'Carcinoma ovarico mucinoso', conf: 'medium', detail: 'CK7+/CK20+/PAX8+. DDx metastasi GI.' });
+      }
+
+      // CK7− CK20−
+      if (n('CK7') && n('CK20')) {
+        if (p('HSA') || p('Arginasi')) dx.push({ name: 'Carcinoma epatocellulare', conf: 'high', detail: 'Arginasi-1: sens 95-96%, spec 96-100% vs metastasi/colangiocarcinoma, superiore a HepPar-1 nel scarsamente diff. [SEOM-GECOD, Yan 2010]. Pannello ideale: Arg1 + HepPar-1 ± GPC3 ± pCEA canalicolare.' });
+        if (p('Glyp3') && (p('HSA') || p('Arginasi'))) dx.push({ name: 'HCC confermato', conf: 'high', detail: 'HepPar-1/Arginasi + Glypican 3+.' });
+        if (p('PSA') || p('NKX3')) dx.push({ name: 'Adenocarcinoma prostatico', conf: 'high', detail: 'NKX3.1: sensibilità 98,6%, specificità 99-100% per metastasi prostatiche [SEOM-GECOD]. Mantiene espressione quando PSA/PAP si negativizzano.' });
+        if (n('PSA') && p('NKX3')) dx.push({ name: 'Adenoca prostatico PSA-negativo', conf: 'high', detail: 'NKX3.1+/PSA−: prostata scarsamente diff. o post-terapia. Marker di scelta nei CUP CK7−/CK20− [Oncologist 2021].' });
+        if (p('PAX8') && (p('RCC') || p('CAIX'))) dx.push({ name: 'Carcinoma renale', conf: 'high', detail: 'PAX8+/RCC+ o CA-IX membranoso+: renale. CA-IX membranoso → clear cell.' });
+      }
+    }
+
+    // === CROSS-CUTTING ===
+    if (n('Ecad')) dx.push({ name: '⚠ Perdita E-Caderina', conf: 'medium', detail: 'Lobulare mammario, gastrico diffuso (CDH1).' });
+
+    if (n('MLH1') || n('MSH2') || n('MSH6') || n('PMS2')) {
+      let lost = [];
+      if (n('MLH1')) lost.push('MLH1');
+      if (n('MSH2')) lost.push('MSH2');
+      if (n('MSH6')) lost.push('MSH6');
+      if (n('PMS2')) lost.push('PMS2');
+      dx.push({ name: '⚠ Deficit MMR — ' + lost.join('/'), conf: 'high', detail: 'MSI-H. Immunoterapia (anti-PD1). MLH1 loss → escludere metilazione promotore.' });
+    }
+    if (n('INI1')) dx.push({ name: 'Neoplasia INI1-deficiente', conf: 'high', detail: 'Rabdoide, sarcoma epitelioide, carcinoma midollare renale, ca. indiff. SWI/SNF-def.' });
+    if (n('SMARCA4')) dx.push({ name: 'Neoplasia SMARCA4-deficiente', conf: 'high', detail: 'Ca. toracico SMARCA4-def o sarcoma indiff. Entità aggressiva.' });
+  }
+
+  // === HEMATOLYMPHOID ===
+  if (panelId === 'hematolymphoid') {
+    if (p('CD20') && n('CD3')) {
+      if (p('CD5') && p('CycD1')) dx.push({ name: 'Linfoma mantellare', conf: 'high', detail: 'CD20+/CD5+/Ciclina D1+. SOX11 per conferma.' });
+      if (p('CD5') && n('CycD1') && p('CD23')) dx.push({ name: 'LLC/SLL', conf: 'high', detail: 'CD20+(dim)/CD5+/CD23+/CiclD1−.' });
+      if (p('CD5') && n('CycD1') && n('CD23')) dx.push({ name: 'MCL CiclD1-neg o LZM', conf: 'medium', detail: 'SOX11+ → MCL CiclD1-neg.' });
+      if (p('CD10') && p('BCL2') && p('BCL6')) dx.push({ name: 'Linfoma follicolare', conf: 'high', detail: 'CD10+/BCL2+/BCL6+. t(14;18).' });
+      if (p('CD10') && p('Cmyc')) dx.push({ name: 'Burkitt', conf: 'medium', detail: 'CD10+/C-myc+: se Ki67≥95% → Burkitt. BCL2− tipico. FISH MYC.' });
+      if (p('MUM1') && !p('CD10')) dx.push({ name: 'DLBCL non-GCB (ABC)', conf: 'medium', detail: 'MUM1+/CD10−: profilo non-GCB (Hans).' });
+      if (p('CD10') && !p('BCL2') && p('BCL6')) dx.push({ name: 'DLBCL tipo GCB', conf: 'medium', detail: 'CD10+: GCB.' });
+      if (p('Cmyc') && p('BCL2')) dx.push({ name: '⚠ Double-expressor', conf: 'high', detail: 'FISH MYC e BCL2 mandatoria per HGBL.' });
+      if (p('CD138') && !p('CD20')) dx.push({ name: 'Neoplasia plasmacellulare', conf: 'high', detail: 'CD138+/CD20−: mieloma/plasmocitoma.' });
+    }
+    if (p('CD3') && n('CD20')) {
+      if (p('CD30') && p('ALK')) dx.push({ name: 'ALCL ALK+', conf: 'high', detail: 'Prognosi favorevole.' });
+      if (p('CD30') && n('ALK')) dx.push({ name: 'ALCL ALK-neg o PTCL CD30+', conf: 'medium', detail: '' });
+      if (p('CD4') && !p('CD8')) dx.push({ name: 'Linfoma T CD4+', conf: 'medium', detail: 'PD1/CXCL13 per AITL.' });
+      if (p('CD8') && (p('TIA1') || p('Perfor'))) dx.push({ name: 'Linfoma T citotossico', conf: 'medium', detail: 'EATL, HSTCL, T-LGL.' });
+      if (p('CD56') && (p('TIA1') || p('Perfor'))) dx.push({ name: 'Linfoma NK/T', conf: 'medium', detail: 'EBER essenziale.' });
+    }
+    if (n('CD3') && n('CD20')) {
+      if (p('CD30') && p('CD15')) dx.push({ name: 'Hodgkin classico', conf: 'high', detail: 'CD30+/CD15+/CD20−/CD3−. PAX5 dim.' });
+      if (p('CD138')) dx.push({ name: 'Neoplasia plasmacellulare', conf: 'high', detail: '' });
+      if (p('CD1a')) dx.push({ name: 'Istiocitosi di Langerhans', conf: 'high', detail: 'S100 tipicamente +.' });
+      if (p('CD56') && !p('CD138')) dx.push({ name: 'BPDCN o NK-cell', conf: 'medium', detail: 'CD123, TCL1.' });
+    }
+    if (!t('CD3') && !t('CD20')) dx.push({ name: 'CD3/CD20 necessari', conf: 'low', detail: '' });
+  }
+
+  // === MELANOCYTIC ===
+  if (panelId === 'melanocytic') {
+    if (p('MelanA') || p('HMB45') || p('SOX10')) {
+      let m = []; if (p('MelanA')) m.push('Melan-A'); if (p('HMB45')) m.push('HMB45'); if (p('SOX10')) m.push('SOX10');
+      dx.push({ name: 'Melanoma', conf: 'high', detail: `${m.join('+')}+ con S100+. PRAME+ supporta malignità vs nevo [Voiculescu 2025].` });
+      if (p('PRAME')) dx.push({ name: 'Melanoma (PRAME+)', conf: 'high', detail: 'PRAME+: sens ~75%, spec ~95% per melanoma vs nevo.' });
+    }
+    if (p('SOX10') && n('MelanA') && n('HMB45')) dx.push({ name: 'MPNST o melanoma desmoplastico', conf: 'medium', detail: 'SOX10+/Melan-A−/HMB45−.' });
+    if (n('MelanA') && n('HMB45') && (!t('SOX10') || n('SOX10'))) {
+      if (p('GFAP')) dx.push({ name: 'Schwannoma/neurofibroma', conf: 'medium', detail: 'S100+/GFAP+.' });
+      if (p('NF')) dx.push({ name: 'Tumore neurale', conf: 'medium', detail: 'S100+/NF+.' });
+      if (p('STAT6')) dx.push({ name: 'SFT', conf: 'high', detail: 'STAT6 nucleare+.' });
+      if (p('EMA') && !p('GFAP') && !p('NF')) dx.push({ name: 'Meningioma', conf: 'medium', detail: 'S100+/EMA+.' });
+    }
+    if (p('Synapt') || p('Cromo')) dx.push({ name: 'Paraganglioma', conf: 'medium', detail: 'Sustentacolari S100+, cellule tumorali SYN+/CgA+.' });
+  }
+
+  // === MESENCHYMAL ===
+  if (panelId === 'mesenchymal') {
+    if (p('Desmina') && (p('SMA') || p('HHF35'))) {
+      if (p('Caldesmon')) dx.push({ name: 'Leiomiosarcoma', conf: 'high', detail: 'Desmina+/Actina+/h-Caldesmone+ [Wakefield 2024].' });
+      else dx.push({ name: 'Tumore muscolare liscio', conf: 'medium', detail: 'h-Caldesmone per conferma.' });
+    }
+    if (p('Desmina') && (p('MYOD1') || p('Miogenina'))) dx.push({ name: 'Rabdomiosarcoma', conf: 'high', detail: 'Miogenina diffusa → alveolare (FOXO1). Focale → embrionale.' });
+    if (p('CD31') || p('ERG') || p('FattVIII')) dx.push({ name: 'Neoplasia vascolare', conf: 'high', detail: 'ERG più sensibile [Wakefield 2024].' });
+    if (p('DOG1') || (p('CD117') && !p('CD31'))) dx.push({ name: 'GIST', conf: 'high', detail: 'DOG1 più specifico. KIT/PDGFRA per terapia.' });
+    if (p('STAT6')) dx.push({ name: 'SFT', conf: 'high', detail: 'STAT6 nucleare+ (NAB2-STAT6). CD34+ nel 90%.' });
+    if (p('CD34') && !p('STAT6') && !p('CD31') && !p('ERG') && t('STAT6')) dx.push({ name: 'DFSP', conf: 'medium', detail: 'CD34+/STAT6−: DFSP (COL1A1-PDGFB) se dermico.' });
+    if (p('MDM2') || p('CDK4')) dx.push({ name: 'Liposarcoma WD/DD', conf: 'high', detail: 'MDM2+/CDK4+: 12q13-15. FISH MDM2.' });
+    if (n('INI1')) dx.push({ name: 'Tumore INI1-deficiente', conf: 'high', detail: 'Rabdoide, sarcoma epitelioide, MPNST epitelioide.' });
+    if (n('SMARCA4')) dx.push({ name: 'Sarcoma SMARCA4-deficiente', conf: 'high', detail: '' });
+    if (p('CD99') && p('Synapt')) dx.push({ name: 'Ewing / PNET', conf: 'medium', detail: 'FISH EWSR1.' });
+    if (p('BCL2') && p('CD99') && (p('EMA') || p('CK_check'))) dx.push({ name: 'Sarcoma sinoviale', conf: 'medium', detail: 'BCL2+/CD99+/EMA+±CK. FISH SS18.' });
+    if (p('EMA') && !p('Desmina') && !p('SMA') && !p('CD31') && !p('DOG1') && !p('BCL2')) dx.push({ name: 'Meningioma o perineurioma', conf: 'medium', detail: 'PR+, SSTR2a per meningioma.' });
+    if (dx.length === 0 && Object.keys(sl).length > 3) dx.push({ name: 'Sarcoma indifferenziato (UPS)', conf: 'low', detail: 'NGS sarcoma panel [Wakefield 2024].' });
+  }
+
+  // === UNDIFFERENTIATED ===
+  if (panelId === 'undifferentiated') {
+    if (p('SALL4') || p('OCT34')) dx.push({ name: '⚠ GCT — subset curabile', conf: 'high', detail: 'Cisplatino-sensibile.' });
+    if (p('PLAP') && p('CD117')) dx.push({ name: 'Seminoma', conf: 'high', detail: '' });
+    if (p('Synapt') || p('Cromo')) dx.push({ name: 'NEC', conf: 'medium', detail: 'Ki67 per conferma.' });
+    if (p('Desmina') && (p('MYOD1') || p('Miogenina'))) dx.push({ name: 'Rabdomiosarcoma', conf: 'high', detail: '' });
+    if (p('CD99')) dx.push({ name: 'Ewing', conf: 'medium', detail: 'CD99+ membranoso: FISH EWSR1.' });
+    if (n('INI1')) dx.push({ name: 'Tumore INI1-deficiente', conf: 'high', detail: '' });
+    if (n('SMARCA4')) dx.push({ name: 'SMARCA4-deficiente', conf: 'high', detail: '' });
+    if (p('CD30') && !p('CD3') && !p('CD20')) dx.push({ name: 'ALCL (CD45 dim/neg)', conf: 'medium', detail: '' });
+    if (p('CD3') || p('CD20')) dx.push({ name: 'Linfoma (CD45 falso-neg?)', conf: 'medium', detail: 'Ripetere CD45.' });
+    if (p('ERG') && !p('CD3') && !p('CD20')) dx.push({ name: 'Ewing o vascolare', conf: 'medium', detail: 'CD31 per differenziare.' });
+    if (dx.length === 0 && Object.keys(sl).length > 3) dx.push({ name: 'Neoplasia indifferenziata NOS', conf: 'low', detail: 'NGS ampio, secondo parere. Accuratezza IHC ~70% [Zhao 2025].' });
+  }
+
+  return dx;
+}
+
+// ============================================================
+// ALERTS (live, within carcinoma panel)
+// ============================================================
+function getAlerts() {
+  const sl = state.panel;
+  const p = (id) => sl[id] === '+';
+  const alerts = [];
+  if (p('SALL4') || p('OCT34') || p('PLAP') || p('AFP') || p('HCG')) {
+    alerts.push({ type: 'curable', title: '⚠ SUBSET POTENZIALMENTE CURABILE — Tumore a cellule germinali', detail: 'GCT extragonadico: chemioterapia tipo BEP, altamente curativa. Non trattare come CUP classico [SEOM-GECOD 2022, ESMO 2023]. Priorità nella refertazione.' });
+  }
+  if (p('Synapt') || p('Cromo') || p('CD56ne')) {
+    alerts.push({ type: 'warning', title: 'Differenziazione neuroendocrina — Definire grading', detail: 'Ki-67 mandatorio. NEC: platino-etoposide. NET: SSA, PRRT. INSM1 non disponibile FBF (sens 96,4% vs 87,4% pannello classico — Rooper 2017).' });
+  }
+  if (p('p63') || p('p40') || p('CK56')) {
+    alerts.push({ type: 'warning', title: 'Fenotipo squamoso confermato', detail: 'SCC linfonodale cervicale da primitivo occulto H&N: trattare come H&N (trimodale), prognosi migliore dei CUP "veri" [SEOM-GECOD]. HPV status cruciale.' });
+  }
+  return alerts;
+}
+
+// ============================================================
+// SUGGESTIONS
+// ============================================================
+function getSuggestions(panelId) {
+  const sl = state.panel;
+  const p = (id) => sl[id] === '+';
+  const n = (id) => sl[id] === '-';
+  const t = (id) => sl[id] === '+' || sl[id] === '-';
+  const s = [];
+
+  if (panelId === 'carcinoma') {
+    if (!t('CK7') || !t('CK20')) s.push('<code>CK7</code> e <code>CK20</code> come primo step CUP [SEOM-GECOD].');
+    if (p('CK7') && n('CK20') && !t('TTF1') && !t('GATA3') && !t('PAX8')) s.push('CK7+/CK20−: aggiungere <code>TTF1</code>, <code>GATA3</code>, <code>PAX8</code>.');
+    if (n('CK7') && n('CK20') && !t('HSA') && !t('PSA')) s.push('CK7−/CK20−: aggiungere <code>Hepatocyte/Arginasi</code>, <code>PSA/NKX3.1</code>.');
+    if (n('PSA') && !t('NKX3')) s.push('PSA neg: <code>NKX3.1</code> mandatoria (sens 98,6%, spec 99-100%) [SEOM-GECOD, CUPISCO].');
+    if ((p('GATA3') && p('ER')) && !t('HER2')) s.push('Mammella: <code>HER2</code> e <code>Ki-67</code> per profilo.');
+    if (p('CDX2') && !t('MLH1')) s.push('Colorettale: <code>MMR</code> (MLH1, MSH2, MSH6, PMS2) mandatorio.');
+    if ((p('HSA') || p('Arginasi')) && !t('Arginasi') && !t('HSA')) s.push('HCC: usare sia <code>Arginasi-1</code> che <code>HepPar-1</code> per massima sensibilità.');
+  }
+  if (panelId === 'hematolymphoid') {
+    if (p('CD20') && p('CD5') && !t('CycD1')) s.push('CD20+/CD5+: <code>Ciclina D1</code> obbligatoria per MCL.');
+    if (p('Cmyc') && p('BCL2')) s.push('<code>FISH MYC e BCL2</code> mandatoria per HGBL.');
+    if (p('CD20') && !t('BCL2') && !t('BCL6') && !t('MUM1')) s.push('DLBCL: algoritmo Hans con <code>CD10</code>, <code>BCL6</code>, <code>MUM-1</code>.');
+  }
+  if (panelId === 'melanocytic') {
+    if (!t('MelanA') && !t('HMB45') && !t('SOX10')) s.push('Aggiungere <code>Melan-A</code>, <code>HMB45</code>, <code>SOX10</code>.');
+    if ((p('MelanA') || p('HMB45') || p('SOX10')) && !t('PRAME')) s.push('<code>PRAME</code> per DDx melanoma vs nevo.');
+  }
+  if (panelId === 'mesenchymal') {
+    if (p('CD117') && !t('DOG1')) s.push('CD117+: <code>DOG1</code> per conferma GIST.');
+    if (p('CD34') && !t('STAT6')) s.push('CD34+: <code>STAT6</code> nucleare per SFT.');
+  }
+  return s;
+}
+
+function getGaps(panelId) {
+  const gaps = [];
+  if (panelId === 'carcinoma' || panelId === 'undifferentiated') {
+    gaps.push('⚠ <code>INSM1</code> non in pannello FBF. Sens 96,4% nei NEN vs 87,4% del pannello SYN+CgA+CD56 (Rooper 2017). Su TMA >14.000: 89% NEN, 3,5% non-NE. Considerare attivazione per piccole biopsie polmonari/mediastiniche.');
+    gaps.push('<code>MOC31</code>/<code>Claudina-4</code> — utili nel DDx mesotelioma vs adenocarcinoma.');
+    gaps.push('<code>PAP</code> — complementare a PSA/NKX3.1 nel pannello SEOM, non in FBF.');
+  }
+  return gaps;
+}
+
+// ============================================================
+// UI RENDERING
+// ============================================================
+function renderGrid(containerId, markers, setFn) {
+  const grid = document.getElementById(containerId);
+  if (!grid) return;
+  grid.innerHTML = '';
+  let hasSacco = false;
+  markers.forEach(m => {
+    const val = state.panel[m.id];
+    if (m.sacco) hasSacco = true;
+    const card = document.createElement('div');
+    card.className = `ab-card ${val === '+' ? 'positive' : val === '-' ? 'negative' : val === 'nt' ? 'nottested' : ''} ${m.sacco ? 'sacco-marker' : ''}`;
+    const saccoHtml = m.sacco ? '<span class="sacco-tag">Sacco</span>' : '';
+    card.innerHTML = `
+      <div><div class="ab-name">${m.name}${saccoHtml}</div></div>
+      <div class="ab-toggles">
+        <button class="toggle-btn ${val === '+' ? 'active-pos' : ''}" onclick="${setFn}('${m.id}', '+')" title="Positivo">+</button>
+        <button class="toggle-btn ${val === '-' ? 'active-neg' : ''}" onclick="${setFn}('${m.id}', '-')" title="Negativo">−</button>
+        <button class="toggle-btn ${val === 'nt' ? 'active-nt' : ''}" onclick="${setFn}('${m.id}', 'nt')" title="Non testato">NT</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+  return hasSacco;
+}
+
+function renderSectionedPanel(containerId, sections) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  let hasSacco = false;
+  sections.forEach(sec => {
+    const label = document.createElement('div');
+    label.className = 'section-label';
+    label.textContent = sec.label;
+    container.appendChild(label);
+    const grid = document.createElement('div');
+    grid.className = 'ab-grid';
+    grid.id = 'grid_' + sec.label.replace(/\W/g, '_');
+    container.appendChild(grid);
+    sec.markers.forEach(m => {
+      const val = state.panel[m.id];
+      if (m.sacco) hasSacco = true;
+      const card = document.createElement('div');
+      card.className = `ab-card ${val === '+' ? 'positive' : val === '-' ? 'negative' : val === 'nt' ? 'nottested' : ''} ${m.sacco ? 'sacco-marker' : ''}`;
+      const saccoHtml = m.sacco ? '<span class="sacco-tag">Sacco</span>' : '';
+      card.innerHTML = `
+        <div><div class="ab-name">${m.name}${saccoHtml}</div></div>
+        <div class="ab-toggles">
+          <button class="toggle-btn ${val === '+' ? 'active-pos' : ''}" onclick="setPanel('${m.id}', '+')" title="Positivo">+</button>
+          <button class="toggle-btn ${val === '-' ? 'active-neg' : ''}" onclick="setPanel('${m.id}', '-')" title="Negativo">−</button>
+          <button class="toggle-btn ${val === 'nt' ? 'active-nt' : ''}" onclick="setPanel('${m.id}', 'nt')" title="Non testato">NT</button>
+        </div>`;
+      grid.appendChild(card);
+    });
+  });
+  if (hasSacco) {
+    const legend = document.createElement('div');
+    legend.className = 'sacco-legend';
+    legend.innerHTML = '<span class="sacco-tag">Sacco</span> = anticorpo disponibile c/o P.O. Sacco (su richiesta)';
+    container.appendChild(legend);
+  }
+}
+
+function renderBigFour() {
+  const grid = document.getElementById('bigFourGrid');
+  grid.innerHTML = '';
+  BIG_FOUR.forEach(m => {
+    const val = state.bigFour[m.id];
+    const card = document.createElement('div');
+    card.className = `ab-card ${val === '+' ? 'positive' : val === '-' ? 'negative' : val === 'nt' ? 'nottested' : ''}`;
+    card.innerHTML = `
+      <div><div class="ab-name">${m.name}</div><div class="ab-alias">${m.alias}</div></div>
+      <div class="ab-toggles">
+        <button class="toggle-btn ${val === '+' ? 'active-pos' : ''}" onclick="setBigFour('${m.id}', '+')" title="Positivo">+</button>
+        <button class="toggle-btn ${val === '-' ? 'active-neg' : ''}" onclick="setBigFour('${m.id}', '-')" title="Negativo">−</button>
+        <button class="toggle-btn ${val === 'nt' ? 'active-nt' : ''}" onclick="setBigFour('${m.id}', 'nt')" title="Non testato">NT</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function setBigFour(id, val) {
+  state.bigFour[id] = state.bigFour[id] === val ? null : val;
+  state.panel = {};
+  renderBigFour();
+  updateAll();
+}
+
+function setPanel(id, val) {
+  state.panel[id] = state.panel[id] === val ? null : val;
+  const result = getLineage();
+  if (!result) return;
+  renderSectionedPanel('step2Content', PANELS[result.panel].sections);
+  updateAlerts();
+  updateDiagnoses();
+}
+
+function updateAll() {
+  const result = getLineage();
+  const interpSection = document.getElementById('interpSection');
+  const step2 = document.getElementById('step2');
+  const step3dx = document.getElementById('step3dx');
+  const suggestSection = document.getElementById('suggestSection');
+  const gapSection = document.getElementById('gapSection');
+
+  if (!result) {
+    [interpSection, step2, step3dx, suggestSection, gapSection].forEach(el => el.classList.add('hidden'));
+    return;
+  }
+
+  // Interpretation
+  const info = LINEAGE_INFO[result.lineage] || { name: '?', css: '', detail: '' };
+  const bf = state.bigFour;
+  let patternHtml = '';
+  ['CK', 'CD45', 'S100', 'VIM'].forEach(k => {
+    if (bf[k]) {
+      const label = k === 'VIM' ? 'Vim' : k;
+      if (bf[k] === 'nt') patternHtml += `<span class="pattern-badge"><span>${label}</span> <span style="color:var(--nt)">NT</span></span>`;
+      else patternHtml += `<span class="pattern-badge"><span>${label}</span> <span class="${bf[k] === '+' ? 'p' : 'n'}">${bf[k]}</span></span>`;
+    }
+  });
+  interpSection.innerHTML = `<div class="interp-box ${info.css}"><div class="interp-lineage">${info.name}</div><div class="interp-detail">${info.detail}</div><div class="interp-pattern">Pattern: ${patternHtml}</div></div>`;
+  interpSection.classList.remove('hidden');
+
+  // Panel
+  const panel = PANELS[result.panel];
+  document.getElementById('step2Title').textContent = panel.title;
+  document.getElementById('step2Desc').textContent = panel.desc;
+  renderSectionedPanel('step2Content', panel.sections);
+  step2.classList.remove('hidden');
+
+  updateAlerts();
+  updateDiagnoses();
+}
+
+function updateAlerts() {
+  const result = getLineage();
+  const container = document.getElementById('alertsContainer');
+  container.innerHTML = '';
+  if (!result || result.panel !== 'carcinoma') return;
+  const alerts = getAlerts();
+  alerts.forEach(a => {
+    container.innerHTML += `<div class="alert-box ${a.type} ml38"><div class="alert-title">${a.title}</div><div class="alert-detail">${a.detail}</div></div>`;
+  });
+}
+
+function updateDiagnoses() {
+  const result = getLineage();
+  if (!result) return;
+  const dx = getDiagnoses(result.panel);
+  const step3dx = document.getElementById('step3dx');
+  const dxList = document.getElementById('dxList');
+  const suggestSection = document.getElementById('suggestSection');
+  const gapSection = document.getElementById('gapSection');
+
+  const hasSelections = Object.values(state.panel).some(v => v !== null);
+
+  if (dx.length === 0 && !hasSelections) {
+    step3dx.classList.add('hidden');
+  } else if (dx.length === 0) {
+    dxList.innerHTML = '<div class="dx-card low"><div class="dx-name">In attesa di risultati</div><div class="dx-detail">Impostare i marcatori sopra per generare ipotesi diagnostiche.</div></div>';
+    step3dx.classList.remove('hidden');
+  } else {
+    dxList.innerHTML = '';
+    dx.forEach(d => {
+      const card = document.createElement('div');
+      card.className = `dx-card ${d.conf}`;
+      card.innerHTML = `<div class="dx-name">${d.name} <span class="dx-confidence ${d.conf}">${d.conf === 'high' ? 'Alta probabilità' : d.conf === 'medium' ? 'Probabile' : 'Da definire'}</span></div><div class="dx-detail">${d.detail}</div>`;
+      dxList.appendChild(card);
+    });
+    step3dx.classList.remove('hidden');
+  }
+
+  // Suggestions
+  const suggestions = getSuggestions(result.panel);
+  if (suggestions.length > 0) {
+    suggestSection.innerHTML = `<div class="suggest-box"><div class="suggest-title">💡 Prossimi anticorpi suggeriti</div><div class="suggest-text">${suggestions.map(s => '• ' + s).join('<br>')}</div></div>`;
+    suggestSection.classList.remove('hidden');
+  } else { suggestSection.classList.add('hidden'); }
+
+  // Gaps
+  const gaps = getGaps(result.panel);
+  if (gaps.length > 0 && Object.keys(state.panel).filter(k => state.panel[k]).length > 2) {
+    gapSection.innerHTML = `<div class="gap-box"><div class="gap-title">🔬 Gap pannello FBF</div><div class="gap-text">${gaps.map(g => '• ' + g).join('<br>')}</div></div>`;
+    gapSection.classList.remove('hidden');
+  } else { gapSection.classList.add('hidden'); }
+}
+
+function resetAll() {
+  state.bigFour = { CK: null, CD45: null, S100: null, VIM: null };
+  state.panel = {};
+  renderBigFour();
+  ['interpSection', 'step2', 'step3dx', 'suggestSection', 'gapSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
+}
+
+// Init
+renderBigFour();
+</script>
+</body>
+</html>
