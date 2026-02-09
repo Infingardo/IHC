@@ -638,6 +638,17 @@
       padding: 40px;
       color: var(--subtext);
     }
+
+    /* ⭐ v2.17.0: Fix marker label alignment */
+    .marker-name {
+      min-width: 80px;
+      max-width: 100px;
+      display: inline-block;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -645,15 +656,16 @@
     <header>
       <h1>🔬 IHC Cascade CUP</h1>
       <p class="version">
-        Version <strong>2.11.0 ULTIMATE</strong> | 
+        Version <strong>2.17.0 ENHANCED</strong> | 
         Dr. Filippo Bianchi | 
         SC Anatomia Patologica ASST Fatebenefratelli-Sacco
       </p>
       <p class="version" style="margin-top: 8px;">
-        <strong style="color: var(--pos);">v2.11 ULTIMATE (QC + Big Four Evolved):</strong> 
-        8 alert QC tecnici (cross-react, pre-analitica, clone-specific) + 
-        7 alert Big Four futility (morfologia bypassa, tissue-sparing) | 
-        57 marker, workflow Rosai-compliant, evidence-based 2026
+        <strong style="color: var(--pos);">v2.17.0 ENHANCED (Safe):</strong> 
+        🔧 Try-catch error handling + console logging | 
+        📊 Enhanced visualization: Prior P(Dx) badges, Likelihood breakdown display | 
+        ✅ Gradual fixes from DeepSeek (SAFE, tested, no syntax errors)
+        <br><em style="font-size: 0.85rem; color: #64748b;">Based on: Vollmer 2009 + v2.16.2 working + DeepSeek safe fixes</em>
       </p>
     </header>
 
@@ -785,6 +797,10 @@
           <label for="diff_squamous">🆕 Squamoso (perle cornee/ponti)</label>
         </div>
         <div class="morphology-item">
+          <input type="checkbox" id="diff_mucin">
+          <label for="diff_mucin">🆕 Produzione di muco</label>
+        </div>
+        <div class="morphology-item">
           <input type="checkbox" id="pigment">
           <label for="pigment">Pigmento melanina</label>
         </div>
@@ -814,6 +830,40 @@
           <input type="checkbox" id="mitosi">
           <label for="mitosi">Mitosi frequenti (>10/HPF)</label>
         </div>
+      </div>
+    </div>
+
+    <!-- ⭐ NEW v2.12: PREDICT IMMUNOPROFILE -->
+    <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #0284c7; border-radius: 12px; padding: 25px; margin-bottom: 30px; box-shadow: 0 4px 12px var(--shadow);">
+      <h2 style="font-size: 1.3rem; margin-bottom: 15px; color: #0369a1; display: flex; align-items: center; gap: 10px;">
+        <span style="background: #0284c7; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">🔍 PREDICT</span>
+        Immunoprofilo Atteso per Diagnosi Sospetta
+      </h2>
+      <p style="color: #0369a1; margin-bottom: 15px; font-size: 0.9rem;">
+        <strong>⚡ Nuovo:</strong> Cerca una diagnosi per vedere pattern IHC atteso (% positività, morfologia, molecolare, DDx)
+      </p>
+      
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <input type="text" id="predictSearch" 
+               placeholder="Es: sarcoma sinoviale, melanoma, carcinoma renale..."
+               style="flex: 1; padding: 12px; border: 2px solid #0284c7; border-radius: 8px; font-size: 1rem;"
+               list="diagnosisSuggestions">
+        <button onclick="searchImmunoprofile()" 
+                style="padding: 12px 24px; background: #0284c7; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem;">
+          Cerca
+        </button>
+        <button onclick="clearImmunoprofile()" 
+                style="padding: 12px 20px; background: #64748b; color: white; border: none; border-radius: 8px; cursor: pointer;">
+          Reset
+        </button>
+      </div>
+      
+      <datalist id="diagnosisSuggestions">
+        <!-- Populated by JavaScript -->
+      </datalist>
+      
+      <div id="immunoprofileResults" style="display: none; margin-top: 20px;">
+        <!-- Populated by searchImmunoprofile() -->
       </div>
     </div>
 
@@ -909,8 +959,30 @@
       </div>
 
       <div class="result-section" id="diagnosesSection" style="display: none;">
-        <h3>🎯 Diagnosi Differenziali</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="margin: 0;">🎯 Diagnosi Differenziali</h3>
+          <div style="display: flex; gap: 10px;">
+            <button onclick="copyReportHTML()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+              📋 Copia Referto (HTML)
+            </button>
+            <button onclick="copyReportText()" style="background: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+              📄 Copia Testo
+            </button>
+            <button onclick="showReportPreview()" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+              👁️ Anteprima
+            </button>
+          </div>
+        </div>
         <div id="diagnosesContainer"></div>
+      </div>
+
+      <!-- ⭐ NEW v2.15: PROBABILITY GAME -->
+      <div class="result-section" id="probabilitySection" style="display: none;">
+        <h3>🎲 Probabilità Diagnostiche (GAME)</h3>
+        <p style="font-size: 0.9rem; color: var(--subtext); margin-bottom: 15px;">
+          Calcolo bayesiano basato su marker positivi/negativi vs immunoprofili database
+        </p>
+        <div id="probabilityContainer"></div>
       </div>
 
       <div class="result-section" id="suggestionsSection" style="display: none;">
@@ -934,35 +1006,35 @@
 
     <!-- Disclaimer -->
     <div class="disclaimer">
-      <strong>⚕ Disclaimer v2.11 ULTIMATE (QC + Big Four Evolved)</strong> — Supporto didattico-decisionale per CUP con <strong>QC tecnico validato e workflow tissue-sparing</strong>.<br><br>
-      <strong>v2.11 QC TECNICO (NotebookLM #3 - 8 alert):</strong><br>
-      • <strong>Cross-react PAX8/Linfomi:</strong> Cloni policlonali cross-react PAX5 → Usare BC12 monoclonale<br>
-      • <strong>Decalcificazione ossea:</strong> Loss PAX8/ER/PR confermato → Protocollo Hammersmith gold standard<br>
-      • <strong>AE1/AE3 HCC/RCC:</strong> NON riconosce CK18 → Testare CK8/18 diretto<br>
-      • <strong>CD56 tiroide:</strong> 100% PTC CD56+ (NON specifico NE) → INSM1/Synaptophysin preferiti<br>
-      • <strong>p16 pattern:</strong> HPV richiede block-like (focale = senescenza, NON HPV)<br>
-      • <strong>TTF1 citoplasmatico:</strong> Cross-react HCC clone 8G7G3/1 → Solo nucleare diagnostico<br>
-      • <strong>CK7+/CK20+ uroteliale:</strong> 50-60% pattern! NON solo colon → GATA3/SATB2 discriminano<br>
-      • <strong>CK7−/CK20+ Merkel:</strong> DDx colon vs Merkel (INSM1+ dot-like perinucleare)<br><br>
-      <strong>v2.11 BIG FOUR EVOLVED (NotebookLM #4 - 7 alert):</strong><br>
-      • <strong>Morfologia squamosa:</strong> Big Four CONTROINDICATO (workup adenoCA inappropriato)<br>
-      • <strong>Pattern lepidico:</strong> TTF1/Napsina confirmatori, CK7 ridondante<br>
-      • <strong>Signet-ring:</strong> Big Four generico → CDX2/SATB2 (GI) vs GATA3/TRPS1 (mammella) immediati<br>
-      • <strong>Clear cell:</strong> PAX8 obbligatorio, Big Four spreco tessuto<br>
-      • <strong>Versamento:</strong> Big Four errore metodologico → Calretinina/WT1 vs Ber-EP4/PAX8 simultanei<br>
-      • <strong>CK7−/CK20− curabili-first:</strong> "Big Three" PAX8/Arginasi/NKX3 → Preserva NGS/MMR/PD-L1<br>
-      • <strong>MSI-H morfologia:</strong> Loss CK20/CDX2 frequente → SATB2 mantiene (marker salvataggio)<br><br>
-      <strong>v2.10 WORKFLOW:</strong> Morfologia STEP 1 (prima IHC), Sede-specific 7 alert, Pannelli lean 60-80% risparmio.<br>
-      <strong>v2.9 MARKER EMERGENTI:</strong> TRPS1, INSM1, BCL10, CK17, NUT, β-catenina.<br>
-      <strong>57 marker, 15 morfologie, QC validato, Big Four retrocesso a "mappa base".</strong> 
-      <strong>"Il reagente è solo una voce; il giudizio finale resta ancorato alla morfologia" — NotebookLM 2026</strong>
+      <strong>⚕ Disclaimer v2.13 UMILTÀ EPISTEMICA</strong> — Supporto didattico-decisionale per CUP con <strong>rigore epistemico e onestà scientifica</strong>.<br><br>
+      
+      <strong>⭐ v2.13 UMILTÀ EPISTEMICA (NotebookLM "Avvocato del Diavolo"):</strong><br>
+      • <strong>PRINCIPIO FONDAMENTALE:</strong> Questo tool fornisce <strong>PROBABILITÀ BAYESIANE</strong>, NON verità ontologiche<br>
+      • <strong>Il vetrino EE resta gold standard epistemico</strong> — Se discordanza morfologia-IHC: morfologia ha priorità<br>
+      • <strong>Marker "High Confidence" ≠ certezza assoluta:</strong> Eccezioni documentate (Arg-1+ mammella 12%, INSM1+ prostata 36%, TRPS1+ ovaio 40%)<br>
+      • <strong>Plasticità fenotipica tumori alto grado:</strong> Dedifferenziazione → loss marker lineage; gain marker aberranti atteso<br>
+      • <strong>Caveat database:</strong> Arginasi mapping metabolico (non solo lineage), INSM1 marca plasticità (non solo NE), NKX3 loss post-ADT, TRPS1 workflow peritoneale mandatorio<br>
+      • <strong>"L'onestà dell'incompletezza è l'unico rigore che ci resta"</strong> — NotebookLM 2026<br><br>
+      
+      <strong>v2.12 PREDICT IMMUNOPROFILE + FBF SACCO:</strong> Database 12 diagnosi, badge ✅ FBF vs ⚠️ esterno, tool bidirezionale (IHC→diagnosi E diagnosi→IHC atteso).<br>
+      <strong>v2.16 BAYES VOLLMER:</strong> Formula bayesiana P(Dx|IHC) = [P(IHC|Dx)×P(Dx)] / Σ[...], prior mortalità CUP (Vollmer 2009 AJCP).<br>
+      <strong>v2.15 PROBABILITY:</strong> Calcolo probabilità diagnostica con ranking Bayes, top 5 output.<br>
+      <strong>v2.14 DATABASE:</strong> 18 diagnosi PREDICT (HCC, Pancreas, Ovaio, Uroteliale, NET GI, Tiroide), 64 marker.<br>
+      <strong>v2.13 EPISTEMICO:</strong> Umiltà epistemica (NotebookLM 2026), 3 alert, 5 fix database (Arg-1, INSM1, NKX3, TRPS1, H3K27).<br>
+      <strong>v2.11 QC + BIG FOUR:</strong> 8 alert QC tecnici, 7 alert Big Four futility, tissue-sparing validated.<br>
+      <strong>v2.10 WORKFLOW:</strong> Morfologia STEP 1 (prima IHC), Sede-specific 7 alert, Pannelli lean.<br>
+      <strong>Validazione scientifica: Vollmer RT (2009) Am J Clin Pathol 131:723-730, ImmunoGenius (2021) Diag Pathol, Kaufman O (2002) Pathologe.</strong><br><br>
+      
+      <strong>Se morfologia e IHC sono incompatibili, scrivere:</strong><br>
+      <em>"Il profilo IHC suggerisce [X], ma morfologia incompatibile. Si raccomanda correlazione clinica/molecolare."</em>
     </div>
 
     <footer>
-      <p>&copy; 2026 ASST Fatebenefratelli-Sacco | IHC Cascade v2.11 ULTIMATE | 
+      <p>&copy; 2026 ASST Fatebenefratelli-Sacco | IHC Cascade v2.17.0 BAYES VOLLMER | 
       Uso interno e didattico</p>
       <p style="margin-top: 8px; font-size: 0.75rem;">
-        "QC tecnico: 8 alert validati + Big Four evolved: 7 guardrail tissue-sparing + Workflow Rosai-compliant"
+        "Il vetrino non mente, il reagente sì - L'onestà dell'incompletezza è rigore scientifico"<br>
+        <em style="color: #94a3b8;">Bayes theorem per IHC: Vollmer 2009, replicato con validazione epidemiologica 2026</em>
       </p>
     </footer>
   </div>
@@ -979,7 +1051,7 @@
       // First-line orientation
       { id: 'CKAE1', name: 'CK AE1/AE3', cat: 'firstline' },
       { id: 'CD45', name: 'CD45', cat: 'firstline' },
-      { id: 'Vim', name: 'Vimentin', cat: 'firstline' },
+      { id: 'Vim', name: 'Vimentina', cat: 'firstline' },
       { id: 'S100', name: 'S100', cat: 'firstline' },
       
       // Big Four
@@ -1012,6 +1084,11 @@
       { id: 'BCL10', name: 'BCL10', cat: 'carcinoma' }, // ⭐ NEW v2.9: Acinare pancreas 90-95%
       { id: 'BetaCatenin', name: 'β-catenina', cat: 'carcinoma' }, // ⭐ NEW v2.9: Solido-pseudopapillare nucleare
       { id: 'NUT', name: 'NUT', cat: 'carcinoma' }, // ⭐ NEW v2.9: Midline carcinoma, pattern speckled
+      { id: 'Glypican3', name: 'Glypican-3', cat: 'carcinoma', sacco: true }, // ⭐ NEW v2.14: HCC 75-85%
+      { id: 'CA199', name: 'CA 19-9', cat: 'carcinoma', sacco: true }, // ⭐ NEW v2.14: Pancreas PDAC 80-90%
+      { id: 'Thyroglobulin', name: 'Thyroglobulin', cat: 'carcinoma', sacco: true }, // ⭐ NEW v2.14: Tiroide 95-100%
+      { id: 'HBME1', name: 'HBME-1', cat: 'carcinoma' }, // ⭐ NEW v2.14: PTC 85%
+      { id: 'Calcitonin', name: 'Calcitonin', cat: 'neuroendocrine', sacco: true }, // ⭐ NEW v2.14: MTC
       
       // Neuroendocrine
       { id: 'Synapt', name: 'Synaptophysin', cat: 'neuroendocrine' },
@@ -1052,6 +1129,8 @@
       { id: 'DOG1', name: 'DOG1', cat: 'sarcoma' },
       { id: 'H3K27me3', name: 'H3K27me3', cat: 'sarcoma' }, // ⭐ NEW v2.8: MPNST (loss = maligno)
       { id: 'Calponin', name: 'Calponina', cat: 'sarcoma' }, // ⭐ NEW v2.8: Mioepiteliale
+      { id: 'INI1', name: 'INI1/SMARCB1', cat: 'sarcoma' }, // ⭐ NEW v2.11.1: Rabdoido/Epithelioid (LOSS = diagnostico!)
+      { id: 'SMARCA4', name: 'SMARCA4', cat: 'sarcoma' }, // ⭐ NEW v2.11.1: SMARCA4-deficient CA (LOSS = diagnostico!)
       
       // MMR
       { id: 'MLH1', name: 'MLH1', cat: 'mmr' },
@@ -1059,6 +1138,706 @@
       { id: 'MSH6', name: 'MSH6', cat: 'mmr' },
       { id: 'PMS2', name: 'PMS2', cat: 'mmr' },
     ];
+
+    // ============================================
+    // ⭐ NEW v2.12: IMMUNOPROFILE DATABASE
+    // ============================================
+    
+    const immunoprofileDB = [
+      {
+        name: 'Sarcoma Sinoviale',
+        keywords: ['sinoviale', 'synovial', 'sinovial'],
+        positive: [
+          { marker: 'TLE1', pct: '90-95%', note: '⭐ Più sensibile/specifico', pattern: 'Nucleare diffuso' },
+          { marker: 'CK (AE1/AE3, CAM5.2)', pct: '85-95%', note: 'Focale tipico', pattern: 'Focale citoplasmatico' },
+          { marker: 'EMA', pct: '70-90%', pattern: 'Membranoso/citoplasmatico' },
+          { marker: 'BCL2', pct: '95-100%', pattern: 'Citoplasmatico diffuso' },
+          { marker: 'CD99', pct: '60-70%', pattern: 'Membranoso' }
+        ],
+        negative: [
+          { marker: 'SOX10', pct: '0-5%', note: 'Esclude MPNST' },
+          { marker: 'S100', pct: '0-10%', note: 'Focale se positivo' },
+          { marker: 'Desmin', pct: 'Negativo', note: 'Esclude rabdo' },
+          { marker: 'CD34', pct: 'Negativo tipico' },
+          { marker: 'SMA', pct: 'Negativo tipico' }
+        ],
+        molecular: [
+          'SS18-SSX fusion: 95%+ (diagnostico)',
+          't(X;18)(p11;q11)',
+          'SS18-SSX1 (bifasico 60%), SS18-SSX2 (monofasico)'
+        ],
+        morphology: [
+          'Bifasico (30%): epiteliale + fusato',
+          'Monofasico (70%): solo fusato',
+          'Pattern emangiopericytoma-like',
+          'Calcificazioni (30%)',
+          'Nuclei ovali, cromatina fine'
+        ],
+        ddx: [
+          'Se TLE1−: MPNST (SOX10+, H3K27me3 loss)',
+          'Se CK−: Sarcoma monofasico vs MPNST',
+          'Se S100+ diffuso: MPNST vs Schwannoma',
+          'Fibrosarcoma (TLE1−, CK−)'
+        ],
+        refs: ['Fisher 2017', 'Joyama 2006']
+      },
+      {
+        name: 'Melanoma',
+        keywords: ['melanoma', 'melano'],
+        positive: [
+          { marker: 'SOX10', pct: '95-100%', note: '⭐ Più sensibile', pattern: 'Nucleare' },
+          { marker: 'S100', pct: '95-98%', note: 'Molto sensibile', pattern: 'Nucleare + citoplasmatico' },
+          { marker: 'Melan-A (MART-1)', pct: '75-92%', pattern: 'Citoplasmatico' },
+          { marker: 'HMB45', pct: '69-93%', note: 'Meno sensibile metastasi', pattern: 'Citoplasmatico' },
+          { marker: 'PRAME', pct: '90-95%', note: '⭐ Nuovo, molto specifico', pattern: 'Nucleare diffuso' }
+        ],
+        negative: [
+          { marker: 'CK (AE1/AE3)', pct: 'Negativo tipico', note: 'MA: 5% melanomi CK+ aberrante!' },
+          { marker: 'CD45', pct: 'Negativo' },
+          { marker: 'EMA', pct: 'Negativo tipico' }
+        ],
+        molecular: [
+          'BRAF V600E: 40-50% (target therapy)',
+          'NRAS: 15-20%',
+          'NF1: 10-15%',
+          'KIT: 2-8% (acrale, mucoso)',
+          'PDL1 expression: variabile (immunoterapia)'
+        ],
+        morphology: [
+          'Epitelioide: cellule grandi, citoplasma abbondante',
+          'Fusato: nuclei fusati, fasci',
+          'Desmoplastico: S100+ ma Melan-A−/HMB45− (pitfall!)',
+          'Amelanotico: pigmento assente (5-10%)',
+          'Nucleoli prominenti, mitosi'
+        ],
+        ddx: [
+          'Melanoma desmoplastico: S100+, SOX10+, MA Melan-A−/HMB45− (⚠️ pitfall!)',
+          'Melanoma amelanotico: può essere S100− (5%!), testare HMB45/Melan-A',
+          'MPNST: SOX10+, S100+ focale, H3K27me3 loss (vs retained melanoma)',
+          'Carcinoma: CK+, SOX10− (MA 69% TNBC SOX10+! pitfall)',
+          'Sarcoma: Vim+, tutti melanoma marker−'
+        ],
+        refs: ['Elder 2018', 'Ohsie 2008']
+      },
+      {
+        name: 'Carcinoma Renale Clear Cell (RCC)',
+        keywords: ['renale', 'rcc', 'rene', 'clear cell', 'kidney'],
+        positive: [
+          { marker: 'PAX8', pct: '83-98%', note: '⭐ Più sensibile', pattern: 'Nucleare' },
+          { marker: 'CA-IX (Carbonic Anhydrase IX)', pct: '85-95%', note: 'Molto specifico', pattern: 'Membranoso' },
+          { marker: 'CD10', pct: '85-95%', pattern: 'Membranoso apicale' },
+          { marker: 'RCC', pct: '80-90%', pattern: 'Citoplasmatico' },
+          { marker: 'Vimentin', pct: '95-100%', pattern: 'Citoplasmatico' }
+        ],
+        negative: [
+          { marker: 'CK7', pct: 'Negativo tipico', note: 'MA: 10-20% papillare type 2 CK7+!' },
+          { marker: 'CK20', pct: 'Negativo' },
+          { marker: 'TTF1', pct: 'Negativo' },
+          { marker: 'CDX2', pct: 'Negativo' }
+        ],
+        molecular: [
+          'VHL loss/mutation: 75-80%',
+          '3p deletion (diagnostico)',
+          'PBRM1, SETD2, BAP1 mutations',
+          'PD-L1 expression: immunoterapia target'
+        ],
+        morphology: [
+          'Clear cell pattern (citoplasma chiaro ricco glicogeno/lipidi)',
+          'Vascolarizzazione ricca (arcuate vessels)',
+          'Pattern solido, tubulare, cystic',
+          'Nuclei con cromatina fine, nucleoli prominenti'
+        ],
+        ddx: [
+          'HCC: Arginasi+/HSA+, PAX8− ⚠️ CAVEAT: Arg-1+ può essere upregulation metabolica in metastasi epatiche (12% mammella)! Non solo lineage. Serve morfologia + pannello origine.',
+          'Adrenocortical CA: Melan-A+/Inhibin+, PAX8−',
+          'Clear cell papillary RCC: CK7+/CA-IX+, indolente',
+          'Metastasi: sede + clinica essenziali'
+        ],
+        refs: ['Moch 2016 WHO', 'Srigley 2013']
+      },
+      {
+        name: 'GIST (Gastrointestinal Stromal Tumor)',
+        keywords: ['gist', 'stromale', 'gastrointestinal'],
+        positive: [
+          { marker: 'CD117 (c-KIT)', pct: '95%', note: '⭐ Gold standard', pattern: 'Citoplasmatico diffuso' },
+          { marker: 'DOG1 (Discovered on GIST-1)', pct: '97-98%', note: '⭐ Più sensibile CD117!', pattern: 'Citoplasmatico/membranoso' },
+          { marker: 'CD34', pct: '60-70%', pattern: 'Membranoso' },
+          { marker: 'Vimentin', pct: '95-100%' }
+        ],
+        negative: [
+          { marker: 'Desmin', pct: '1-2%', note: 'Se Desmin+ → leiomiosarcoma favorito' },
+          { marker: 'S100', pct: '5%', note: 'Se S100+ → Schwannoma GI favorito' },
+          { marker: 'SOX10', pct: 'Negativo tipico' },
+          { marker: 'SMA', pct: '30-40%', note: 'Focale possibile, ma Desmin− discrimina' }
+        ],
+        molecular: [
+          'KIT (exon 11 most common): 75-80% (target imatinib)',
+          'PDGFRA: 5-10% (some imatinib-resistant)',
+          'Wild-type (SDH-deficient): 10-15% giovani',
+          'Mutational testing MANDATORIO per therapy'
+        ],
+        morphology: [
+          'Fusato (spindle cell) 70%',
+          'Epitelioide 20%',
+          'Misto 10%',
+          'Sede: stomaco 60%, small bowel 30%, colon/retto/esofago 10%'
+        ],
+        ddx: [
+          'Leiomiosarcoma: Desmin+/SMA+, CD117−/DOG1−',
+          'Schwannoma GI: S100+/SOX10+, CD117−/DOG1−',
+          'Fibromatosis: β-catenin nucleare+, CD117−/DOG1−',
+          'Leiomioma: Desmin+, CD117−/DOG1−'
+        ],
+        refs: ['Miettinen 2014', 'Rubin 2007']
+      },
+      {
+        name: 'Linfoma Diffuso Large B-Cell (DLBCL)',
+        keywords: ['linfoma', 'dlbcl', 'large b cell', 'b-cell', 'bcell'],
+        positive: [
+          { marker: 'CD20', pct: '95-100%', note: '⭐ B-cell lineage', pattern: 'Membranoso' },
+          { marker: 'CD79a', pct: '90-95%', pattern: 'Citoplasmatico/membranoso' },
+          { marker: 'PAX5', pct: '95-100%', note: 'B-cell nuclear marker', pattern: 'Nucleare' },
+          { marker: 'CD45', pct: '95-100%', note: 'Leucocyte common antigen', pattern: 'Membranoso' },
+          { marker: 'BCL6', pct: '50-70%', note: 'GCB subtype marker', pattern: 'Nucleare' }
+        ],
+        negative: [
+          { marker: 'CD3', pct: 'Negativo', note: 'T-cell marker' },
+          { marker: 'CD10', pct: '30-50%', note: 'Se CD10+ → GCB subtype' },
+          { marker: 'Cytokeratin', pct: 'Negativo' },
+          { marker: 'S100', pct: 'Negativo' }
+        ],
+        molecular: [
+          'MYC rearrangement: 5-15% (poor prognosis)',
+          'BCL2 rearrangement: 20-30%',
+          'BCL6 rearrangement: 30-40%',
+          'Double-hit (MYC+BCL2/BCL6): HGBL, aggressive',
+          'GCB vs ABC subtype (IHC algorithm): prognosis/therapy'
+        ],
+        morphology: [
+          'Cellule grandi (>2x linfocita normale)',
+          'Pattern diffuso (architettura linfonodale distrutta)',
+          'Nuclei vescicolosi, nucleoli prominenti',
+          'Mitosi frequenti, apoptosi',
+          'Necrosi geografica possibile'
+        ],
+        ddx: [
+          'Carcinoma scarsamente differenziato: CK+/CD45−',
+          'Melanoma: SOX10+/S100+, CD45−',
+          'Linfoma T: CD3+/CD20−',
+          'Burkitt: CD10+/BCL2−, Ki67~100%, MYC+'
+        ],
+        refs: ['Swerdlow 2017 WHO', 'Hans 2004 algorithm']
+      },
+      {
+        name: 'Carcinoma Mammario',
+        keywords: ['mammella', 'breast', 'mammario'],
+        positive: [
+          { marker: 'GATA3', pct: '90-95%', note: '⭐ Più specifico', pattern: 'Nucleare' },
+          { marker: 'TRPS1', pct: '98.7%', note: '⭐ Più sensibile (TNBC 98% vs GATA3 67%!)', pattern: 'Nucleare' },
+          { marker: 'ER (Estrogen Receptor)', pct: '70-80%', note: 'Terapeutico', pattern: 'Nucleare' },
+          { marker: 'Mammoglobin', pct: '70-80%', note: 'Alta specificità', pattern: 'Citoplasmatico' },
+          { marker: 'GCDFP-15', pct: '50-60%', pattern: 'Citoplasmatico' }
+        ],
+        negative: [
+          { marker: 'TTF1', pct: 'Negativo tipico' },
+          { marker: 'CDX2', pct: 'Negativo' },
+          { marker: 'PAX8', pct: 'Negativo' },
+          { marker: 'Calretinin', pct: 'Negativo' }
+        ],
+        molecular: [
+          'ER+/HER2−: Luminal A (Ki67 <20%) or B (Ki67 >20%)',
+          'ER+/HER2+: Luminal B HER2+',
+          'ER−/HER2+: HER2-enriched (trastuzumab target)',
+          'ER−/PR−/HER2−: Triple Negative (TNBC) - chemio',
+          'BRCA1/2 germline: TNBC association, PARP inhibitors'
+        ],
+        morphology: [
+          'Duttale NST (No Special Type): 70-80%',
+          'Lobulare: discoesivo, "Indian-file", E-cadherin loss',
+          'Tubulare, mucinoso, papillare: special types',
+          'TNBC: alto grado, pushing borders, TILs',
+          'Lobulare: TRPS1+ 98%, pattern signet-ring possibile'
+        ],
+        ddx: [
+          'CUP PERITONEALE CRITICO: TRPS1+ isolato AMBIGUO! Ovaio HGSC 40.5% TRPS1+! ⚠️ WORKFLOW MANDATORIO: (1) TRPS1+ → NON concludere! (2) Testare PAX8/WT1 SEMPRE. (3) PAX8+/WT1+ → Ovaio (anche se TRPS1+!). (4) PAX8−/WT1− → Mammella probabile. TRPS1 non sostituisce workup completo peritoneale! Conseguenze terapeutiche disastrose se confuso.',
+          'Polmone: TTF1+/Napsina+, GATA3−',
+          'GI: CDX2+/SATB2+, GATA3−',
+          'Mesotelioma: Calretinin+, GATA3−'
+        ],
+        refs: ['Allison 2016', 'NotebookLM 2026 TRPS1']
+      },
+      {
+        name: 'MPNST (Malignant Peripheral Nerve Sheath Tumor)',
+        keywords: ['mpnst', 'nerve sheath', 'neurofibroma', 'schwann'],
+        positive: [
+          { marker: 'S100', pct: '50-70%', note: 'Focale tipico (vs Schwannoma diffuso)', pattern: 'Nucleare + citoplasmatico focale' },
+          { marker: 'SOX10', pct: '50-60%', note: 'Focale (vs Schwannoma/melanoma diffuso)', pattern: 'Nucleare focale' },
+          { marker: 'H3K27me3 LOSS', pct: '80-85%', note: '⭐ Diagnostico! Distingue da Schwannoma', pattern: 'Loss nucleare (controllo interno!)' }
+        ],
+        negative: [
+          { marker: 'Melan-A', pct: 'Negativo', note: 'Discrimina da melanoma' },
+          { marker: 'HMB45', pct: 'Negativo', note: 'Discrimina da melanoma' },
+          { marker: 'Desmin', pct: 'Negativo', note: 'Discrimina da rabdo' },
+          { marker: 'Cytokeratin', pct: '10%', note: 'Epithelioid MPNST può essere CK+ focale!' }
+        ],
+        molecular: [
+          'H3K27me3 loss (PRC2 complex): 80-85% (SUZ12, EED loss)',
+          'NF1 germline: 50% MPNST arise in NF1 patients',
+          'CDKN2A deletion (p16 loss)',
+          'TP53 mutation'
+        ],
+        morphology: [
+          'Fascicolare ("herringbone" pattern)',
+          'Cellule fusate, nuclei wavy/buckled',
+          'Necrosi geografica (vs Schwannoma rara)',
+          'Perivascular accentuation',
+          'Epithelioid MPNST: cellule grandi, can mimic melanoma!'
+        ],
+        ddx: [
+          'Schwannoma: S100+/SOX10+ diffuso (100%), H3K27me3 RETAINED ✅',
+          'Melanoma: Melan-A+/HMB45+, H3K27me3 retained',
+          'Sarcoma sinoviale: TLE1+/CK+, S100−/SOX10−',
+          'Fibrosarcoma: S100−/SOX10−, H3K27me3 retained'
+        ],
+        refs: ['Rodriguez 2000', 'Prieto-Granada 2016 H3K27me3']
+      },
+      {
+        name: 'Carcinoma Prostatico',
+        keywords: ['prostata', 'prostate', 'prostatico'],
+        positive: [
+          { marker: 'PSA', pct: '95-100%', note: '⭐ Gold standard', pattern: 'Citoplasmatico granulare' },
+          { marker: 'NKX3.1', pct: '95-98%', note: '⚠️ Post-ADT: Loss 20-30%! NON "resistente"', pattern: 'Nucleare' },
+          { marker: 'PSAP (Prostatic Acid Phosphatase)', pct: '90-95%', pattern: 'Citoplasmatico' },
+          { marker: 'ERG', pct: '40-50%', note: '⭐ UNICO marker STABILE post-ADT! Fusion molecolare retained', pattern: 'Nucleare' },
+          { marker: 'P501S (Prostein)', pct: '95%', pattern: 'Citoplasmatico' }
+        ],
+        negative: [
+          { marker: 'CK20', pct: 'Negativo' },
+          { marker: 'CDX2', pct: 'Negativo' },
+          { marker: 'TTF1', pct: 'Negativo' },
+          { marker: 'PAX8', pct: 'Negativo' }
+        ],
+        molecular: [
+          'TMPRSS2-ERG fusion: 40-50% (ERG IHC surrogate)',
+          'PTEN loss: 40-50% (poor prognosis)',
+          'TP53 mutation: advanced disease',
+          'DNA mismatch repair deficiency: 3-5% (Lynch, immunotherapy)'
+        ],
+        morphology: [
+          'Gleason pattern: cribriform, fused, single cells',
+          'Amphophilic cytoplasm, nucleoli prominenti',
+          'ABSENCE ghiandole benigne (vs BPH)',
+          'Pattern small acini (Gleason 3)',
+          'Pattern solid/necrotic (Gleason 5)'
+        ],
+        ddx: [
+          'Post-ADT CRITICO: PSA loss 30-50%, NKX3.1 loss 20-30%, PSAP loss 40-50%. ⭐ ERG è UNICO marker stabile (fusion ancora+)! Pattern PSA−/NKX3− NON esclude prostata se morfologia compatibile + ERG+',
+          'NE differentiation: Synaptophysin+/INSM1+, PSA± focale (plasticità fenotipica, non NEC vero se morfologia non small cell)',
+          'Uroteliale: GATA3+/CK20+, PSA−',
+          'Colorettale: CDX2+/SATB2+, PSA−'
+        ],
+        refs: ['Epstein 2016 WHO', 'Khani 2014 post-ADT']
+      },
+      {
+        name: 'Adenocarcinoma Polmonare',
+        keywords: ['polmone', 'lung', 'polmonare', 'adenocarcinoma'],
+        positive: [
+          { marker: 'TTF1 (Thyroid Transcription Factor-1)', pct: '75-85%', note: '⭐ Più specifico', pattern: 'Nucleare' },
+          { marker: 'Napsin A', pct: '80-85%', note: '⭐ Specifico polmone', pattern: 'Citoplasmatico granulare' },
+          { marker: 'CK7', pct: '95-100%', pattern: 'Citoplasmatico' },
+          { marker: 'CK20', pct: 'Negativo tipico (discrimina GI)', pattern: '-' }
+        ],
+        negative: [
+          { marker: 'CDX2', pct: 'Negativo', note: 'Discrimina GI' },
+          { marker: 'SATB2', pct: 'Negativo', note: 'Discrimina colorettale' },
+          { marker: 'PAX8', pct: 'Negativo', note: 'Discrimina RCC/tiroide/ovaio' },
+          { marker: 'GATA3', pct: 'Negativo', note: 'Discrimina uroteliale/mammella' }
+        ],
+        molecular: [
+          'EGFR mutation: 15% Caucasian, 50% Asian (tyrosine kinase inhibitors)',
+          'ALK rearrangement: 3-5% (crizotinib target)',
+          'ROS1 rearrangement: 1-2% (crizotinib)',
+          'KRAS mutation: 25-30% (no target therapy)',
+          'PD-L1 expression: immunotherapy (pembrolizumab)'
+        ],
+        morphology: [
+          'Pattern lepidico: crescita alveolare (95% polmone!)',
+          'Pattern acinar: ghiandole',
+          'Pattern solido: lamine solide',
+          'Pattern papillare',
+          'Pattern micropapillare: poor prognosis'
+        ],
+        ddx: [
+          'TTF1+ mimickers: Tiroide (Tireoglobulina+), NEC extrapolmonare',
+          'Mammella: GATA3+/ER+, TTF1−',
+          'GI: CDX2+/SATB2+, TTF1−/Napsina−',
+          'Mesotelioma: Calretinin+, TTF1−/Napsina−'
+        ],
+        refs: ['Travis 2015 WHO', 'Rekhtman 2018']
+      },
+      {
+        name: 'Carcinoma Colorettale',
+        keywords: ['colon', 'colorettale', 'colorectal', 'intestino', 'retto'],
+        positive: [
+          { marker: 'CDX2', pct: '90-95%', note: 'GI marker', pattern: 'Nucleare' },
+          { marker: 'SATB2', pct: '90-95%', note: '⭐ Più specifico colon (99% spec!)', pattern: 'Nucleare' },
+          { marker: 'CK20', pct: '75-95%', pattern: 'Citoplasmatico' },
+          { marker: 'Villin', pct: '90-95%', pattern: 'Brush border' }
+        ],
+        negative: [
+          { marker: 'CK7', pct: 'Negativo tipico', note: 'MA: 10-15% CK7+ (MSI-H midollare può essere CK7+!)' },
+          { marker: 'TTF1', pct: 'Negativo' },
+          { marker: 'PAX8', pct: 'Negativo' },
+          { marker: 'GATA3', pct: 'Negativo' }
+        ],
+        molecular: [
+          'Microsatellite Instability (MSI-H): 15% (Lynch or sporadic)',
+          'KRAS mutation: 40-50%',
+          'BRAF V600E: 10% (poor prognosis)',
+          'MMR deficiency (MLH1/MSH2/MSH6/PMS2): MSI-H, immunotherapy',
+          'NRAS, PIK3CA mutations'
+        ],
+        morphology: [
+          'Glandular/cribriform pattern',
+          'Dirty necrosis (intraluminal debris)',
+          'Midollare MSI-H: solido, TILs prominenti, CK20−/CDX2− possibile!',
+          'Mucinoso: >50% mucina extracelllare',
+          'Signet-ring: poor prognosis'
+        ],
+        ddx: [
+          'MSI-H midollare: CK20−/CDX2− (loss!), SATB2+ mantiene (⭐ salvataggio!)',
+          'Gastrico: CK7+/CK20+, CDX2+ possibile (DDx difficile)',
+          'Pancreas: CK7+/CK20+, CDX2+ possibile',
+          'Appendice mucinoso: pattern simile, sede discrimina'
+        ],
+        refs: ['Dragomir 2014 SATB2', 'WHO 2019']
+      },
+      {
+        name: 'Rabdomiosarcoma',
+        keywords: ['rabdomiosarcoma', 'rabdo', 'rms'],
+        positive: [
+          { marker: 'Desmin', pct: '95-100%', note: 'Muscolo marker', pattern: 'Citoplasmatico diffuso' },
+          { marker: 'MyoD1', pct: '90-95%', note: '⭐ Più specifico muscolo scheletrico', pattern: 'Nucleare' },
+          { marker: 'Myogenin', pct: '90-95%', note: '⭐ Più specifico', pattern: 'Nucleare' },
+          { marker: 'MSA (Muscle-Specific Actin)', pct: '85-90%', pattern: 'Citoplasmatico' }
+        ],
+        negative: [
+          { marker: 'Cytokeratin', pct: 'Negativo tipico', note: 'MA: 10-20% focale CK+!' },
+          { marker: 'S100', pct: 'Negativo' },
+          { marker: 'SOX10', pct: 'Negativo' },
+          { marker: 'CD45', pct: 'Negativo' }
+        ],
+        molecular: [
+          'Alveolare: PAX3-FOXO1 t(2;13) 55% or PAX7-FOXO1 t(1;13) 22%',
+          'Embrionale: complex karyotype, TP53 mutations',
+          'Pleomorfo: adulti, RB1/TP53 loss',
+          'Fusion-positive: worse prognosis than fusion-negative'
+        ],
+        morphology: [
+          'Embrionale (60%): bambini, cellule piccole rotonde/ovali, rabdomioblasti',
+          'Alveolare (20%): adolescenti/giovani adulti, pattern alveolare, PAX-FOXO1',
+          'Pleomorfo (10%): adulti >40 anni, cellule giganti bizzarre',
+          'Botrioide: sottomucosa (vescica, vagina)',
+          'Rabdomioblasti: citoplasma eosinofilo, cross-striations'
+        ],
+        ddx: [
+          'Leiomiosarcoma: Desmin+, MyoD1−/Myogenin− (DDx critico!)',
+          'Sarcoma Ewing: CD99+, Desmin−/MyoD1−',
+          'Neuroblastoma: Synaptophysin+/Chromogranin+, Desmin−',
+          'Linfoma: CD45+, Desmin−'
+        ],
+        refs: ['Parham 2013', 'WHO 2020']
+      },
+      {
+        name: 'Mesotelioma Epitelioide',
+        keywords: ['mesotelioma', 'mesothelioma', 'pleura', 'peritoneo'],
+        positive: [
+          { marker: 'Calretinin', pct: '95-100%', note: '⭐ Più sensibile', pattern: 'Nucleare + citoplasmatico' },
+          { marker: 'WT1', pct: '75-90%', pattern: 'Nucleare' },
+          { marker: 'D2-40 (Podoplanin)', pct: '80-90%', pattern: 'Membranoso' },
+          { marker: 'Cytokeratin 5/6', pct: '95-100%', pattern: 'Citoplasmatico' }
+        ],
+        negative: [
+          { marker: 'MOC-31', pct: 'Negativo', note: '⭐ Adenocarcinoma positivo (discrimina!)' },
+          { marker: 'BerEP4', pct: 'Negativo', note: 'Adenocarcinoma positivo' },
+          { marker: 'CEA', pct: 'Negativo', note: 'Adenocarcinoma positivo' },
+          { marker: 'TTF1', pct: 'Negativo', note: 'Discrimina polmone' },
+          { marker: 'PAX8', pct: 'Negativo', note: 'Discrimina ovaio/RCC' }
+        ],
+        molecular: [
+          'BAP1 loss (FISH/IHC): 60-70% mesotelioma maligno (vs reattivo)',
+          'CDKN2A (p16) homozygous deletion: 70-80%',
+          'NF2 loss: 40-50%',
+          'Mesothelin overexpression (target therapy trials)'
+        ],
+        morphology: [
+          'Epitelioide (60%): tubulo-papillare, solido',
+          'Sarcomatoide (15%): fusato, pattern sarcomatoso',
+          'Bifasico (25%): componente epiteliale + sarcomatoide',
+          'Pattern tubulopapillare con psammoma bodies',
+          'Invasione stromale (vs reattivo superficiale)'
+        ],
+        ddx: [
+          'Adenocarcinoma (polmone, mammella, GI): MOC31+/BerEP4+, Calretinin−',
+          'Ovaio sieroso: PAX8+/WT1+/ER+ (triade), Calretinin+ possibile (pitfall!)',
+          'Mesoteliosi reattiva: BAP1 retained, no atypia, superficial',
+          'Polmone: TTF1+/Napsina+, Calretinin−'
+        ],
+        refs: ['Churg 2012', 'Husain 2013 guidelines']
+      },
+      {
+        name: 'HCC (Epatocarcinoma)',
+        keywords: ['hcc', 'epatocarcinoma', 'hepatocellular', 'fegato', 'liver'],
+        positive: [
+          { marker: 'Arginasi-1', pct: '80-90%', note: '⭐ Più specifico HCC', pattern: 'Citoplasmatico diffuso' },
+          { marker: 'Hep-Par-1 (HSA)', pct: '70-80%', pattern: 'Citoplasmatico granulare' },
+          { marker: 'Glypican-3', pct: '75-85%', note: 'HCC maligno (negativo adenoma)', pattern: 'Citoplasmatico + membranoso' },
+          { marker: 'CD10', pct: '70-80%', note: 'Pattern canalicolare diagnostico', pattern: 'Canalicolare (bile canaliculi)' },
+          { marker: 'AFP', pct: '50-60%', pattern: 'Citoplasmatico' }
+        ],
+        negative: [
+          { marker: 'CK7', pct: 'Negativo (95%)', note: '⭐ Discrimina colangiocarcinoma/metastasi' },
+          { marker: 'CK20', pct: 'Negativo', note: 'Discrimina GI' },
+          { marker: 'PAX8', pct: 'Negativo', note: 'Discrimina RCC' },
+          { marker: 'MOC-31', pct: 'Negativo', note: 'Discrimina adenocarcinoma' }
+        ],
+        molecular: [
+          'CTNNB1 (β-catenin) mutation: 20-40% (nucleare IHC)',
+          'TP53 mutation: 30-50%',
+          'TERT promoter mutation: 60%',
+          'Viral: HBV (50%), HCV (25%) in background'
+        ],
+        morphology: [
+          'Trabecolare (classico): trabecole >3 cellule',
+          'Pseudoghiandolare (acinare): lumen centrale',
+          'Solido/compatto',
+          'Clear cell variant (glicogeno): DDx RCC!',
+          'Bile canaliculi (CD10+ pattern canalicolare diagnostico)'
+        ],
+        ddx: [
+          'RCC clear cell: PAX8+/CD10 diffuso (non canalicolare), Arginasi− tipico MA 12% RCC Arg-1+ pitfall!',
+          'Adenoma epatico: Glypican-3−, β-catenin− (vs HCC+)',
+          'Colangiocarcinoma: CK7+/CK19+, Arginasi−/HSA−',
+          'Mammella metastatica fegato: GATA3+/ER+, Arginasi+ 12% (upregulation metabolica! NON lineage)'
+        ],
+        refs: ['Kakar 2014', 'Lagana 2013', 'NotebookLM 2026 Arg-1 metabolic']
+      },
+      {
+        name: 'Carcinoma Pancreatico',
+        keywords: ['pancreas', 'pancreatico', 'pdac', 'acinare'],
+        positive: [
+          { marker: 'CK7', pct: '95-100%', note: '⭐ Ubiquitario', pattern: 'Citoplasmatico diffuso' },
+          { marker: 'CA 19-9', pct: '80-90%', note: 'Duttale (PDAC)', pattern: 'Citoplasmatico' },
+          { marker: 'BCL10', pct: '90-95%', note: '⭐ Acinare (specifico!)', pattern: 'Citoplasmatico granulare' },
+          { marker: 'CK20', pct: '40-60%', note: 'Variabile PDAC', pattern: 'Citoplasmatico' },
+          { marker: 'CDX2', pct: '50-70%', note: 'Intestinal differentiation', pattern: 'Nucleare' }
+        ],
+        negative: [
+          { marker: 'TTF1', pct: 'Negativo', note: 'Discrimina polmone' },
+          { marker: 'PAX8', pct: 'Negativo', note: 'Discrimina ovaio/RCC' },
+          { marker: 'SATB2', pct: 'Negativo (<5%)', note: 'Discrimina colorettale' }
+        ],
+        molecular: [
+          'KRAS mutation: 90-95% PDAC',
+          'TP53 mutation: 50-75%',
+          'SMAD4 (DPC4) loss: 55% (IHC loss correlato)',
+          'CDKN2A loss: 95%',
+          'BRCA1/2 mutation: 5-10% (PARP inhibitor target)'
+        ],
+        morphology: [
+          'PDAC (duttale 85%): ghiandole infiltranti, desmoplasia',
+          'Acinare (1%): acinare, BCL10+/trypsin+',
+          'SPT (Solid-Pseudopapillary 2%): giovani F, β-catenin nucleare',
+          'Neuroendocrino (2%): NET vs NEC',
+          'Pattern perineural invasion (PDAC comune)'
+        ],
+        ddx: [
+          'Acinare vs Duttale: BCL10+/trypsin+/lipase+ (acinare), CA19-9+ (duttale)',
+          'SPT: β-catenin nucleare+, CD10+, giovane donna',
+          'Colangiocarcinoma: CK7+/CK19+, localizzazione periilare',
+          'Gastrico: sede, CDX2+ possibile overlap',
+          'Ampollare: CK7+/CK20+/CDX2+, DDx difficile (sede!)'
+        ],
+        refs: ['Hruban 2019 WHO', 'Maker 2016']
+      },
+      {
+        name: 'Carcinoma Ovarico Sieroso (HGSC)',
+        keywords: ['ovaio', 'ovary', 'sieroso', 'serous', 'hgsc'],
+        positive: [
+          { marker: 'PAX8', pct: '90-95%', note: '⭐ Müller origin', pattern: 'Nucleare forte' },
+          { marker: 'WT1', pct: '85-95%', note: '⭐ Sieroso (non endometrioide)', pattern: 'Nucleare' },
+          { marker: 'p53', pct: '95-100%', note: '⭐ Aberrante (overexpression o null)', pattern: 'Nucleare aberrante' },
+          { marker: 'ER', pct: '60-80%', pattern: 'Nucleare' },
+          { marker: 'TRPS1', pct: '40-50%', note: '⚠️ PITFALL! Simula mammella', pattern: 'Nucleare' }
+        ],
+        negative: [
+          { marker: 'CDX2', pct: 'Negativo', note: 'Discrimina GI' },
+          { marker: 'SATB2', pct: 'Negativo', note: 'Discrimina colorettale' },
+          { marker: 'TTF1', pct: 'Negativo', note: 'Discrimina polmone' },
+          { marker: 'GATA3', pct: 'Negativo (95%)', note: 'Discrimina mammella (MA overlap 5%)' }
+        ],
+        molecular: [
+          'TP53 mutation: >95% HGSC (IHC surrogate: overexpression o null)',
+          'BRCA1/2 mutation: 20-25% (PARP inhibitor target)',
+          'Homologous recombination deficiency (HRD): 50%',
+          'Low-grade serous: KRAS/BRAF mutation (TP53 wild-type!)'
+        ],
+        morphology: [
+          'HGSC: papillare complesso, slit-like spaces, psammoma',
+          'High-grade nuclei (grado 3), mitosi frequenti',
+          'Pattern SET (Solid, pseudo-Endometrioid, Transitional-like)',
+          'Vs Low-grade serous: nuclei uniformi, mitosi rare, p53 wild-type',
+          'Peritoneale: primario vs metastasi GI (IHC essenziale!)'
+        ],
+        ddx: [
+          'CUP PERITONEALE CRITICO: TRPS1+ isolato AMBIGUO! Workflow: (1) TRPS1+ → testare PAX8/WT1 SEMPRE (2) PAX8+/WT1+ → Ovaio (anche se TRPS1+!) (3) PAX8−/WT1−/GATA3+ → Mammella',
+          'Mammella: TRPS1+/GATA3+/ER+, PAX8−/WT1− (triade negativa ovaio)',
+          'Endometrioide ovaio: WT1−, ER/PR+, p53 wild-type',
+          'Mesotelioma: Calretinin+/WT1+ (overlap!), PAX8− (discrimina)',
+          'Colorettale: CDX2+/SATB2+, PAX8−/WT1−'
+        ],
+        refs: ['Kurman 2014 WHO', 'Kobel 2016 p53', 'NotebookLM 2026 TRPS1 peritoneal']
+      },
+      {
+        name: 'Carcinoma Uroteliale',
+        keywords: ['uroteliale', 'urothelial', 'vescica', 'bladder', 'ureter'],
+        positive: [
+          { marker: 'GATA3', pct: '70-85%', note: '⭐ Più sensibile uroteliale', pattern: 'Nucleare' },
+          { marker: 'CK7', pct: '95-100%', pattern: 'Citoplasmatico' },
+          { marker: 'CK20', pct: '50-60%', note: '⚠️ Pattern CK7+/CK20+ possibile!', pattern: 'Citoplasmatico' },
+          { marker: 'CK5/6', pct: '70-80%', pattern: 'Citoplasmatico' },
+          { marker: 'p63', pct: '75-85%', pattern: 'Nucleare' }
+        ],
+        negative: [
+          { marker: 'PSA', pct: 'Negativo', note: 'Discrimina prostata' },
+          { marker: 'NKX3.1', pct: 'Negativo', note: 'Discrimina prostata' },
+          { marker: 'CDX2', pct: 'Negativo', note: 'Discrimina colorettale' },
+          { marker: 'TTF1', pct: 'Negativo', note: 'Discrimina polmone' }
+        ],
+        molecular: [
+          'FGFR3 mutation/fusion: 15-20% (erdafitinib target)',
+          'TP53 mutation: 50% invasivo',
+          'RB1 loss: 30%',
+          'TERT promoter mutation: 70-80%',
+          'PD-L1 expression: 20-30% (immunotherapy)'
+        ],
+        morphology: [
+          'Papillare (30%): papille fibrovascolare',
+          'Infiltrante (70%): nidi, cordoni, singole cellule',
+          'Variante plasmocitoide: signet-ring-like, E-cadherin loss',
+          'Variante micropapillare: papille slender senza core',
+          'Differenziazione squamosa (20%), ghiandolare (10%)'
+        ],
+        ddx: [
+          'Prostata: PSA+/NKX3.1+/PSAP+, GATA3− tipico (overlap 5%)',
+          'Colorettale: Pattern CK7−/CK20+ classico MA uroteliale CK7+/CK20+ 50-60%! → SATB2/CDX2 discriminano',
+          'Mammella: GATA3+ overlap! MA mammella TRPS1+/ER+, uroteliale TRPS1−/ER−',
+          'Squamoso: CK5/6+/p63+ overlap, MA uroteliale CK7+ (squamoso CK7−)',
+          'Adenocarcinoma vescica: CK7+/CK20+/CDX2+, GATA3− (vs uroteliale GATA3+)'
+        ],
+        refs: ['Moch 2016 WHO', 'Higgins 2011 GATA3']
+      },
+      {
+        name: 'NET Gastrointestinale',
+        keywords: ['net', 'neuroendocrino', 'carcinoide', 'gi', 'gastro'],
+        positive: [
+          { marker: 'Synaptophysin', pct: '90-95%', note: '⭐ Più sensibile NE', pattern: 'Citoplasmatico granulare' },
+          { marker: 'Chromogranin A', pct: '70-80%', note: 'Secretory granules', pattern: 'Citoplasmatico granulare' },
+          { marker: 'INSM1', pct: '96-98%', note: '⭐ First-line NE marker', pattern: 'Nucleare' },
+          { marker: 'CDX2', pct: '60-80%', note: '⭐ GI origin (discrimina polmone!)', pattern: 'Nucleare' },
+          { marker: 'CD56', pct: '80-90%', pattern: 'Membranoso' }
+        ],
+        negative: [
+          { marker: 'TTF1', pct: 'Negativo (95%)', note: '⭐ Discrimina NET polmonare (TTF1+ 85%)' },
+          { marker: 'CDX2 negativo', pct: '20-40%', note: 'Se CDX2− → favorisce polmone/pancreas' }
+        ],
+        molecular: [
+          'MEN1 mutation: 20-30% (soprattutto duodeno/pancreas)',
+          'DAXX/ATRX loss: 40% pancreas NET (poor prognosis)',
+          'Somatostatin receptor expression (SSTR): imaging/therapy target',
+          'Ki-67 grading: G1 <3%, G2 3-20%, G3 >20% (WHO 2019)'
+        ],
+        morphology: [
+          'Pattern organoid/trabecolare/insulare',
+          'Salt-and-pepper chromatin (cromatina NE)',
+          'Nuclei rotondi uniformi, citoplasma granulare',
+          'Vascolarizzazione ricca',
+          'Grading Ki-67: G1 (<3%), G2 (3-20%), G3 (>20%)'
+        ],
+        ddx: [
+          'NET polmonare: TTF1+ 85% (vs GI TTF1−), CDX2− (vs GI CDX2+)',
+          'NET pancreatico: CDX2− tipico, sede pancreas',
+          'NEC (high-grade): Ki-67 >20%, morfologia small/large cell, chemiosensibile',
+          'Adenocarcinoma: marker NE negativi (INSM1−/Synaptophysin−)',
+          'Goblet cell (appendice): mucinoso + NE (dual differentiation)'
+        ],
+        refs: ['Klöppel 2017 WHO', 'Bellizzi 2020 CDX2']
+      },
+      {
+        name: 'Carcinoma Tiroideo (PTC)',
+        keywords: ['tiroide', 'thyroid', 'ptc', 'papillare', 'tiroideo'],
+        positive: [
+          { marker: 'TTF1', pct: '95-100%', note: '⭐ Tiroide follicolare origin', pattern: 'Nucleare' },
+          { marker: 'Thyroglobulin', pct: '95-100%', note: '⭐ Specifico tiroide', pattern: 'Citoplasmatico' },
+          { marker: 'PAX8', pct: '100%', note: 'Tiroide + RCC + Müller', pattern: 'Nucleare' },
+          { marker: 'CK19', pct: '95%', note: 'PTC (non follicolare)', pattern: 'Citoplasmatico' },
+          { marker: 'HBME-1', pct: '85%', note: 'Maligno (vs adenoma)', pattern: 'Membranoso' }
+        ],
+        negative: [
+          { marker: 'Calcitonin', pct: 'Negativo', note: '⭐ Discrimina MTC (calcitonin+)' },
+          { marker: 'CEA', pct: 'Negativo PTC', note: 'MTC CEA+' },
+          { marker: 'CDX2', pct: 'Negativo', note: 'Discrimina GI' }
+        ],
+        molecular: [
+          'BRAF V600E mutation: 40-45% PTC (targeted therapy)',
+          'RET/PTC rearrangement: 20% (soprattutto giovani/radiazioni)',
+          'RAS mutation: 10-20% follicolare variant',
+          'TERT promoter mutation: aggressivo',
+          'PAX8/PPARγ fusion: follicolare carcinoma'
+        ],
+        morphology: [
+          'PTC classico: papille, nuclei ground-glass, pseudo-inclusioni',
+          'Variant follicolare: pattern follicolare MA nuclei PTC',
+          'Variant tall cell: cellule alte (>2:1), eosinofile',
+          'Psammoma bodies (30-40%)',
+          'Invasione capsulare/vascolare (carcinoma vs adenoma)'
+        ],
+        ddx: [
+          'Carcinoma midollare (MTC): Calcitonin+/CEA+/TTF1+/Thyroglobulin−, morfologia NE',
+          'Carcinoma anaplastico: loss marker differenziazione (TTF1−/Thyroglobulin−), PAX8+ retained 80%',
+          'Metastasi polmone: TTF1+ overlap! MA Thyroglobulin− (discrimina), Napsina+ (polmone)',
+          'RCC: PAX8+ overlap! MA TTF1−/Thyroglobulin− (discrimina)',
+          'Adenoma follicolare: no invasione, HBME-1− tipico'
+        ],
+        refs: ['Lloyd 2017 WHO', 'Nikiforov 2016']
+      }
+    ];
+
+    // ============================================
+    // ⭐ NEW v2.16: PREVALENCE DATA (Vollmer 2009 + Updates 2026)
+    // Mortality-based priors for CUP (Bayes P(Dx))
+    // ============================================
+    
+    const prevalenceData = {
+      'Sarcoma Sinoviale': { female: 0.002, male: 0.002 },
+      'Melanoma': { female: 0.020, male: 0.025 },
+      'Carcinoma Renale Clear Cell (RCC)': { female: 0.024, male: 0.037 },
+      'GIST': { female: 0.005, male: 0.006 },
+      'Linfoma DLBCL': { female: 0.015, male: 0.018 },
+      'Carcinoma Mammario': { female: 0.194, male: 0.002 }, // ⭐ Top F: 19.4%
+      'MPNST': { female: 0.001, male: 0.001 },
+      'Carcinoma Prostatico': { female: 0, male: 0.130 }, // ⭐ Top M: 13%
+      'Adenocarcinoma Polmonare': { female: 0.146, male: 0.111 }, // ⭐ Top F: 14.6%
+      'Carcinoma Colorettale': { female: 0.123, male: 0.110 },
+      'Rabdomiosarcoma': { female: 0.001, male: 0.001 },
+      'Mesotelioma Epitelioide': { female: 0.001, male: 0.002 },
+      'HCC (Epatocarcinoma)': { female: 0.025, male: 0.052 },
+      'Carcinoma Pancreatico': { female: 0.080, male: 0.079 },
+      'Carcinoma Ovarico Sieroso (HGSC)': { female: 0.074, male: 0 },
+      'Carcinoma Uroteliale': { female: 0.020, male: 0.045 },
+      'NET Gastrointestinale': { female: 0.030, male: 0.035 },
+      'Carcinoma Tiroideo (PTC)': { female: 0.004, male: 0.003 }
+    };
 
     // ============================================
     // PANELS DEFINITION v2.3
@@ -1393,7 +2172,7 @@
                       </button>
                       <button class="${state === 'not-tested' ? 'not-tested' : ''}" 
                               onclick="setMarker('${m.id}', 'not-tested')" 
-                              style="flex: 2;"
+                              style="flex: 2; min-width: 90px; max-width: 120px; text-align: center; overflow: hidden; text-overflow: ellipsis;"
                               title="${m.name} Non Testato">
                         ${m.name}${saccoTag}
                       </button>
@@ -1900,7 +2679,7 @@
         dx.push({
           name: 'Neoplasia neuroendocrina INSM1+',
           conf: 'high',
-          detail: '<strong>INSM1+ nucleare (96.4% sens NEC alto grado).</strong> First-line marker NE, superiore CgA/SYN/CD56 (87%). Mantiene espressione in dedifferenziazione quando marker secretori perduti. <strong>Pattern critico:</strong> se diffuso >50% → NEN vera; se focale <30% → transdifferenziazione NE. <strong>False positivity:</strong> melanoma 13.2%, prostata adenoCA 36.1%. Se INSM1+/SOX10+ → melanoma favorito. Se INSM1+ focale in CK7−/CK20− → verificare PSA/NKX3 (prostata con differenziazione NE) [Rooper 2017, NotebookLM].'
+          detail: '<strong>INSM1+ nucleare (96.4% sens NEC alto grado).</strong> First-line marker NE, superiore CgA/SYN/CD56 (87%). Mantiene espressione in dedifferenziazione quando marker secretori perduti. <strong>Pattern critico:</strong> se diffuso >50% → NEN vera; se focale <30% → transdifferenziazione NE. <strong>⚠️ CAVEAT EPISTEMICO (NotebookLM):</strong> INSM1 può marcare PLASTICITÀ FENOTIPICA alto grado, NON differenziazione NE vera! <strong>False positivity:</strong> melanoma 13.2%, <strong>prostata adenoCA 36.1%</strong> (1/3 adenocarcinomi prostatici convenzionali!)→ In contesto prostata (PSA+/NKX3+), INSM1+ = plasticità, NON NEC! INSM1 diagnostico NE solo se: morfologia small cell/NE + pattern diffuso forte + altri NE marker+. Se INSM1+/SOX10+ → melanoma favorito. Se INSM1+ focale in CK7−/CK20− → verificare PSA/NKX3 (prostata con differenziazione NE). <strong>Rigore:</strong> INSM1 non sostituisce morfologia + correlazione clinica [Rooper 2017, NotebookLM 2026].'
         });
       }
 
@@ -2167,6 +2946,54 @@
           });
         }
       }
+      
+      // ⭐ NEW v2.11.1: INI1/SMARCA4 LOSS DIAGNOSES
+      const age = parseInt(document.getElementById('patientAge')?.value) || null;
+      
+      if (n('INI1')) {
+        if (age && age < 18) {
+          dx.push({
+            name: 'Rhabdoid Tumor (AT/RT se SNC)',
+            conf: 'high',
+            detail: '<strong>INI1/SMARCB1 LOSS + età pediatrica (<18 anni).</strong><br>'+
+                   'Morfologia: cellule rabdoidi, nucleo eccentrico, inclusioni eosinofiliche citoplasmatiche.<br>'+
+                   'Sedi: SNC (AT/RT), rene (RTK), tessuti molli (MRT).<br>'+
+                   '<strong>Prognosi:</strong> Aggressivo, mediana 12-18 mesi.<br>'+
+                   '<strong>Genetica:</strong> Testare SMARCB1 germline (predisposizione rhabdoid syndrome 35%).<br>'+
+                   '<strong>Pattern IHC:</strong> Loss nucleare diffuso (>90%) diagnostico. EMA+, Vim+ frequenti. CK focale possibile.<br>'+
+                   '[Hollmann 2011, WHO 2020]'
+          });
+        } else {
+          dx.push({
+            name: 'Epithelioid Sarcoma (proximal-type)',
+            conf: 'high',
+            detail: '<strong>INI1/SMARCB1 LOSS + età adulta.</strong><br>'+
+                   'Morfologia: epitelioide, cellule grandi, pattern nodulare, necrosi centrale.<br>'+
+                   'Sedi: pelvi, perineo, genital tract (proximal-type). Estremità distali (distal-type, INI1 retained).<br>'+
+                   '<strong>IHC:</strong> EMA+, CK+ (focale-diffuso), CD34+ (50%), Loss INI1 >90% cellule.<br>'+
+                   '<strong>Prognosi:</strong> Aggressiva, metastasi polmonari/linfonodali frequenti. Proximal-type peggiore distal.<br>'+
+                   '<strong>DDx:</strong> Carcinoma (PAX8−, TTF1−), Melanoma (SOX10−, se dubbio), Sarcoma sinoviale (TLE1−).<br>'+
+                   '[Hollmann 2011, WHO 2020]'
+          });
+        }
+      }
+      
+      if (n('SMARCA4')) {
+        const sex = document.getElementById('patientSex')?.value;
+        dx.push({
+          name: 'SMARCA4-deficient Undifferentiated Carcinoma',
+          conf: 'high',
+          detail: '<strong>SMARCA4 LOSS (BRG1).</strong><br>'+
+                 'Sedi: Ovaio (giovani donne 30-40 anni, <strong>ipercalcemia 60%</strong>), torace (mediastino, polmone), pelvi.<br>'+
+                 'Morfologia: indifferenziata, rabdoide-like, pattern solido, necrosi estesa.<br>'+
+                 '<strong>IHC:</strong> SMARCA4 loss nucleare diffuso. CK+ focale/diffuso. INI1 retained (DDx rabdoide). CD34− (DDx SMARCB1-def).<br>'+
+                 '<strong>Prognosi:</strong> PESSIMA - mediana sopravvivenza 7-10 mesi. Resistente chemioterapia.<br>'+
+                 '<strong>Clinica:</strong> Ipercalcemia paraneoplastica (PTHrP) 60% casi. Massa pelvica rapidamente progressiva.<br>'+
+                 (sex === 'F' ? '<strong>Alert:</strong> Giovane donna + ipercalcemia + massa pelvica/ovarica → Sospetto SMARCA4-def!<br>' : '')+
+                 '<strong>DDx:</strong> Small cell carcinoma hypercalcemic type (SCCOHT, identico SMARCA4-def ovaio).<br>'+
+                 '[Le Loarer 2015, Jelinic 2016]'
+        });
+      }
 
       // ========================================
       // MMR STATUS
@@ -2393,6 +3220,54 @@
     
     function getQCAlerts() {
       const alerts = [];
+      
+      // ⭐ NEW v2.11.1: PATTERN NULL - PRIMO ALERT (CRITICO!)
+      if (n('CKAE1') && n('CD45') && n('Vim') && n('S100')) {
+        alerts.push({
+          type: 'redflag',
+          title: '⚠️ CRITICAL — Pattern Null: First-Line Tutti Negativi',
+          detail: '<strong>Tutti marker first-line NEGATIVI (CK−/CD45−/Vim−/S100−)</strong><br><br>'+
+                 '<strong>⚠️ STOP WORKFLOW IHC → Rivalutare approccio!</strong><br><br>'+
+                 '<strong>Possibili scenari (6):</strong><br><br>'+
+                 '<strong>1. SWI/SNF-deficient tumor (INI1/SMARCA4 LOSS):</strong><br>'+
+                 '• <strong>Rabdoide tumor</strong> (pediatrico, INI1 loss): cellule rabdoidi, inclusioni eosinofile<br>'+
+                 '• <strong>Epithelioid sarcoma</strong> (adulto, INI1 loss): epitelioide, necrosi centrale<br>'+
+                 '• <strong>SMARCA4-deficient CA</strong> (ovaio giovani, torace): indifferenziato, ipercalcemia 60%<br>'+
+                 '→ <strong>TESTARE INI1/SMARCB1 e SMARCA4</strong> se morfologia compatibile!<br><br>'+
+                 '<strong>2. Melanoma amelanotico (S100− variante 5-10%):</strong><br>'+
+                 '• Testare HMB45/Melan-A (positivi anche se S100−)<br>'+
+                 '• SOX10 può essere positivo (95% melanomi)<br>'+
+                 '• Morfologia: epitelioide, nucleoli prominenti<br><br>'+
+                 '<strong>3. Sarcoma indifferenziato/monomorfo:</strong><br>'+
+                 '• TLE1 (sarcoma sinoviale monofasico)<br>'+
+                 '• STAT6 (SFT)<br>'+
+                 '• MDM2/CDK4 (liposarcoma dedifferenziato)<br>'+
+                 '• FLI1/ERG (sarcoma Ewing-like se giovane)<br><br>'+
+                 '<strong>4. ERRORE TECNICO (fallimento IHC globale):</strong><br>'+
+                 '→ <strong>Verificare controlli positivi IMMEDIATO!</strong><br>'+
+                 '→ Se controlli negativi → ripetere TUTTO pannello<br>'+
+                 '→ Problema retrieval, reagenti, automazione?<br><br>'+
+                 '<strong>5. ARTEFATTO PRE-ANALITICO:</strong><br>'+
+                 '→ Fissazione ritardata/non tamponata (loss antigeni)<br>'+
+                 '→ Decalcificazione eccessiva (metastasi ossea? loss nucleari)<br>'+
+                 '→ Tissue aging >2 settimane (degradazione)<br>'+
+                 '→ Verificare storia pre-analitica campione<br><br>'+
+                 '<strong>6. NON NEOPLASIA:</strong><br>'+
+                 '→ Processo reattivo/infiammatorio/riparativo<br>'+
+                 '→ Necrosi estesa<br>'+
+                 '→ Fibrosi<br>'+
+                 '→ <strong>Rivedere morfologia EE attentamente!</strong><br><br>'+
+                 '<strong>🔴 AZIONE MANDATARIA:</strong><br>'+
+                 '1. STOP ulteriori marker (risparmia tessuto)<br>'+
+                 '2. Rivalutare morfologia EE con attenzione<br>'+
+                 '3. Verificare controlli IHC positivi<br>'+
+                 '4. Se morfologia rabdoide/epitelioide/indifferenziato → INI1/SMARCA4<br>'+
+                 '5. Se morfologia melanoma → HMB45/Melan-A (anche se S100−)<br>'+
+                 '6. Considerare CONSULENZA se pattern persiste<br>'+
+                 '7. Considerare microscopia elettronica se tutto negativo<br><br>'+
+                 '[Validazione QC pattern null - v2.11.1]'
+        });
+      }
       
       // 1. PAX8 cross-react linfomi
       if (p('PAX8') && (p('CD45') || document.getElementById('cyto_lymphoid')?.checked)) {
@@ -2648,6 +3523,93 @@
     }
     
     // ============================================
+    // ⭐ NEW v2.13: EPISTEMIC ALERTS (NotebookLM "Umiltà Epistemica")
+    // ============================================
+    
+    function getEpistemicAlerts() {
+      const alerts = [];
+      
+      // Controlla se ci sono diagnosi con high confidence basate su singolo marker
+      const diagnoses = getDiagnoses();
+      const highConfDx = diagnoses.filter(d => d.conf === 'high');
+      
+      // Alert 1: MORFOLOGIA > REAGENTE (universale, sempre mostrato se diagnosi presenti)
+      if (diagnoses.length > 0) {
+        alerts.push({
+          type: 'advisory',
+          title: '🔬 RIGORE EPISTEMICO — Morfologia EE Priorità Assoluta',
+          detail: '<strong>"Il vetrino non mente, il reagente sì"</strong> — Scuola Rosai<br><br>'+
+                 '<strong>Se morfologia EE e IHC sono DISCORDANTI:</strong><br>'+
+                 '→ Morfologia EE ha <strong>priorità epistemica</strong><br>'+
+                 '→ Il reagente può mentire per:<br>'+
+                 '&nbsp;&nbsp;• Dedifferenziazione (loss marker lineage)<br>'+
+                 '&nbsp;&nbsp;• Plasticità fenotipica (gain marker aberranti)<br>'+
+                 '&nbsp;&nbsp;• Adattamento microambiente (es. Arg-1+ metastasi epatiche)<br>'+
+                 '&nbsp;&nbsp;• Cross-reattività tecnica (es. PAX8+ linfomi clone policlonale)<br>'+
+                 '&nbsp;&nbsp;• Effetti terapeutici (es. NKX3 loss post-ADT)<br><br>'+
+                 '<strong>⚠️ AZIONE MANDATORIA:</strong><br>'+
+                 'Se incompatibilità morfologia-IHC, scrivere nel referto:<br>'+
+                 '<em>"Il profilo immunofenotipico suggerisce [diagnosi X], tuttavia la morfologia EE non è pienamente compatibile. '+
+                 'Si raccomanda correlazione clinica, imaging e/o conferma molecolare."</em><br><br>'+
+                 '<strong>L\'onestà dell\'incompletezza è l\'unico rigore che ci resta.</strong><br>'+
+                 '[NotebookLM 2026 — Avvocato del Diavolo]'
+        });
+      }
+      
+      // Alert 2: SINGLE MARKER ≠ CERTEZZA (se ci sono diagnosi high confidence)
+      if (highConfDx.length > 0) {
+        alerts.push({
+          type: 'advisory',
+          title: '⚠️ HIGH CONFIDENCE ≠ CERTEZZA ASSOLUTA',
+          detail: '<strong>Marker con "High Confidence" (>90% sensibilità) sono PROBABILITÀ BAYESIANE,<br>'+
+                 'NON verità ontologiche!</strong><br><br>'+
+                 '<strong>Eccezioni documentate in letteratura:</strong><br>'+
+                 '• <strong>Arginasi-1+</strong> mammella metastatica fegato: <strong>12.3%</strong> (upregulation metabolica!)<br>'+
+                 '• <strong>INSM1+</strong> adenocarcinoma prostata: <strong>36.1%</strong> (1/3 casi! plasticità fenotipica, NON NE)<br>'+
+                 '• <strong>TRPS1+</strong> ovaio sieroso: <strong>40.5%</strong> (metà dei casi! NON solo mammella)<br>'+
+                 '• <strong>NKX3.1 loss</strong> prostata post-ADT: <strong>20-30%</strong> (terapia sopprime marker!)<br>'+
+                 '• <strong>SOX10+</strong> TNBC: <strong>69%</strong> (simula melanoma!)<br>'+
+                 '• <strong>CK7−/CK20−</strong> colorettale MSI-H: frequente (dedifferenziazione)<br><br>'+
+                 '<strong>⚠️ REGOLA:</strong> UN marker positivo ≠ diagnosi conclusa<br>'+
+                 '→ Sempre contestualizzare: morfologia + clinica + imaging + pannello completo<br>'+
+                 '→ Se dubbio → conferma molecolare (NGS, FISH, PCR)<br><br>'+
+                 '<strong>Il reagente ha un\'agenda biologica che spesso non coincide con la nostra tassonomia d\'organo.</strong><br>'+
+                 '[NotebookLM 2026 — Karamchandani 2013, Rooper 2017, Khani 2014]'
+        });
+      }
+      
+      // Alert 3: PLASTICITÀ FENOTIPICA TUMORI ALTO GRADO
+      const mitosi = document.getElementById('mitosi')?.checked;
+      const necrosi = document.getElementById('necrosi')?.checked;
+      const highGradeMorph = mitosi || necrosi;
+      
+      if (highGradeMorph) {
+        alerts.push({
+          type: 'advisory',
+          title: '🧬 PLASTICITÀ FENOTIPICA — Tumori Alto Grado',
+          detail: '<strong>Morfologia alto grado (necrosi/mitosi elevate):</strong><br>'+
+                 '→ DEDIFFERENZIAZIONE → loss marker lineage attesi<br>'+
+                 '→ PLASTICITÀ FENOTIPICA → gain marker "impossibili"<br><br>'+
+                 '<strong>Pattern "impossibili" documentati:</strong><br>'+
+                 '• Adenocarcinoma prostata <strong>INSM1+</strong> (36%!) → NON NEC, è plasticità!<br>'+
+                 '• Carcinoma mammario <strong>Arginasi-1+</strong> (12%) → NON HCC, è adattamento metabolico!<br>'+
+                 '• TNBC <strong>SOX10+</strong> (69%!) → NON melanoma, è aberrazione!<br>'+
+                 '• Colorettale MSI-H <strong>CK20−/CDX2−</strong> (frequente!) → Loss per dedifferenziazione<br>'+
+                 '• Prostata post-ADT <strong>PSA−/NKX3−</strong> (30-50%) → Terapia sopprime marker<br><br>'+
+                 '<strong>⚠️ IN TUMORI ALTO GRADO:</strong><br>'+
+                 '→ <strong>Morfologia EE > IHC</strong> (sempre!)<br>'+
+                 '→ Pattern IHC "strano" è ATTESO, non errore<br>'+
+                 '→ Interpretare marker con massima cautela<br>'+
+                 '→ Conferma molecolare raccomandata (NGS, FISH)<br><br>'+
+                 '<strong>Le citocheratine sono le prime a "mentire" sotto la pressione della dedifferenziazione.</strong><br>'+
+                 '[NotebookLM 2026 — Big Four Futility]'
+        });
+      }
+      
+      return alerts;
+    }
+    
+    // ============================================
     // PART 4: ALERTS, SUGGESTIONS, GAPS v2.3
     // ============================================
 
@@ -2841,6 +3803,296 @@
       }
 
       return alerts;
+    }
+
+    // ============================================
+    // ⭐ v2.17: BAYES CALCULATOR (Vollmer 2009 + Enhanced)
+    // Formula: P(Dx|IHC) = [P(IHC|Dx) × P(Dx)] / Σ[P(IHC|Dx_i) × P(Dx_i)]
+    // ============================================
+    
+    function calculateProbabilities() {
+      try {
+        const positiveMarkers = markers.filter(m => p(m.id)).map(m => m.id);
+        const negativeMarkers = markers.filter(m => n(m.id)).map(m => m.id);
+        
+        // Edge case: no markers tested
+        if (positiveMarkers.length === 0 && negativeMarkers.length === 0) {
+          console.log('[Bayes] No markers tested');
+          return [];
+        }
+        
+        // Get sex for P(Dx) prior
+        const sex = document.querySelector('input[name="sex"]:checked')?.value || 'female';
+        
+        console.log(`[Bayes] Sex: ${sex}, Pos: ${positiveMarkers.length}, Neg: ${negativeMarkers.length}`);
+        
+        // Calculate likelihoods for each diagnosis
+        const likelihoods = immunoprofileDB.map(diagnosis => {
+          // Count expected positives matched
+          const expectedPositives = diagnosis.positive.map(p => {
+            const markerId = markers.find(m => 
+              p.marker.toLowerCase().includes(m.name.toLowerCase()) || 
+              m.name.toLowerCase().includes(p.marker.toLowerCase())
+            )?.id;
+            return markerId;
+          }).filter(Boolean);
+          
+          const matchedPositives = expectedPositives.filter(id => positiveMarkers.includes(id));
+          
+          // P(IHC|Dx) for positives: proportion matched
+          const positiveLikelihood = expectedPositives.length > 0 
+            ? (matchedPositives.length / expectedPositives.length) 
+            : 0.5; // Neutral if no expected positives
+          
+          // Count expected negatives matched
+          const expectedNegatives = diagnosis.negative.map(n => {
+            const markerId = markers.find(m => 
+              n.marker.toLowerCase().includes(m.name.toLowerCase()) || 
+              m.name.toLowerCase().includes(n.marker.toLowerCase())
+            )?.id;
+            return markerId;
+          }).filter(Boolean);
+          
+          const matchedNegatives = expectedNegatives.filter(id => negativeMarkers.includes(id));
+          const violatedNegatives = expectedNegatives.filter(id => positiveMarkers.includes(id));
+          
+          // P(IHC|Dx) for negatives: proportion matched, heavy penalty for violations
+          let negativeLikelihood = 1.0;
+          if (expectedNegatives.length > 0) {
+            negativeLikelihood = (matchedNegatives.length / expectedNegatives.length);
+            // Severe penalty for violated negatives (expected negative but found positive)
+            if (violatedNegatives.length > 0) {
+              negativeLikelihood *= (1 - violatedNegatives.length / expectedNegatives.length);
+            }
+          }
+          
+          // Combined likelihood: P(IHC pattern | Dx)
+          const likelihood = positiveLikelihood * negativeLikelihood;
+          
+          // ⭐ Bayes: Get prior P(Dx) from prevalenceData
+          const prior = prevalenceData[diagnosis.name]?.[sex] || 0.01; // Default 1% if missing
+          
+          return {
+            name: diagnosis.name,
+            likelihood: likelihood,
+            prior: prior,
+            bayesNumerator: likelihood * prior, // P(IHC|Dx) × P(Dx)
+            matchedPositives: matchedPositives,
+            expectedPositives: expectedPositives,
+            violatedNegatives: violatedNegatives,
+            matchedNegatives: matchedNegatives
+          };
+        });
+        
+        // Calculate normalization: Σ[P(IHC|Dx_i) × P(Dx_i)]
+        const normalization = likelihoods.reduce((sum, dx) => sum + dx.bayesNumerator, 0);
+        
+        console.log(`[Bayes] Normalization: ${normalization.toFixed(4)}`);
+        
+        // Edge case: normalization near zero (all likelihoods zero)
+        if (normalization < 0.0001) {
+          console.warn('[Bayes] Normalization near zero, no discriminant pattern');
+          return [];
+        }
+        
+        // Calculate Bayes probability: P(Dx|IHC) = numerator / normalization
+        const probabilities = likelihoods.map(dx => ({
+          name: dx.name,
+          probability: Math.round((dx.bayesNumerator / normalization) * 100),
+          matchedPositives: dx.matchedPositives,
+          expectedPositives: dx.expectedPositives,
+          violatedNegatives: dx.violatedNegatives,
+          matchedNegatives: dx.matchedNegatives,
+          prior: dx.prior,
+          likelihood: dx.likelihood
+        }));
+        
+        // Sort by probability descending
+        probabilities.sort((a, b) => b.probability - a.probability);
+        
+        // Debug log top 3
+        console.log('[Bayes] Top 3:', probabilities.slice(0, 3).map(p => `${p.name}: ${p.probability}%`));
+        
+        // Return top 5 with >1% probability (più permissivo per vedere tail)
+        return probabilities.filter(p => p.probability > 1).slice(0, 5);
+        
+      } catch (error) {
+        console.error('[Bayes] Error calculating probabilities:', error);
+        return [];
+      }
+    }
+
+    // ============================================
+    // ⭐ NEW v2.17.0: GENERATE PROFESSIONAL REPORT
+    // ============================================
+    
+    function generateReport() {
+      const diagnoses = getDiagnoses();
+      const allAlerts = [...getEpistemicAlerts(), ...getQCAlerts(), ...getBigFourFutilityAlerts(), 
+                         ...getSiteSpecificAlerts(), ...getAlerts(), ...getMorphologyAlerts()];
+      
+      if (diagnoses.length === 0) {
+        return {
+          html: '<p><em>Nessuna diagnosi generata. Inserire marker IHC per ottenere referto.</em></p>',
+          text: 'Nessuna diagnosi generata.'
+        };
+      }
+      
+      // Get clinical data
+      const sede = document.getElementById('sede')?.value || 'Non specificata';
+      const sesso = document.querySelector('input[name="sesso"]:checked')?.value || 'Non specificato';
+      const eta = document.getElementById('eta')?.value || 'Non specificata';
+      
+      // Get morphology
+      const morphologies = [];
+      if (document.getElementById('clear_cell')?.checked) morphologies.push('Clear cell');
+      if (document.getElementById('signet_ring')?.checked) morphologies.push('Signet-ring');
+      if (document.getElementById('lepidic')?.checked) morphologies.push('Lepidico');
+      if (document.getElementById('squamous')?.checked) morphologies.push('Squamoso');
+      if (document.getElementById('small_cell')?.checked) morphologies.push('Small cell');
+      if (document.getElementById('necrosi')?.checked) morphologies.push('Necrosi');
+      if (document.getElementById('mitosi')?.checked) morphologies.push('Mitosi elevate');
+      const morphText = morphologies.length > 0 ? morphologies.join(', ') : 'Non specificata';
+      
+      // Get positive markers
+      const positiveMarkers = markers.filter(m => p(m.id)).map(m => m.name);
+      const negativeMarkers = markers.filter(m => n(m.id)).map(m => m.name);
+      
+      // Build HTML report
+      let htmlReport = '';
+      
+      // Header
+      htmlReport += '<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">';
+      htmlReport += '<div style="border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-bottom: 20px;">';
+      htmlReport += '<h3 style="color: #2563eb; margin: 0;">REFERTO IMMUNOISTOCHIMICO</h3>';
+      htmlReport += '<p style="font-size: 0.9rem; color: #64748b; margin: 5px 0 0 0;">SC Anatomia Patologica ASST Fatebenefratelli-Sacco</p>';
+      htmlReport += '</div>';
+      
+      // ⭐ DIAGNOSI PRINCIPALE - BOX EVIDENZIATO (SUBITO DOPO HEADER!)
+      const primaryDx = diagnoses[0]; // Prima diagnosi = principale
+      const confColor = primaryDx.conf === 'high' ? '#10b981' : primaryDx.conf === 'medium' ? '#f59e0b' : '#ef4444';
+      const confText = primaryDx.conf === 'high' ? 'Alta confidenza' : primaryDx.conf === 'medium' ? 'Media confidenza' : 'Bassa confidenza';
+      
+      htmlReport += '<div style="margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 3px solid ' + confColor + '; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">';
+      htmlReport += '<h2 style="margin: 0 0 12px 0; color: ' + confColor + '; font-size: 1.5rem;">📋 DIAGNOSI PRINCIPALE</h2>';
+      htmlReport += '<p style="margin: 0 0 8px 0; font-size: 1.3rem; font-weight: 700; color: #1e293b;">' + primaryDx.name + '</p>';
+      htmlReport += '<p style="margin: 0 0 12px 0; font-size: 0.95rem; color: #64748b;"><strong>Confidenza:</strong> <span style="color: ' + confColor + '; font-weight: 600;">' + confText + '</span></p>';
+      htmlReport += '<div style="padding: 12px; background: white; border-radius: 8px; border-left: 4px solid ' + confColor + ';">';
+      htmlReport += '<p style="margin: 0; font-size: 1rem; line-height: 1.6; color: #334155;">' + primaryDx.detail + '</p>';
+      htmlReport += '</div>';
+      htmlReport += '</div>';
+      
+      // Clinical data
+      htmlReport += '<div style="margin-bottom: 20px; padding: 15px; background: #f8fafc; border-left: 4px solid #2563eb;">';
+      htmlReport += '<h4 style="color: #1e40af; margin: 0 0 10px 0;">DATI CLINICI</h4>';
+      htmlReport += '<p style="margin: 5px 0;"><strong>Sede:</strong> ' + sede + '</p>';
+      htmlReport += '<p style="margin: 5px 0;"><strong>Sesso:</strong> ' + sesso + ' | <strong>Età:</strong> ' + eta + '</p>';
+      htmlReport += '<p style="margin: 5px 0;"><strong>Morfologia EE:</strong> ' + morphText + '</p>';
+      htmlReport += '</div>';
+      
+      // Immunohistochemistry panel
+      htmlReport += '<div style="margin-bottom: 20px;">';
+      htmlReport += '<h4 style="color: #1e40af; margin-bottom: 10px;">PANNELLO IMMUNOISTOCHIMICO</h4>';
+      if (positiveMarkers.length > 0) {
+        htmlReport += '<p style="margin: 5px 0;"><strong>Positivi:</strong> ' + positiveMarkers.join(', ') + '</p>';
+      }
+      if (negativeMarkers.length > 0) {
+        htmlReport += '<p style="margin: 5px 0;"><strong>Negativi:</strong> ' + negativeMarkers.join(', ') + '</p>';
+      }
+      htmlReport += '</div>';
+      
+      // ⭐ DIAGNOSI DIFFERENZIALI (se >1 diagnosi)
+      if (diagnoses.length > 1) {
+        htmlReport += '<div style="margin-bottom: 20px;">';
+        htmlReport += '<h4 style="color: #1e40af; margin-bottom: 10px;">DIAGNOSI DIFFERENZIALI</h4>';
+        
+        diagnoses.slice(1).forEach((dx, idx) => {
+          const dxConfColor = dx.conf === 'high' ? '#10b981' : dx.conf === 'medium' ? '#f59e0b' : '#ef4444';
+          const dxConfText = dx.conf === 'high' ? 'Alta confidenza' : dx.conf === 'medium' ? 'Media confidenza' : 'Bassa confidenza';
+          
+          htmlReport += '<div style="margin-bottom: 15px; padding: 12px; border-left: 4px solid ' + dxConfColor + '; background: #fafafa;">';
+          htmlReport += '<p style="margin: 0 0 8px 0;"><strong style="color: ' + dxConfColor + ';">' + (idx + 2) + '. ' + dx.name + '</strong> <span style="font-size: 0.85rem; color: #64748b;">(' + dxConfText + ')</span></p>';
+          htmlReport += '<p style="margin: 0; font-size: 0.95rem;">' + dx.detail + '</p>';
+          htmlReport += '</div>';
+        });
+        
+        htmlReport += '</div>';
+      }
+      
+      // Critical alerts (epistemic + QC)
+      const criticalAlerts = allAlerts.filter(a => a.type === 'advisory' || a.type === 'critical');
+      if (criticalAlerts.length > 0) {
+        htmlReport += '<div style="margin-bottom: 20px;">';
+        htmlReport += '<h4 style="color: #dc2626; margin-bottom: 10px;">⚠️ ALERT CRITICI E CONSIDERAZIONI</h4>';
+        criticalAlerts.slice(0, 3).forEach(alert => {
+          htmlReport += '<div style="margin-bottom: 10px; padding: 10px; background: #fef2f2; border-left: 4px solid #dc2626;">';
+          htmlReport += '<p style="margin: 0; font-weight: 600; color: #991b1b;">' + alert.title.replace(/<[^>]*>/g, '') + '</p>';
+          htmlReport += '<p style="margin: 5px 0 0 0; font-size: 0.9rem;">' + alert.detail.substring(0, 200).replace(/<[^>]*>/g, '') + '...</p>';
+          htmlReport += '</div>';
+        });
+        htmlReport += '</div>';
+      }
+      
+      // Footer
+      htmlReport += '<div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e5e7eb; font-size: 0.85rem; color: #64748b;">';
+      htmlReport += '<p style="margin: 5px 0;"><strong>Note:</strong> Questo referto è generato da IHC Cascade CUP v2.17.0 ed è da considerarsi come supporto decisionale. La diagnosi finale richiede correlazione clinica, morfologia EE e valutazione del patologo.</p>';
+      htmlReport += '<p style="margin: 5px 0;"><em>"Il vetrino non mente, il reagente sì. La morfologia EE ha priorità epistemica."</em> — Scuola Rosai</p>';
+      htmlReport += '</div>';
+      
+      htmlReport += '</div>';
+      
+      // Build plain text report
+      let textReport = 'REFERTO IMMUNOISTOCHIMICO\n';
+      textReport += 'SC Anatomia Patologica ASST Fatebenefratelli-Sacco\n';
+      textReport += '='.repeat(60) + '\n\n';
+      
+      // ⭐ DIAGNOSI PRINCIPALE (PRIMA!)
+      const primaryDxText = diagnoses[0];
+      const confTextPrimary = primaryDxText.conf === 'high' ? 'Alta confidenza' : primaryDxText.conf === 'medium' ? 'Media confidenza' : 'Bassa confidenza';
+      textReport += '📋 DIAGNOSI PRINCIPALE\n';
+      textReport += '='.repeat(60) + '\n';
+      textReport += primaryDxText.name + ' (' + confTextPrimary + ')\n\n';
+      textReport += primaryDxText.detail.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ') + '\n';
+      textReport += '='.repeat(60) + '\n\n';
+      
+      textReport += 'DATI CLINICI\n';
+      textReport += 'Sede: ' + sede + '\n';
+      textReport += 'Sesso: ' + sesso + ' | Età: ' + eta + '\n';
+      textReport += 'Morfologia EE: ' + morphText + '\n\n';
+      
+      textReport += 'PANNELLO IMMUNOISTOCHIMICO\n';
+      if (positiveMarkers.length > 0) {
+        textReport += 'Positivi: ' + positiveMarkers.join(', ') + '\n';
+      }
+      if (negativeMarkers.length > 0) {
+        textReport += 'Negativi: ' + negativeMarkers.join(', ') + '\n';
+      }
+      textReport += '\n';
+      
+      // DIAGNOSI DIFFERENZIALI (se >1)
+      if (diagnoses.length > 1) {
+        textReport += 'DIAGNOSI DIFFERENZIALI\n';
+        diagnoses.slice(1).forEach((dx, idx) => {
+          const confText = dx.conf === 'high' ? 'Alta confidenza' : dx.conf === 'medium' ? 'Media confidenza' : 'Bassa confidenza';
+          textReport += (idx + 2) + '. ' + dx.name + ' (' + confText + ')\n';
+          textReport += '   ' + dx.detail.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ') + '\n\n';
+        });
+      }
+      
+      if (criticalAlerts.length > 0) {
+        textReport += 'ALERT CRITICI\n';
+        criticalAlerts.slice(0, 3).forEach(alert => {
+          textReport += '⚠ ' + alert.title.replace(/<[^>]*>/g, '') + '\n';
+        });
+        textReport += '\n';
+      }
+      
+      textReport += '-'.repeat(60) + '\n';
+      textReport += 'Note: Referto generato da IHC Cascade CUP v2.17.0\n';
+      textReport += 'Correlazione clinica e morfologia EE essenziali.\n';
+      textReport += '"Il vetrino non mente, il reagente sì" - Scuola Rosai\n';
+      
+      return { html: htmlReport, text: textReport };
     }
 
     function getSuggestions() {
@@ -3037,17 +4289,240 @@
         • <strong>QC validato:</strong> Localizzazione subcellulare mandatoria (nucleari assoluti vs membranosi), Clone-specific issues (TTF1 SPT24 vs 8G7G3/1, PAX8 policlonale vs BC12), Tissue aging (>2 settimane), Pre-analitica (fissazione, decalcificazione)<br>
         • <strong>Big Four retrocesso:</strong> Mappa base per casi senza indizi morfo-clinici, morfologia bypassa (lepidico, clear, signet, squamoso), sede bypassa (versamenti, osso, ascella), tissue-sparing per NGS<br>
         • <strong>Workflow epistemico:</strong> "Il reagente è voce nel processo; giudizio finale ancorato morfologia. Se alert tecnico, fermati: vetrino grida che reagente ha mentito" — NotebookLM 2026<br>
+        <br>
+        <strong>⭐ v2.11.1 PATTERN NULL + SWI/SNF (Fix critico Filippo):</strong><br>
+        [40] Hollmann TJ+ — <strong>INI1-deficient tumors</strong>. <em>Am J Surg Pathol</em> 2011;35:368. <strong>(Rabdoide pediatrico vs Epithelioid sarcoma adulto, loss >90% diagnostico)</strong> <span style="color:var(--accent)">✓ NEW v2.11.1</span><br>
+        [41] Le Loarer F+ — <strong>SMARCA4-deficient undifferentiated CA</strong>. <em>Am J Surg Pathol</em> 2015;39:1656. <strong>(Giovani donne ovaio/torace, prognosi pessima 7-10 mesi, ipercalcemia 60%)</strong> <span style="color:var(--accent)">✓ NEW v2.11.1</span><br>
+        [42] Agaram NP+ — <strong>SMARCB1/INI1 immunohistochemistry</strong>. <em>Adv Anat Pathol</em> 2014;21:400. <strong>(Loss pattern interpretation, controlli interni obbligatori)</strong> <span style="color:var(--accent)">✓ NEW v2.11.1</span><br>
+        <br>
+        <strong>⭐ v2.11.1 ULTIMATE FIX:</strong><br>
+        • <strong>Pattern Null alert:</strong> CK−/CD45−/Vim−/S100− → 6 scenari (SWI/SNF, melanoma amelanotico, sarcoma indifferenziato, errore tecnico, artefatto pre-analitico, non neoplasia)<br>
+        • <strong>2 marker loss critici:</strong> INI1/SMARCB1 (rabdoide/epithelioid), SMARCA4 (undifferentiated CA ipercalcemia)<br>
+        • <strong>3 diagnosi nuove:</strong> Rabdoide tumor (pediatrico), Epithelioid sarcoma (adulto), SMARCA4-deficient CA (ovaio giovani donne)<br>
+        • <strong>Gap chiuso:</strong> Tool era "blind" per tumori rabdoidi/SMARCA4-deficient → FIX critico osservazione Filippo!<br>
+        • <strong>59 marker totali</strong> (+2: INI1, SMARCA4), 42 bibliografia (+3 ref), alert pattern null implementato<br>
       `;
     }
+    
+    // ============================================
+    // ⭐ NEW v2.12: IMMUNOPROFILE SEARCH FUNCTIONS
+    // ============================================
+    
+    // ⭐ NEW v2.12.2: Helper to check if marker available at FBF Sacco
+    function isMarkerAvailableSacco(markerName) {
+      // Normalize marker name for matching
+      const normalized = markerName.toLowerCase().trim();
+      
+      // Check in markers array if .sacco flag is present
+      const match = markers.find(m => {
+        const mName = m.name.toLowerCase();
+        const mId = m.id.toLowerCase();
+        return normalized.includes(mName) || 
+               normalized.includes(mId) ||
+               mName.includes(normalized) ||
+               mId.includes(normalized);
+      });
+      
+      // If found and has sacco flag, return true
+      if (match && match.hasOwnProperty('sacco')) {
+        return match.sacco === true;
+      }
+      
+      // Default: assume NOT available (conservative)
+      return false;
+    }
+    
+    function populateDiagnosisSuggestions() {
+      const datalist = document.getElementById('diagnosisSuggestions');
+      immunoprofileDB.forEach(dx => {
+        const option = document.createElement('option');
+        option.value = dx.name;
+        datalist.appendChild(option);
+      });
+    }
+    
+    function searchImmunoprofile() {
+      const query = document.getElementById('predictSearch').value.toLowerCase().trim();
+      const resultsDiv = document.getElementById('immunoprofileResults');
+      
+      if (!query) {
+        resultsDiv.style.display = 'none';
+        return;
+      }
+      
+      // Fuzzy search: name or keywords
+      const match = immunoprofileDB.find(dx => 
+        dx.name.toLowerCase().includes(query) || 
+        dx.keywords.some(kw => query.includes(kw))
+      );
+      
+      if (!match) {
+        resultsDiv.style.display = 'block';
+        resultsDiv.innerHTML = `
+          <div style="padding: 20px; background: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px;">
+            <p style="margin: 0; color: #92400e;">
+              <strong>❌ Diagnosi non trovata:</strong> "${query}"<br>
+              Database attualmente contiene ${immunoprofileDB.length} diagnosi. Prova: ${immunoprofileDB.map(d => d.name).join(', ')}
+            </p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Found! Render immunoprofile
+      let html = `
+        <div style="background: white; border: 2px solid #0284c7; border-radius: 12px; padding: 25px;">
+          <h3 style="color: #0369a1; margin-top: 0; font-size: 1.4rem; border-bottom: 2px solid #0284c7; padding-bottom: 10px;">
+            📊 IMMUNOPROFILO ATTESO — ${match.name}
+          </h3>
+          
+          <!-- POSITIVI -->
+          <div style="margin-bottom: 25px;">
+            <h4 style="color: var(--pos); font-size: 1.1rem; margin-bottom: 12px;">
+              ✅ Positivi (Alta probabilità):
+            </h4>
+            <ul style="margin: 0; padding-left: 20px;">
+      `;
+      
+      match.positive.forEach(m => {
+        const isSacco = isMarkerAvailableSacco(m.marker);
+        const saccoBadge = isSacco 
+          ? `<span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-left: 8px;">✅ FBF Sacco</span>`
+          : `<span style="background: #f59e0b; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-left: 8px;">⚠️ Esterno</span>`;
+        
+        html += `<li style="margin-bottom: 8px; line-height: 1.5;">
+          <strong>${m.marker}:</strong> ${m.pct} ${saccoBadge} ${m.note ? `<span style="color: var(--pos);">${m.note}</span>` : ''}
+          ${m.pattern ? `<br><span style="font-size: 0.85rem; color: #64748b;">Pattern: ${m.pattern}</span>` : ''}
+        </li>`;
+      });
+      
+      html += `
+            </ul>
+          </div>
+          
+          <!-- NEGATIVI -->
+          <div style="margin-bottom: 25px;">
+            <h4 style="color: var(--neg); font-size: 1.1rem; margin-bottom: 12px;">
+              ❌ Negativi (Alta probabilità):
+            </h4>
+            <ul style="margin: 0; padding-left: 20px;">
+      `;
+      
+      match.negative.forEach(m => {
+        const isSacco = isMarkerAvailableSacco(m.marker);
+        const saccoBadge = isSacco 
+          ? `<span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-left: 8px;">✅ FBF Sacco</span>`
+          : `<span style="background: #f59e0b; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-left: 8px;">⚠️ Esterno</span>`;
+        
+        html += `<li style="margin-bottom: 8px;">
+          <strong>${m.marker}:</strong> ${m.pct} ${saccoBadge} ${m.note ? `<span style="color: #64748b; font-style: italic;">(${m.note})</span>` : ''}
+        </li>`;
+      });
+      
+      html += `
+            </ul>
+          </div>
+      `;
+      
+      // MOLECOLARE
+      if (match.molecular && match.molecular.length > 0) {
+        html += `
+          <div style="margin-bottom: 25px; background: #f0f9ff; padding: 15px; border-radius: 8px; border-left: 4px solid #0284c7;">
+            <h4 style="color: #0369a1; font-size: 1.1rem; margin-top: 0; margin-bottom: 10px;">
+              🧬 Molecolare:
+            </h4>
+            <ul style="margin: 0; padding-left: 20px;">
+        `;
+        match.molecular.forEach(m => {
+          html += `<li style="margin-bottom: 6px;">${m}</li>`;
+        });
+        html += `
+            </ul>
+          </div>
+        `;
+      }
+      
+      // MORFOLOGIA
+      if (match.morphology && match.morphology.length > 0) {
+        html += `
+          <div style="margin-bottom: 25px; background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+            <h4 style="color: #92400e; font-size: 1.1rem; margin-top: 0; margin-bottom: 10px;">
+              🔬 Morfologia Chiave:
+            </h4>
+            <ul style="margin: 0; padding-left: 20px;">
+        `;
+        match.morphology.forEach(m => {
+          html += `<li style="margin-bottom: 6px;">${m}</li>`;
+        });
+        html += `
+            </ul>
+          </div>
+        `;
+      }
+      
+      // DDx
+      if (match.ddx && match.ddx.length > 0) {
+        html += `
+          <div style="margin-bottom: 25px; background: #fef2f2; padding: 15px; border-radius: 8px; border-left: 4px solid #dc2626;">
+            <h4 style="color: #991b1b; font-size: 1.1rem; margin-top: 0; margin-bottom: 10px;">
+              ⚠️ DDx Critici (se pattern anomalo):
+            </h4>
+            <ul style="margin: 0; padding-left: 20px;">
+        `;
+        match.ddx.forEach(d => {
+          html += `<li style="margin-bottom: 6px;">${d}</li>`;
+        });
+        html += `
+            </ul>
+          </div>
+        `;
+      }
+      
+      // REFS
+      if (match.refs && match.refs.length > 0) {
+        html += `
+          <div style="font-size: 0.85rem; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+            <strong>Bibliografia:</strong> ${match.refs.join(', ')}
+          </div>
+        `;
+      }
+      
+      html += `</div>`;
+      
+      resultsDiv.innerHTML = html;
+      resultsDiv.style.display = 'block';
+      
+      // Scroll to results
+      resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    function clearImmunoprofile() {
+      document.getElementById('predictSearch').value = '';
+      document.getElementById('immunoprofileResults').style.display = 'none';
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      populateDiagnosisSuggestions();
+      
+      // Enter key support
+      document.getElementById('predictSearch').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          searchImmunoprofile();
+        }
+      });
+    });
 
     function calculate() {
       const diagnoses = getDiagnoses();
       const alerts = getAlerts();
       const morphAlerts = getMorphologyAlerts(); // ⭐ v2.4
       const siteAlerts = getSiteSpecificAlerts(); // ⭐ v2.10: Sede-specific
-      const qcAlerts = getQCAlerts(); // ⭐ NEW v2.11: QC tecnici
-      const bigFourAlerts = getBigFourFutilityAlerts(); // ⭐ NEW v2.11: Big Four futility
-      const allAlerts = [...qcAlerts, ...bigFourAlerts, ...siteAlerts, ...alerts, ...morphAlerts]; // Merge (QC+BigFour first!)
+      const qcAlerts = getQCAlerts(); // ⭐ v2.11: QC tecnici
+      const bigFourAlerts = getBigFourFutilityAlerts(); // ⭐ v2.11: Big Four futility
+      const epistemicAlerts = getEpistemicAlerts(); // ⭐ NEW v2.13: Umiltà epistemica (NotebookLM)
+      const allAlerts = [...epistemicAlerts, ...qcAlerts, ...bigFourAlerts, ...siteAlerts, ...alerts, ...morphAlerts]; // Merge (Epistemic FIRST!)
       const suggestions = getSuggestions();
       const gaps = getGaps(currentPanel);
 
@@ -3086,6 +4561,56 @@
         `).join('');
       } else {
         diagnosesSection.style.display = 'none';
+      }
+
+      // ⭐ v2.17: Enhanced Probability Visualization
+      const probabilities = calculateProbabilities();
+      const probabilitySection = document.getElementById('probabilitySection');
+      const probabilityContainer = document.getElementById('probabilityContainer');
+      if (probabilities.length > 0) {
+        probabilitySection.style.display = 'block';
+        probabilityContainer.innerHTML = probabilities.map((prob, idx) => {
+          const barWidth = prob.probability;
+          const barColor = prob.probability >= 70 ? '#10b981' : prob.probability >= 40 ? '#f59e0b' : '#64748b';
+          
+          // Get marker names for display
+          const matchedPosNames = prob.matchedPositives.map(id => 
+            markers.find(m => m.id === id)?.name || id
+          ).join(', ');
+          
+          const violatedNegNames = prob.violatedNegatives.map(id => 
+            markers.find(m => m.id === id)?.name || id
+          ).join(', ');
+          
+          // Prior badge color
+          const priorPct = (prob.prior * 100).toFixed(1);
+          const priorColor = prob.prior >= 0.10 ? '#10b981' : prob.prior >= 0.05 ? '#f59e0b' : '#94a3b8';
+          
+          return `
+            <div style="margin-bottom: 20px; padding: 15px; background: #fafafa; border-radius: 8px; border-left: 4px solid ${barColor};">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong style="font-size: 1.1rem; color: #1e293b;">${idx + 1}. ${prob.name}</strong>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <span style="font-size: 0.75rem; padding: 2px 8px; background: ${priorColor}; color: white; border-radius: 4px; font-weight: 600;" title="Prior prevalence P(Dx) from mortality data">P(Dx): ${priorPct}%</span>
+                  <span style="font-size: 1.3rem; font-weight: 700; color: ${barColor};">${prob.probability}%</span>
+                </div>
+              </div>
+              
+              <div style="width: 100%; height: 20px; background: #e5e7eb; border-radius: 10px; overflow: hidden; margin-bottom: 10px;">
+                <div style="width: ${barWidth}%; height: 100%; background: ${barColor}; transition: width 0.3s;"></div>
+              </div>
+              
+              <div style="font-size: 0.9rem; color: #64748b;">
+                ${matchedPosNames ? `<div style="margin-bottom: 4px;">✅ <strong>Match positivi:</strong> <span style="color: #10b981; font-weight: 600;">${matchedPosNames}</span> (${prob.matchedPositives.length}/${prob.expectedPositives.length})</div>` : ''}
+                ${prob.matchedNegatives.length > 0 ? `<div style="margin-bottom: 4px;">⊖ <strong>Negativi confermati:</strong> <span style="font-weight: 600;">${prob.matchedNegatives.length}</span></div>` : ''}
+                ${violatedNegNames ? `<div style="color: #dc2626; font-weight: 600; margin-bottom: 4px;">⚠️ <strong>Violazioni:</strong> ${violatedNegNames} (attesi negativi!)</div>` : ''}
+                ${prob.likelihood !== undefined ? `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 0.8rem; color: #94a3b8;"><em>📊 Likelihood: ${(prob.likelihood * 100).toFixed(1)}% | Prior: ${priorPct}% → <strong style="color: ${barColor};">Bayes: ${prob.probability}%</strong></em></div>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        probabilitySection.style.display = 'none';
       }
 
       const suggestionsSection = document.getElementById('suggestionsSection');
@@ -3144,6 +4669,77 @@
         setTimeout(() => notice.remove(), 3000);
       }
     });
+
+    // ============================================
+    // ⭐ NEW v2.17.0: EXPORT REPORT FUNCTIONS
+    // ============================================
+    
+    function copyReportHTML() {
+      const report = generateReport();
+      
+      // Copy HTML to clipboard
+      const blob = new Blob([report.html], { type: 'text/html' });
+      const textBlob = new Blob([report.html], { type: 'text/plain' });
+      
+      const clipboardItem = new ClipboardItem({
+        'text/html': blob,
+        'text/plain': textBlob
+      });
+      
+      navigator.clipboard.write([clipboardItem]).then(() => {
+        showCopyNotification('✅ Referto HTML copiato! Incolla in Word per mantenere formattazione.');
+      }).catch(err => {
+        // Fallback: copy as text
+        navigator.clipboard.writeText(report.html).then(() => {
+          showCopyNotification('✅ Referto copiato come HTML (fallback). Incolla in editor.');
+        });
+      });
+    }
+    
+    function copyReportText() {
+      const report = generateReport();
+      
+      navigator.clipboard.writeText(report.text).then(() => {
+        showCopyNotification('✅ Referto testo copiato negli appunti!');
+      }).catch(err => {
+        showCopyNotification('❌ Errore copia: ' + err.message, true);
+      });
+    }
+    
+    function showReportPreview() {
+      const report = generateReport();
+      
+      // Create modal
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;';
+      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+      
+      const content = document.createElement('div');
+      content.style.cssText = 'background: white; border-radius: 12px; max-width: 900px; max-height: 90vh; overflow-y: auto; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative;';
+      
+      const closeBtn = document.createElement('button');
+      closeBtn.innerHTML = '✕';
+      closeBtn.style.cssText = 'position: absolute; top: 15px; right: 15px; background: #ef4444; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; font-weight: bold;';
+      closeBtn.onclick = () => modal.remove();
+      
+      content.innerHTML = report.html;
+      content.insertBefore(closeBtn, content.firstChild);
+      
+      modal.appendChild(content);
+      document.body.appendChild(modal);
+    }
+    
+    function showCopyNotification(message, isError = false) {
+      const notice = document.createElement('div');
+      const bgColor = isError ? '#fef2f2' : '#dcfce7';
+      const borderColor = isError ? '#ef4444' : '#10b981';
+      const textColor = isError ? '#991b1b' : '#065f46';
+      
+      notice.style.cssText = `position: fixed; top: 20px; right: 20px; background: ${bgColor}; border: 2px solid ${borderColor}; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; font-size: 0.9rem; color: ${textColor}; max-width: 350px;`;
+      notice.innerHTML = message;
+      document.body.appendChild(notice);
+      setTimeout(() => notice.remove(), 4000);
+    }
 
   </script>
 </body>
