@@ -4546,19 +4546,36 @@
       const diagnosesContainer = document.getElementById('diagnosesContainer');
       if (diagnoses.length > 0) {
         diagnosesSection.style.display = 'block';
-        diagnosesContainer.innerHTML = diagnoses.map(dx => `
-          <div class="diagnosis-card ${dx.conf}">
-            <div class="card-title">
-              ${dx.name}
-              <span class="confidence-badge ${dx.conf}">${
-                dx.conf === 'high' ? 'Alta confidenza' : 
-                dx.conf === 'medium' ? 'Media confidenza' : 
-                'Bassa confidenza'
-              }</span>
+        
+        // PRIMARY DIAGNOSIS - MEGA BOX FIRST
+        const primaryDx = diagnoses[0];
+        const confColor = primaryDx.conf === 'high' ? '#10b981' : primaryDx.conf === 'medium' ? '#f59e0b' : '#ef4444';
+        const confBg = primaryDx.conf === 'high' ? '#dcfce7' : primaryDx.conf === 'medium' ? '#fef3c7' : '#fee2e2';
+        
+        let html = `
+          <div style="margin-bottom: 40px; padding: 30px; background: linear-gradient(135deg, ${confBg} 0%, white 100%); border: 4px solid ${confColor}; border-radius: 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.2); position: relative;">
+            <div style="position: absolute; top: 0; left: 20px; background: ${confColor}; color: white; padding: 8px 20px; border-radius: 0 0 12px 12px; font-size: 0.9rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">⭐ DIAGNOSI PRINCIPALE</div>
+            <h2 style="margin: 30px 0 15px 0; color: ${confColor}; font-size: 2rem; font-weight: 900; line-height: 1.2;">${primaryDx.name}</h2>
+            <div style="display: inline-block; background: ${confColor}; color: white; padding: 10px 20px; border-radius: 10px; font-size: 1rem; font-weight: 700; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+              ${primaryDx.conf === 'high' ? '🔴 ALTA CONFIDENZA' : primaryDx.conf === 'medium' ? '🟡 MEDIA CONFIDENZA' : '⚪ BASSA CONFIDENZA'}
             </div>
-            <div class="card-detail">${dx.detail}</div>
+            <div style="background: white; padding: 20px; border-radius: 12px; border-left: 8px solid ${confColor}; margin-top: 20px;">
+              <p style="margin: 0; font-size: 1.05rem; line-height: 1.8; color: #1e293b;">${primaryDx.detail}</p>
+            </div>
           </div>
-        `).join('');
+        `;
+        
+        // DDx if multiple
+        if (diagnoses.length > 1) {
+          html += `<div style="margin-bottom: 35px; padding: 22px; background: #f8fafc; border: 2px solid #1e40af; border-radius: 12px;"><h3 style="color: #1e40af; margin: 0 0 18px 0; font-size: 1.3rem; font-weight: 700; border-bottom: 3px solid #1e40af; padding-bottom: 10px;">📋 DIAGNOSI DIFFERENZIALI</h3>`;
+          diagnoses.slice(1).forEach((dx, idx) => {
+            const dxColor = dx.conf === 'high' ? '#10b981' : dx.conf === 'medium' ? '#f59e0b' : '#ef4444';
+            html += `<div style="margin-bottom: 12px; padding: 16px; background: white; border-left: 6px solid ${dxColor}; border-radius: 8px;"><div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;"><strong style="font-size: 1.15rem;">${idx + 2}. ${dx.name}</strong><span style="font-size: 0.85rem; padding: 6px 14px; background: ${dxColor}; color: white; border-radius: 6px; font-weight: 700;">${dx.conf === 'high' ? '🔴 Alta' : dx.conf === 'medium' ? '🟡 Media' : '⚪ Bassa'}</span></div><p style="margin: 0; font-size: 0.95rem; color: #475569; line-height: 1.7;">${dx.detail}</p></div>`;
+          });
+          html += `</div>`;
+        }
+        
+        diagnosesContainer.innerHTML = html;
       } else {
         diagnosesSection.style.display = 'none';
       }
