@@ -639,7 +639,7 @@
       color: var(--subtext);
     }
 
-    /* ⭐ v2.17.0: Fix marker label alignment */
+    /* ⭐ v2.22: Fix marker label alignment */
     .marker-name {
       min-width: 80px;
       max-width: 100px;
@@ -656,16 +656,16 @@
     <header>
       <h1>🔬 IHC Cascade CUP</h1>
       <p class="version">
-        Version <strong>2.17.0 ENHANCED</strong> | 
+        Version <strong>2.22 ENHANCED</strong> | 
         Dr. Filippo Bianchi | 
         SC Anatomia Patologica ASST Fatebenefratelli-Sacco
       </p>
       <p class="version" style="margin-top: 8px;">
-        <strong style="color: var(--pos);">v2.17.0 ENHANCED (Safe):</strong> 
-        🔧 Try-catch error handling + console logging | 
-        📊 Enhanced visualization: Prior P(Dx) badges, Likelihood breakdown display | 
-        ✅ Gradual fixes from DeepSeek (SAFE, tested, no syntax errors)
-        <br><em style="font-size: 0.85rem; color: #64748b;">Based on: Vollmer 2009 + v2.16.2 working + DeepSeek safe fixes</em>
+        <strong style="color: var(--pos);">v2.22 ENHANCED (Anticorpi Corretti):</strong> 
+        ✅ 172 anticorpi corretti (FBF bianco=131, SACCO rosa=41) | 
+        📊 Diagnosi principale ENORME (3.5rem) | 
+        🟢 Logica clinica [+] [-] [n.t.] con colori FBF/SACCO
+        <br><em style="font-size: 0.85rem; color: #64748b;">Based on: PDF Foglio1 FBF + Vollmer 2009 Bayes</em>
       </p>
     </header>
 
@@ -1030,7 +1030,7 @@
     </div>
 
     <footer>
-      <p>&copy; 2026 ASST Fatebenefratelli-Sacco | IHC Cascade v2.17.0 BAYES VOLLMER | 
+      <p>&copy; 2026 ASST Fatebenefratelli-Sacco | IHC Cascade v2.22 BAYES VOLLMER | 
       Uso interno e didattico</p>
       <p style="margin-top: 8px; font-size: 0.75rem;">
         "Il vetrino non mente, il reagente sì - L'onestà dell'incompletezza è rigore scientifico"<br>
@@ -3923,7 +3923,7 @@
     }
 
     // ============================================
-    // ⭐ NEW v2.17.0: GENERATE PROFESSIONAL REPORT
+    // ⭐ NEW v2.22: GENERATE PROFESSIONAL REPORT
     // ============================================
     
     function generateReport() {
@@ -4035,7 +4035,7 @@
       
       // Footer
       htmlReport += '<div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e5e7eb; font-size: 0.85rem; color: #64748b;">';
-      htmlReport += '<p style="margin: 5px 0;"><strong>Note:</strong> Questo referto è generato da IHC Cascade CUP v2.17.0 ed è da considerarsi come supporto decisionale. La diagnosi finale richiede correlazione clinica, morfologia EE e valutazione del patologo.</p>';
+      htmlReport += '<p style="margin: 5px 0;"><strong>Note:</strong> Questo referto è generato da IHC Cascade CUP v2.22 ed è da considerarsi come supporto decisionale. La diagnosi finale richiede correlazione clinica, morfologia EE e valutazione del patologo.</p>';
       htmlReport += '<p style="margin: 5px 0;"><em>"Il vetrino non mente, il reagente sì. La morfologia EE ha priorità epistemica."</em> — Scuola Rosai</p>';
       htmlReport += '</div>';
       
@@ -4088,7 +4088,7 @@
       }
       
       textReport += '-'.repeat(60) + '\n';
-      textReport += 'Note: Referto generato da IHC Cascade CUP v2.17.0\n';
+      textReport += 'Note: Referto generato da IHC Cascade CUP v2.22\n';
       textReport += 'Correlazione clinica e morfologia EE essenziali.\n';
       textReport += '"Il vetrino non mente, il reagente sì" - Scuola Rosai\n';
       
@@ -4514,44 +4514,85 @@
       });
     });
 
-    // ===== DISPONIBILITÀ ANTICORPI =====
+    // ===== DISPONIBILITÀ ANTICORPI (BIANCO=FBF, ROSA=SACCO) =====
     const ANTICORPI_DISPONIBILITA = {
-      "ACTINA HHF35": "FBF", "ACTINA ML": "FBF", "ALFA-1 ANTITRIPSINA": "FBF", "ALFA-FETOPROTEINA": "FBF",
-      "ALFA-IBIRINA": "FBF", "ALK DSF3": "FBF", "ALK-1": "FBF", "ALPDCORE": "FBF", "ANDROGEN": "FBF",
-      "ANNEXIN A1": "FBF", "ARGINASE": "FBF", "ARID1A": "FBF", "ATRX": "FBF", "BAPI": "FBF",
-      "BCL1": "FBF", "BCL2": "FBF", "BCL6": "FBF", "BEREP4": "FBF", "BETA-CATENIN": "FBF",
-      "BRAF V600E": "FBF", "BRCA1": "FBF", "C-ERB2": "SACCO", "CA 125": "FBF", "CA IX": "FBF",
-      "CALBIDIN": "FBF", "CALCIQUININA": "FBF", "CALCITONINA": "FBF", "CALEDESMON": "FBF", "CALFACIN": "FBF",
-      "CALP/ECAD": "FBF", "CALPONINA": "FBF", "CALRETININA": "FBF", "CD": "SACCO", "CD2": "SACCO",
-      "CD20/CD5": "SACCO", "CD23/CD5": "SACCO", "CD3": "SACCO", "CD4": "SACCO", "CD49": "SACCO",
-      "CD9": "SACCO", "CEA MON": "SACCO", "CEA POLICLONALE": "SACCO", "CERB-82-KI67": "SACCO", "CX": "SACCO",
-      "FDSH": "FBF", "FISH HER 2": "FBF", "FISH HER2": "FBF", "FLAP": "SACCO", "FUMARATO IDRATASI": "FBF",
-      "GALECITNINA 3": "FBF", "GATA 3": "FBF", "GCDFP 15": "FBF", "GFAP": "FBF", "GLICORFINA": "FBF",
-      "GLUT SYN": "FBF", "GLUT1": "FBF", "GLYPICAN 3": "FBF", "GRANZYME B": "FBF", "HCG": "FBF",
-      "HGAL": "FBF", "HHVB": "FBF", "HMB45": "FBF", "HPL": "FBF", "HPV": "FBF", "HSA": "FBF",
-      "IDH1": "FBF", "IGD": "FBF", "IGG": "FBF", "IGG4": "FBF", "IIBINA": "FBF", "ISC_FTC": "FBF",
-      "KAPPA RECEPTOR": "FBF", "P16": "FBF", "P16/KI67": "FBF", "P57": "FBF", "P63": "FBF",
-      "P63/RACEMASI": "SACCO", "PARVOVIRUS B19": "SACCO", "PAX 5": "SACCO", "PAX 8": "SACCO",
-      "PCR-PAN MICOBATTERI": "SACCO", "PD-L1 SP142": "SACCO", "PD-L1 SP263": "SACCO", "PGR": "SACCO",
-      "PHH3": "SACCO", "PMS2": "SACCO", "PRAME": "SACCO", "PSA": "FBF", "PSAP": "FBF", "PTEN": "FBF",
-      "PTH": "FBF", "RACEMASI": "FBF", "RCC": "FBF", "ROSSI": "FBF", "S100": "FBF", "SALL4": "SACCO",
-      "SATB2": "FBF", "SF1": "FBF", "SINAPTOFSINA": "SACCO", "SOX-10": "FBF", "SOX-10/MELANA": "FBF",
-      "SOX-11": "FBF", "SP-B": "SACCO", "STAT6": "SACCO", "TDT": "SACCO", "THYROGLOBULIN": "SACCO",
-      "TTF1": "SACCO", "VIMENTINA": "SACCO", "WT1": "SACCO", "ZAP 70": "SACCO"
+      "α-FETOPROTEINA": "FBF", "ACTINA HHF35": "FBF", "ACTINA M.L.": "FBF", "ALK-1": "SACCO",
+      "ALK D5F3": "SACCO", "AMILOIDE Λ": "SACCO", "AMILOIDE P": "SACCO", "ANDROGENI": "FBF",
+      "ANNEXIN A1": "SACCO", "ARID1A": "SACCO", "ARGINASE": "FBF", "ATRX": "FBF",
+      "BCL-1": "FBF", "BCL-2": "FBF", "BCL-6": "FBF", "BCL-10": "FBF",
+      "β-CATENINA": "FBF", "BRG-1/SMARCA4": "FBF", "CA-125": "FBF", "CA-IX": "FBF",
+      "CALCITONINA": "FBF", "CALDESMON": "FBF", "CALPONINA": "FBF", "CALRETININA": "FBF",
+      "CEA MONO": "FBF", "CEA POLI": "SACCO", "CLAUDINA -18": "FBF", "C-MYC": "FBF",
+      "CMV": "SACCO", "COLLAGENE IV": "SACCO", "CROMOGRANINA": "FBF", "CD-1": "FBF",
+      "CD-2": "FBF", "CD-3": "FBF", "CD-4": "FBF", "CD-5": "FBF", "CD-7": "FBF",
+      "CD-8": "FBF", "CD-10": "SACCO", "CD-11": "SACCO", "CD-14": "SACCO", "CD-15": "FBF",
+      "CD-19": "FBF", "CD-20": "FBF", "CD-21": "FBF", "CD-23": "FBF", "CD-30": "FBF",
+      "CD-31": "FBF", "CD-34": "FBF", "CD-38": "FBF", "CD-43": "SACCO", "CD-44": "FBF",
+      "CD-45": "FBF", "CD-56": "SACCO", "CD-57": "SACCO", "CD-61": "FBF",
+      "CD-68 PG-M1": "FBF", "CD-68 KPI": "FBF", "CD-79": "FBF", "CD-99": "FBF",
+      "CD-117": "FBF", "CD-138": "SACCO", "CD-146": "SACCO", "CD-163": "FBF",
+      "CDK4": "FBF", "CDX-2": "FBF", "CK 5/6": "FBF", "CK 7": "FBF", "CK 19": "FBF",
+      "CK 20": "FBF", "CK 34βE12": "FBF", "CK (AE1-AE3)": "FBF", "CK CAM 5.2": "FBF",
+      "D2-40": "FBF", "DESMINA": "FBF", "DOG1": "FBF", "EBV/EBER": "SACCO",
+      "E-CADERINA": "FBF", "EMA": "FBF", "EP-CAM": "FBF", "ERG": "FBF", "ER": "FBF",
+      "FATTORE VIII": "FBF", "FATTORE XIII": "FBF", "FUMARATO IDRATASI": "FBF",
+      "GALECTINA 3": "FBF", "GATA3": "FBF", "GASTRINA": "SACCO", "GCDFP 15": "SACCO",
+      "GFAP": "FBF", "GLICOFORINA": "FBF", "GLYPICAN 3": "FBF", "GLUT-1": "FBF",
+      "GLUT SINTETASI": "FBF", "HCG": "FBF", "HER-2": "FBF", "HGAL": "FBF",
+      "HHIV8": "FBF", "HMB45": "FBF", "HPL": "SACCO", "HPV": "SACCO", "HSA": "FBF",
+      "HSV 1": "SACCO", "HSV 2": "SACCO", "IDH1": "FBF", "IGD": "SACCO", "IGG": "SACCO",
+      "IGG4": "FBF", "INIBINA-1": "SACCO", "KI-67": "FBF", "κ": "FBF", "λ": "FBF",
+      "MAMMOGLOBINA": "FBF", "MDM2": "FBF", "MELAN-A": "FBF", "MIELOPEROSSIDASI": "FBF",
+      "MIOGENINA": "FBF", "MLH1": "FBF", "MSH2": "FBF", "MSH6": "FBF",
+      "MUC-1": "SACCO", "MUC-2": "SACCO", "MUC-4": "SACCO", "MUC-6": "SACCO",
+      "MUM-1": "FBF", "MYOD1": "SACCO", "NAPSINA": "FBF", "NEUROFILAMENTI": "FBF",
+      "NKX3": "FBF", "NSE": "FBF", "OCT-2": "SACCO", "OCT-3,4": "SACCO", "OLIG-2": "FBF",
+      "P16": "FBF", "P40": "FBF", "P53": "FBF", "P57": "FBF", "P63": "FBF",
+      "PARVOVIRUS B19": "SACCO", "PAX-5": "FBF", "PAX-8": "FBF", "PDL1 (SP263)": "FBF",
+      "PDL1 (SP142)": "FBF", "PDL1 NFG CTRL": "FBF", "PERFORMA": "SACCO", "PHH3": "FBF",
+      "PLAP": "FBF", "PMS2 O A": "FBF", "PR": "FBF", "PRAME": "FBF", "PSA": "FBF",
+      "PSAP": "FBF", "PTEN": "FBF", "PTH": "SACCO", "RACEMASI": "FBF", "RCC": "FBF",
+      "S100": "FBF", "SALL4": "FBF", "SATB2": "FBF", "SOX-2": "SACCO", "SOX-10": "FBF",
+      "SOX-11": "FBF", "SF1": "SACCO", "SINAPTOFSINA": "FBF", "STAT6": "FBF",
+      "SV40": "SACCO", "TDT": "FBF", "TIA-1": "SACCO", "THYROGLOBULIN": "FBF",
+      "TTF1": "FBF", "VIMENTINA": "FBF", "WT1": "FBF"
     };
 
-    function colorizeAntibodies(text) {
+    function colorizeAntibodies(text, positiveMarkerIds = []) {
       if (!text || typeof text !== 'string') return text;
       let result = text;
       const sortedAbs = Object.keys(ANTICORPI_DISPONIBILITA).sort((a, b) => b.length - a.length);
+      
       sortedAbs.forEach(ab => {
+        // Trova il marker che corrisponde a questo anticorpo
+        let matchedMarker = null;
+        for (const marker of markers) {
+          if (marker.name.toUpperCase().includes(ab.toUpperCase()) || ab.toUpperCase().includes(marker.name.toUpperCase())) {
+            matchedMarker = marker;
+            break;
+          }
+        }
+        
+        if (!matchedMarker) return;
+        
+        // Controlla lo stato del marker
+        const state = markerState[matchedMarker.id];
+        
+        // Se non è stato testato (ND), non lo mostra
+        if (state === 'not-tested' || !state) return;
+        
+        // Determina il simbolo [+] o [-]
+        const symbol = state === 'positive' ? '[+]' : '[-]';
+        
         const avail = ANTICORPI_DISPONIBILITA[ab];
         let color = avail === "FBF" ? "#10b981" : avail === "SACCO" ? "#f59e0b" : "#ef4444";
         let label = avail === "FBF" ? "FBF" : avail === "SACCO" ? "SACCO" : "N.D.";
         let rgb = color === '#10b981' ? '16,185,129' : color === '#f59e0b' ? '245,158,11' : '239,68,68';
         let regex = new RegExp(`\\b${ab.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}\\b`, 'gi');
-        result = result.replace(regex, m => `<span style="color:${color};font-weight:700;background:rgba(${rgb},0.15);padding:3px 8px;border-radius:4px;cursor:help;border-bottom:2px solid ${color};" title="${ab} → ${label}">${m}</span>`);
+        
+        result = result.replace(regex, m => `<span style="color:${color};font-weight:700;background:rgba(${rgb},0.15);padding:3px 8px;border-radius:4px;cursor:help;border-bottom:2px solid ${color};" title="${ab} ${symbol} (${label})">${m} <strong style="color:${color};">${symbol}</strong></span>`);
       });
+      
       return result;
     }
 
@@ -4559,6 +4600,15 @@
       const diagnoses = getDiagnoses();
       const alerts = getAlerts();
       const morphAlerts = getMorphologyAlerts(); // ⭐ v2.4
+      
+      // ⭐ Traccia gli anticorpi cliccati (positivi)
+      const positiveMarkerIds = [];
+      markers.forEach(marker => {
+        const checkbox = document.getElementById('cb_' + marker.id);
+        if (checkbox && checkbox.checked) {
+          positiveMarkerIds.push(marker.id);
+        }
+      });
       const siteAlerts = getSiteSpecificAlerts(); // ⭐ v2.10: Sede-specific
       const qcAlerts = getQCAlerts(); // ⭐ v2.11: QC tecnici
       const bigFourAlerts = getBigFourFutilityAlerts(); // ⭐ v2.11: Big Four futility
@@ -4596,12 +4646,12 @@
         let html = `
           <div style="margin-bottom: 50px; padding: 40px; background: linear-gradient(135deg, ${confBg} 0%, white 100%); border: 5px solid ${confColor}; border-radius: 20px; box-shadow: 0 16px 48px rgba(0,0,0,0.25); position: relative;">
             <div style="position: absolute; top: 0; left: 25px; background: ${confColor}; color: white; padding: 10px 25px; border-radius: 0 0 14px 14px; font-size: 1rem; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">⭐ DIAGNOSI PRINCIPALE</div>
-            <h1 style="margin: 35px 0 20px 0; color: ${confColor}; font-size: 3.5rem; font-weight: 950; line-height: 1.1; word-wrap: break-word;">${colorizeAntibodies(primaryDx.name)}</h1>
+            <h1 style="margin: 35px 0 20px 0; color: ${confColor}; font-size: 3.5rem; font-weight: 950; line-height: 1.1; word-wrap: break-word;">${colorizeAntibodies(primaryDx.name, positiveMarkerIds)}</h1>
             <div style="display: inline-block; background: ${confColor}; color: white; padding: 14px 28px; border-radius: 12px; font-size: 1.2rem; font-weight: 800; margin-bottom: 25px; box-shadow: 0 6px 16px rgba(0,0,0,0.2); letter-spacing: 0.5px;">
               ${primaryDx.conf === 'high' ? '🔴 ALTA CONFIDENZA' : primaryDx.conf === 'medium' ? '🟡 MEDIA CONFIDENZA' : '⚪ BASSA CONFIDENZA'}
             </div>
             <div style="background: white; padding: 25px; border-radius: 14px; border-left: 10px solid ${confColor}; margin-top: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-              <p style="margin: 0; font-size: 1.15rem; line-height: 1.9; color: #1e293b; font-weight: 500;">${colorizeAntibodies(primaryDx.detail)}</p>
+              <p style="margin: 0; font-size: 1.15rem; line-height: 1.9; color: #1e293b; font-weight: 500;">${colorizeAntibodies(primaryDx.detail, positiveMarkerIds)}</p>
             </div>
           </div>
         `;
@@ -4611,7 +4661,7 @@
           html += `<div style="margin-bottom: 35px; padding: 22px; background: #f8fafc; border: 2px solid #1e40af; border-radius: 12px;"><h3 style="color: #1e40af; margin: 0 0 18px 0; font-size: 1.3rem; font-weight: 700; border-bottom: 3px solid #1e40af; padding-bottom: 10px;">📋 DIAGNOSI DIFFERENZIALI</h3>`;
           diagnoses.slice(1).forEach((dx, idx) => {
             const dxColor = dx.conf === 'high' ? '#10b981' : dx.conf === 'medium' ? '#f59e0b' : '#ef4444';
-            html += `<div style="margin-bottom: 12px; padding: 16px; background: white; border-left: 6px solid ${dxColor}; border-radius: 8px;"><div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;"><strong style="font-size: 1.15rem;">${idx + 2}. ${colorizeAntibodies(dx.name)}</strong><span style="font-size: 0.85rem; padding: 6px 14px; background: ${dxColor}; color: white; border-radius: 6px; font-weight: 700;">${dx.conf === 'high' ? '🔴 Alta' : dx.conf === 'medium' ? '🟡 Media' : '⚪ Bassa'}</span></div><p style="margin: 0; font-size: 0.95rem; color: #475569; line-height: 1.7;">${colorizeAntibodies(dx.detail)}</p></div>`;
+            html += `<div style="margin-bottom: 12px; padding: 16px; background: white; border-left: 6px solid ${dxColor}; border-radius: 8px;"><div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;"><strong style="font-size: 1.15rem;">${idx + 2}. ${colorizeAntibodies(dx.name, positiveMarkerIds)}</strong><span style="font-size: 0.85rem; padding: 6px 14px; background: ${dxColor}; color: white; border-radius: 6px; font-weight: 700;">${dx.conf === 'high' ? '🔴 Alta' : dx.conf === 'medium' ? '🟡 Media' : '⚪ Bassa'}</span></div><p style="margin: 0; font-size: 0.95rem; color: #475569; line-height: 1.7;">${colorizeAntibodies(dx.detail, positiveMarkerIds)}</p></div>`;
           });
           html += `</div>`;
         }
@@ -4729,7 +4779,7 @@
     });
 
     // ============================================
-    // ⭐ NEW v2.17.0: EXPORT REPORT FUNCTIONS
+    // ⭐ NEW v2.22: EXPORT REPORT FUNCTIONS
     // ============================================
     
     function copyReportHTML() {
