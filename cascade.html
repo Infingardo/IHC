@@ -1070,7 +1070,7 @@
       { id: 'PSA', name: 'PSA', cat: 'carcinoma' },
       { id: 'PSAP', name: 'PSAP', cat: 'carcinoma' },
       { id: 'NKX3', name: 'NKX3', cat: 'carcinoma' },
-      { id: 'ERG', name: 'ERG', cat: 'carcinoma' }, // ⭐ NEW v2.3
+      { id: 'ERG', name: 'ERG', cat: 'carcinoma' },
       { id: 'Arginasi', name: 'Arginase-1', cat: 'carcinoma' },
       { id: 'HSA', name: 'Hep-Par-1', cat: 'carcinoma' },
       { id: 'WT1', name: 'WT1', cat: 'carcinoma' },
@@ -1080,32 +1080,79 @@
       { id: 'CK5', name: 'CK5/6', cat: 'carcinoma' },
       { id: 'p40', name: 'p40', cat: 'carcinoma' },
       { id: 'p63', name: 'p63', cat: 'carcinoma' },
-      { id: 'TRPS1', name: 'TRPS1', cat: 'carcinoma' }, // ⭐ NEW v2.9: Mammella 98.7%, pitfall ovaio 40.5%
-      { id: 'CK17', name: 'CK17', cat: 'carcinoma' }, // ⭐ NEW v2.9: Uroteliale UTUC, PDAC
-      { id: 'BCL10', name: 'BCL10', cat: 'carcinoma' }, // ⭐ NEW v2.9: Acinare pancreas 90-95%
-      { id: 'BetaCatenin', name: 'β-catenina', cat: 'carcinoma' }, // ⭐ NEW v2.9: Solido-pseudopapillare nucleare
-      { id: 'NUT', name: 'NUT', cat: 'carcinoma' }, // ⭐ NEW v2.9: Midline carcinoma, pattern speckled
-      { id: 'Glypican3', name: 'Glypican-3', cat: 'carcinoma', sacco: true }, // ⭐ NEW v2.14: HCC 75-85%
-      { id: 'CA199', name: 'CA 19-9', cat: 'carcinoma', sacco: true }, // ⭐ NEW v2.14: Pancreas PDAC 80-90%
-      { id: 'Thyroglobulin', name: 'Thyroglobulin', cat: 'carcinoma', sacco: true }, // ⭐ NEW v2.14: Tiroide 95-100%
-      { id: 'HBME1', name: 'HBME-1', cat: 'carcinoma' }, // ⭐ NEW v2.14: PTC 85%
-      { id: 'Calcitonin', name: 'Calcitonin', cat: 'neuroendocrine', sacco: true }, // ⭐ NEW v2.14: MTC
+      { id: 'TRPS1', name: 'TRPS1', cat: 'carcinoma' },
+      { id: 'CK17', name: 'CK17', cat: 'carcinoma' },
+      { id: 'BCL10', name: 'BCL10', cat: 'carcinoma' },
+      { id: 'BetaCatenin', name: 'β-catenina', cat: 'carcinoma' },
+      { id: 'NUT', name: 'NUT', cat: 'carcinoma' },
+      { id: 'Glypican3', name: 'Glypican-3', cat: 'carcinoma', sacco: true },
+      { id: 'CA199', name: 'CA 19-9', cat: 'carcinoma', sacco: true },
+      { id: 'Thyroglobulin', name: 'Thyroglobulin', cat: 'carcinoma', sacco: true },
+      { id: 'HBME1', name: 'HBME-1', cat: 'carcinoma' },
+      { id: 'Calcitonin', name: 'Calcitonin', cat: 'neuroendocrine', sacco: true },
+      
+      // ⭐ SACCO MARKERS SYNC v2.22 (41 anticorpi da CSV)
+      // CD markers SACCO
+      { id: 'CD10', name: 'CD-10', cat: 'lymphoma', sacco: true },
+      { id: 'CD11', name: 'CD-11', cat: 'lymphoma', sacco: true },
+      { id: 'CD14', name: 'CD-14', cat: 'lymphoma', sacco: true },
+      { id: 'CD43', name: 'CD-43', cat: 'lymphoma', sacco: true },
+      { id: 'CD138', name: 'CD-138', cat: 'lymphoma', sacco: true },
+      { id: 'CD146', name: 'CD-146', cat: 'lymphoma', sacco: true },
+      // ALK markers SACCO
+      { id: 'ALK1', name: 'ALK-1', cat: 'carcinoma', sacco: true },
+      { id: 'ALKD5F3', name: 'ALK D5F3', cat: 'lymphoma', sacco: true },
+      // Amiloidi SACCO
+      { id: 'AMILOIDEL', name: 'Amiloide Λ', cat: 'carcinoma', sacco: true },
+      { id: 'AMILOIDEP', name: 'Amiloide P', cat: 'carcinoma', sacco: true },
+      // Annexin & ARID SACCO
+      { id: 'ANNEXINA1', name: 'Annexin A1', cat: 'carcinoma', sacco: true },
+      { id: 'ARID1A', name: 'ARID1A', cat: 'carcinoma', sacco: true },
+      // Virus markers SACCO
+      { id: 'CMV', name: 'CMV', cat: 'carcinoma', sacco: true },
+      { id: 'EBVEBER', name: 'EBV/EBER', cat: 'lymphoma', sacco: true },
+      { id: 'HSV1', name: 'HSV 1', cat: 'carcinoma', sacco: true },
+      { id: 'HSV2', name: 'HSV 2', cat: 'carcinoma', sacco: true },
+      { id: 'PARVOB19', name: 'Parvovirus B19', cat: 'carcinoma', sacco: true },
+      { id: 'SV40', name: 'SV40', cat: 'carcinoma', sacco: true },
+      // Collagene & HPV SACCO
+      { id: 'COLIV', name: 'Collagene IV', cat: 'carcinoma', sacco: true },
+      { id: 'HPV', name: 'HPV', cat: 'carcinoma', sacco: true },
+      // Immunoglobuline SACCO
+      { id: 'IGD', name: 'IgD', cat: 'lymphoma', sacco: true },
+      { id: 'IGG', name: 'IgG', cat: 'lymphoma', sacco: true },
+      // MUC & Hormones SACCO
+      { id: 'MUC1', name: 'MUC-1', cat: 'carcinoma', sacco: true },
+      { id: 'MUC2', name: 'MUC-2', cat: 'carcinoma', sacco: true },
+      { id: 'MUC4', name: 'MUC-4', cat: 'carcinoma', sacco: true },
+      { id: 'MUC6', name: 'MUC-6', cat: 'carcinoma', sacco: true },
+      { id: 'INIBINA1', name: 'Inibina-1', cat: 'carcinoma', sacco: true },
+      { id: 'GASTRINA', name: 'Gastrina', cat: 'carcinoma', sacco: true },
+      { id: 'PTH', name: 'PTH', cat: 'carcinoma', sacco: true },
+      { id: 'HPL', name: 'HPL', cat: 'carcinoma', sacco: true },
+      // Transcription factors SACCO
+      { id: 'OCT2', name: 'OCT-2', cat: 'lymphoma', sacco: true },
+      { id: 'SOX2', name: 'Sox-2', cat: 'carcinoma', sacco: true },
+      { id: 'SF1', name: 'SF1', cat: 'carcinoma', sacco: true },
+      // Others SACCO
+      { id: 'PERFORMA', name: 'Performa', cat: 'carcinoma', sacco: true },
+      { id: 'TIA1', name: 'Tia-1', cat: 'lymphoma', sacco: true },
       
       // Neuroendocrine
       { id: 'Synapt', name: 'Synaptophysin', cat: 'neuroendocrine' },
       { id: 'Cromo', name: 'Chromogranin', cat: 'neuroendocrine' },
-      { id: 'CD56', name: 'CD56', cat: 'neuroendocrine' },
-      { id: 'CD57', name: 'CD57', cat: 'neuroendocrine' }, // ⭐ NEW v2.3
-      { id: 'INSM1', name: 'INSM1', cat: 'neuroendocrine' }, // ⭐ NEW v2.9: NE nucleare 96.4%, first-line
+      { id: 'CD56', name: 'CD56', cat: 'neuroendocrine', sacco: true },
+      { id: 'CD57', name: 'CD57', cat: 'neuroendocrine', sacco: true },
+      { id: 'INSM1', name: 'INSM1', cat: 'neuroendocrine' },
       
-      // Melanocytic (S100 già in firstline, lo referenziamo)
-      { id: 'SOX10', name: 'SOX10', cat: 'melanocytic' }, // ⭐ NEW v2.3
+      // Melanocytic
+      { id: 'SOX10', name: 'SOX10', cat: 'melanocytic' },
       { id: 'MelanA', name: 'Melan-A', cat: 'melanocytic' },
       { id: 'HMB45', name: 'HMB-45', cat: 'melanocytic' },
       { id: 'PRAME', name: 'PRAME', cat: 'melanocytic' },
       
       // GCT
-      { id: 'OCT34', name: 'OCT3/4', cat: 'gct' },
+      { id: 'OCT34', name: 'OCT3/4', cat: 'gct', sacco: true },
       { id: 'SALL4', name: 'SALL4', cat: 'gct' },
       { id: 'AFP', name: 'AFP', cat: 'gct' },
       { id: 'HCG', name: 'β-HCG', cat: 'gct' },
@@ -1128,10 +1175,10 @@
       { id: 'Myogenin', name: 'Myogenin', cat: 'sarcoma' },
       { id: 'STAT6', name: 'STAT6', cat: 'sarcoma' },
       { id: 'DOG1', name: 'DOG1', cat: 'sarcoma' },
-      { id: 'H3K27me3', name: 'H3K27me3', cat: 'sarcoma' }, // ⭐ NEW v2.8: MPNST (loss = maligno)
-      { id: 'Calponin', name: 'Calponina', cat: 'sarcoma' }, // ⭐ NEW v2.8: Mioepiteliale
-      { id: 'INI1', name: 'INI1/SMARCB1', cat: 'sarcoma' }, // ⭐ NEW v2.11.1: Rabdoido/Epithelioid (LOSS = diagnostico!)
-      { id: 'SMARCA4', name: 'SMARCA4', cat: 'sarcoma' }, // ⭐ NEW v2.11.1: SMARCA4-deficient CA (LOSS = diagnostico!)
+      { id: 'H3K27me3', name: 'H3K27me3', cat: 'sarcoma' },
+      { id: 'Calponin', name: 'Calponina', cat: 'sarcoma' },
+      { id: 'INI1', name: 'INI1/SMARCB1', cat: 'sarcoma' },
+      { id: 'SMARCA4', name: 'SMARCA4', cat: 'sarcoma' },
       
       // MMR
       { id: 'MLH1', name: 'MLH1', cat: 'mmr' },
