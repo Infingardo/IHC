@@ -3,1114 +3,549 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IHC Hub - Inverse Lookup + Quiz + Cascade v2.24</title>
+  <title>IHC Hub v3.0 — True Bayesian Engine</title>
   <style>
-    :root {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #1e293b;
-      --subtext: #64748b;
-      --accent: #4f46e5;
-      --pos: #059669;
-      --neg: #dc2626;
-      --warn: #d97706;
-      --border: #e2e8f0;
-      --shadow: rgba(0, 0, 0, 0.1);
-      --fbf: #3b82f6;
-      --sacco: #a855f7;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 1600px;
-      margin: 0 auto;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 40px;
-      padding-bottom: 30px;
-      border-bottom: 3px solid var(--border);
-    }
-
-    h1 {
-      font-size: 2.8rem;
-      margin-bottom: 10px;
-      background: linear-gradient(135deg, var(--fbf), var(--pos));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .version {
-      color: var(--subtext);
-      font-size: 0.95rem;
-      margin-bottom: 15px;
-    }
-
-    .header-badges {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .badge {
-      display: inline-block;
-      background: var(--fbf);
-      color: white;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 700;
-    }
-
-    .badge.fbf { background: var(--fbf); }
-    .badge.inverse { background: var(--warn); }
-    .badge.quiz { background: var(--pos); }
-
-    /* TAB NAVIGATION */
-    .tabs-wrapper {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 8px;
-      margin-bottom: 30px;
-      display: flex;
-      gap: 8px;
-      box-shadow: 0 2px 8px var(--shadow);
-      flex-wrap: wrap;
-    }
-
-    .tab-btn {
-      padding: 12px 24px;
-      background: transparent;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      color: var(--subtext);
-      transition: all 0.3s ease;
-    }
-
-    .tab-btn:hover { background: var(--bg); }
-    .tab-btn.active { background: var(--fbf); color: white; }
-
-    .tab-content {
-      display: none;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .tab-content.active { display: block; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* INVERSE LOOKUP STYLES */
-    .lookup-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-      margin-bottom: 40px;
-    }
-
-    .marker-panel {
-      background: var(--card);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 25px;
-      box-shadow: 0 4px 12px var(--shadow);
-    }
-
-    .marker-panel h2 {
-      font-size: 1.4rem;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .marker-panel.positive h2 { color: var(--pos); }
-    .marker-panel.negative h2 { color: var(--neg); }
-
-    .marker-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 600px;
-      overflow-y: auto;
-      padding: 15px;
-      background: var(--bg);
-      border-radius: 8px;
-      min-height: 100px;
-      transition: all 0.3s ease;
-      border: 2px dashed transparent;
-    }
-
-    .marker-grid.drag-over-pos {
-      background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
-      border-color: var(--pos);
-      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
-    }
-
-    .marker-grid.drag-over-neg {
-      background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
-      border-color: var(--neg);
-      box-shadow: 0 8px 20px rgba(220, 38, 38, 0.2);
-    }
-
-    .marker-item {
-      padding: 12px 15px;
-      background: white;
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      cursor: grab;
-      user-select: none;
-      transition: all 0.2s ease;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 4px var(--shadow);
-    }
-
-    .marker-item:active { cursor: grabbing; opacity: 0.7; transform: scale(1.02); }
-    .marker-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px var(--shadow); }
-    .marker-item.dragging { opacity: 0.5; transform: scale(0.95); }
-
-    .marker-item.selected-pos {
-      background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-      border: 3px solid var(--pos);
-      font-weight: 700;
-      color: #065f46;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    }
-
-    .marker-item.selected-neg {
-      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-      border: 3px solid var(--neg);
-      font-weight: 700;
-      color: #7f1d1d;
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-    }
-
-    .marker-badge {
-      font-size: 0.8rem;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-weight: 700;
-    }
-
-    .marker-badge.pos { background: var(--pos); color: white; }
-    .marker-badge.neg { background: var(--neg); color: white; }
-
-    .controls {
-      grid-column: 1 / -1;
-      display: flex;
-      gap: 15px;
-      justify-content: center;
-      margin-bottom: 30px;
-    }
-
-    .btn {
-      padding: 12px 30px;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .btn-analyze { background: var(--fbf); color: white; }
-    .btn-analyze:hover { transform: scale(1.05); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); }
-    .btn-reset { background: var(--subtext); color: white; }
-    .btn-reset:hover { background: #475569; }
-
-    /* RESULTS */
-    .results-container {
-      background: var(--card);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 4px 12px var(--shadow);
-    }
-
-    .results-container h2 {
-      font-size: 1.5rem;
-      margin-bottom: 25px;
-      color: var(--text);
-    }
-
-    .diagnosis-result {
-      padding: 20px;
-      background: var(--bg);
-      border-left: 6px solid;
-      border-radius: 8px;
-      margin-bottom: 15px;
-    }
-
-    .diagnosis-result.high { border-color: var(--pos); background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%); }
-    .diagnosis-result.medium { border-color: var(--warn); background: linear-gradient(135deg, #fef3c7 0%, #fefce8 100%); }
-    .diagnosis-result.low { border-color: #94a3b8; background: linear-gradient(135deg, #f1f5f9 0%, #f8fafc 100%); }
-
-    .dx-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .dx-name { font-size: 1.2rem; font-weight: 700; }
-
-    .dx-score {
-      font-size: 1.3rem;
-      font-weight: 900;
-      padding: 6px 15px;
-      border-radius: 6px;
-      background: white;
-      box-shadow: 0 2px 6px var(--shadow);
-    }
-
-    .dx-score.high { color: var(--pos); }
-    .dx-score.medium { color: var(--warn); }
-    .dx-score.low { color: #94a3b8; }
-
-    .dx-reasoning { font-size: 0.95rem; color: #475569; line-height: 1.7; }
-    .marker-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-
-    .marker-tag { padding: 4px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; }
-    .marker-tag.pos { background: #dcfce7; color: #065f46; border: 1px solid #6ee7b7; }
-    .marker-tag.neg { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
-    .marker-tag.sacco { background: #f3e8ff; color: #6b21a8; border: 1px solid #c084fc; font-style: italic; }
-
-    /* QUIZ MODE */
-    .quiz-container { max-width: 1000px; margin: 0 auto; }
-
-    .quiz-card {
-      background: var(--card);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 40px;
-      box-shadow: 0 4px 12px var(--shadow);
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .quiz-title { font-size: 1.8rem; margin-bottom: 30px; color: var(--fbf); font-weight: 700; }
-
-    .markers-display {
-      background: var(--bg);
-      padding: 25px;
-      border-radius: 12px;
-      margin-bottom: 30px;
-      border: 2px solid var(--fbf);
-    }
-
-    .markers-display h3 { margin-bottom: 15px; color: var(--text); }
-
-    .marker-list-quiz { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-
-    .marker-chip {
-      padding: 10px 20px;
-      background: white;
-      border: 2px solid var(--fbf);
-      border-radius: 20px;
-      font-weight: 600;
-      color: var(--fbf);
-      box-shadow: 0 2px 8px var(--shadow);
-    }
-
-    .diagnosis-options {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-
-    .dx-option {
-      padding: 20px;
-      background: var(--bg);
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-weight: 600;
-      text-align: center;
-    }
-
-    .dx-option:hover { transform: translateY(-4px); box-shadow: 0 8px 16px var(--shadow); border-color: var(--fbf); }
-    .dx-option.selected { background: var(--fbf); color: white; border-color: var(--fbf); }
-
-    .feedback {
-      padding: 20px;
-      border-radius: 8px;
-      margin: 20px 0;
-      font-size: 1.1rem;
-      font-weight: 600;
-      display: none;
-    }
-
-    .feedback.correct { background: #dcfce7; color: #065f46; border: 2px solid var(--pos); display: block; }
-    .feedback.incorrect { background: #fee2e2; color: #7f1d1d; border: 2px solid var(--neg); display: block; }
-
-    .stats {
-      background: var(--bg);
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      margin: 20px 0;
-      display: flex;
-      justify-content: space-around;
-      gap: 20px;
-    }
-
-    .stat-box { flex: 1; }
-    .stat-label { font-size: 0.9rem; color: var(--subtext); margin-bottom: 5px; }
-    .stat-value { font-size: 2rem; font-weight: 900; color: var(--fbf); }
-
-    .empty-state { text-align: center; padding: 60px 20px; color: var(--subtext); }
-    .empty-state h2 { font-size: 1.5rem; margin-bottom: 15px; color: var(--text); }
-
-    .info-box {
-      background: #fef3c7;
-      border: 2px solid var(--warn);
-      border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 25px;
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-    }
-
-    .info-box span { font-size: 1.5rem; flex-shrink: 0; }
-    .info-box div { flex: 1; }
-
-    /* CASCADE TAB */
-    .cascade-card {
-      background: var(--card);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 40px;
-      text-align: center;
-      box-shadow: 0 4px 12px var(--shadow);
-    }
-
-    .cascade-card h2 { font-size: 1.8rem; margin-bottom: 20px; color: var(--fbf); }
-    .cascade-card p { font-size: 1.1rem; color: var(--subtext); margin-bottom: 30px; line-height: 1.8; }
-
-    .cascade-card a {
-      display: inline-block;
-      background: var(--warn);
-      color: white;
-      padding: 16px 40px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 1.1rem;
-      transition: all 0.3s ease;
-    }
-
-    .cascade-card a:hover { transform: scale(1.05); box-shadow: 0 8px 20px rgba(217, 119, 6, 0.3); }
-
-    /* MARKER COUNT BADGE */
-    .marker-count {
-      display: inline-block;
-      background: var(--fbf);
-      color: white;
-      padding: 2px 10px;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      margin-left: 8px;
-    }
-
-    @media (max-width: 1200px) {
-      .lookup-container { grid-template-columns: 1fr; }
-      .controls { flex-direction: column; }
-      h1 { font-size: 2rem; }
-    }
+    :root{--bg:#f8fafc;--card:#fff;--text:#1e293b;--subtext:#64748b;--accent:#4f46e5;--pos:#059669;--neg:#dc2626;--warn:#d97706;--border:#e2e8f0;--shadow:rgba(0,0,0,.1);--fbf:#3b82f6;--sacco:#a855f7;--flag:#ef4444;--gain:#0891b2}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:16px}
+    .container{max-width:1600px;margin:0 auto}
+    header{text-align:center;margin-bottom:28px;padding-bottom:18px;border-bottom:3px solid var(--border)}
+    h1{font-size:2.4rem;background:linear-gradient(135deg,var(--accent),var(--fbf));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+    .version{font-size:.85rem;color:var(--subtext);max-width:800px;margin:0 auto}
+    .header-badges{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+    .badge{padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:600}
+    .badge.fbf{background:#dbeafe;color:#1d4ed8}.badge.sacco{background:#f3e8ff;color:#7c3aed}.badge.engine{background:#d1fae5;color:#065f46}.badge.version{background:#fef3c7;color:#92400e}
+    .tabs-wrapper{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;justify-content:center}
+    .tab-btn{padding:9px 18px;border:2px solid var(--border);border-radius:10px;background:var(--card);cursor:pointer;font-weight:600;font-size:.92rem;transition:all .2s}
+    .tab-btn:hover{border-color:var(--accent)}.tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .tab-content{display:none}.tab-content.active{display:block}
+    .mode-toggle{display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:14px;padding:8px;background:var(--card);border-radius:10px;border:1px solid var(--border)}
+    .mode-toggle label{font-size:.88rem;font-weight:600;cursor:pointer;padding:5px 12px;border-radius:8px;transition:all .2s}
+    .mode-toggle input[type=radio]{display:none}
+    .mode-toggle input:checked+label.lbl-fbf{background:#dbeafe;color:#1d4ed8}
+    .mode-toggle input:checked+label.lbl-all{background:#f3e8ff;color:#7c3aed}
+    .info-box{display:flex;gap:10px;padding:14px;background:#eff6ff;border-radius:10px;border-left:4px solid var(--fbf);margin-bottom:18px;font-size:.88rem}
+    .lookup-container{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .marker-panel{padding:14px;background:var(--card);border-radius:12px;border:2px solid var(--border)}
+    .marker-panel.positive{border-color:var(--pos)}.marker-panel.negative{border-color:var(--neg)}
+    .marker-panel h2{font-size:1.05rem;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+    .marker-count{background:var(--accent);color:#fff;padding:2px 8px;border-radius:20px;font-size:.78rem}
+    .marker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:5px;min-height:70px;padding:8px}
+    .marker-item{padding:5px 8px;border-radius:7px;font-size:.8rem;cursor:grab;transition:all .15s;border:1px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:space-between;gap:3px;user-select:none}
+    .marker-item:hover{transform:translateY(-1px);box-shadow:0 2px 6px var(--shadow)}
+    .marker-item.dragging{opacity:.4}
+    .marker-item.selected-pos{background:#d1fae5;border-color:var(--pos)}
+    .marker-item.selected-neg{background:#fee2e2;border-color:var(--neg)}
+    .marker-item .sacco-tag{font-size:.62rem;padding:1px 3px;border-radius:3px;background:#f3e8ff;color:#7c3aed;font-weight:600}
+    .marker-badge{font-size:.68rem}
+    .drag-over-pos{background:#d1fae5!important;border-color:var(--pos)!important}
+    .drag-over-neg{background:#fee2e2!important;border-color:var(--neg)!important}
+    .controls{grid-column:1/-1;display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+    .btn{padding:10px 24px;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s}
+    .btn-analyze{background:linear-gradient(135deg,var(--accent),var(--fbf));color:#fff}
+    .btn-analyze:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(79,70,229,.3)}
+    .btn-reset{background:var(--card);border:2px solid var(--border);color:var(--subtext)}
+    .btn-reset:hover{border-color:var(--neg);color:var(--neg)}
+    .results-container{margin-top:22px}.results-container h2{font-size:1.2rem;margin-bottom:14px;color:var(--accent)}
+    .diagnosis-result{padding:14px;margin-bottom:10px;border-radius:12px;border-left:5px solid var(--border);background:var(--card);box-shadow:0 1px 4px var(--shadow)}
+    .diagnosis-result.high{border-left-color:var(--pos)}.diagnosis-result.medium{border-left-color:var(--warn)}.diagnosis-result.low{border-left-color:var(--subtext)}
+    .dx-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+    .dx-name{font-weight:700;font-size:1.02rem}
+    .dx-score{font-weight:800;font-size:1.05rem;padding:3px 10px;border-radius:8px}
+    .dx-score.high{background:#d1fae5;color:#065f46}.dx-score.medium{background:#fef3c7;color:#92400e}.dx-score.low{background:#f1f5f9;color:#64748b}
+    .dx-reasoning{font-size:.83rem;color:var(--subtext);margin-bottom:6px;line-height:1.7}
+    .dx-reasoning .flag{color:var(--flag);font-weight:700}.dx-reasoning .support{color:var(--pos)}.dx-reasoning .exclude{color:var(--neg)}
+    .flags-box{margin-top:5px;padding:5px 8px;background:#fef2f2;border-radius:6px;font-size:.8rem}
+    .next-best{margin-top:18px;padding:14px;background:linear-gradient(135deg,#ecfdf5,#f0f9ff);border-radius:12px;border:2px solid var(--gain)}
+    .next-best h3{color:var(--gain);margin-bottom:8px;font-size:1rem}
+    .suggestion{display:flex;align-items:center;gap:8px;padding:6px 10px;margin-bottom:5px;background:#fff;border-radius:8px;border:1px solid #e0f2fe}
+    .suggestion .gain-score{font-weight:700;color:var(--gain);min-width:40px}
+    .marker-list{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
+    .marker-tag{padding:2px 6px;border-radius:5px;font-size:.76rem;background:#f1f5f9;border:1px solid var(--border)}
+    .marker-tag.pos{background:#d1fae5;border-color:#6ee7b7;font-weight:600}
+    .marker-tag.neg{background:#fee2e2;border-color:#fca5a5;font-weight:600}
+    .marker-tag.untested{opacity:.5}
+    .quiz-container{max-width:680px;margin:0 auto}
+    .quiz-card{padding:28px;background:var(--card);border-radius:16px;box-shadow:0 4px 18px var(--shadow)}
+    .quiz-title{font-size:1.4rem;font-weight:800;text-align:center;margin-bottom:18px}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
+    .stat-box{text-align:center;padding:8px;background:var(--bg);border-radius:10px}
+    .stat-label{font-size:.78rem;color:var(--subtext)}.stat-value{font-size:1.3rem;font-weight:800;color:var(--accent)}
+    .marker-chip{display:inline-block;padding:4px 10px;background:#d1fae5;border-radius:8px;margin:3px;font-weight:600;font-size:.88rem}
+    .dx-option{padding:12px;margin:6px 0;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-weight:600;transition:all .2s;text-align:center}
+    .dx-option:hover{border-color:var(--accent);background:#f8faff}
+    .feedback{padding:12px;border-radius:10px;text-align:center;font-weight:600;margin-top:12px;min-height:18px}
+    .feedback.correct{background:#d1fae5;color:#065f46}.feedback.incorrect{background:#fee2e2;color:#991b1b}
+    .empty-state{text-align:center;padding:35px;color:var(--subtext)}
+    @media print{body{padding:0;background:#fff;font-size:10pt}.tabs-wrapper,.controls,.mode-toggle,.info-box,#availableMarkersWrap,.empty-state,.next-best{display:none!important}.tab-content{display:block!important}.diagnosis-result{break-inside:avoid;box-shadow:none;border:1px solid #ccc}}
+    @media(max-width:768px){.lookup-container{grid-template-columns:1fr}.marker-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}h1{font-size:1.8rem}}
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>🧬 IHC Hub</h1>
-      <p class="version">v2.24 — Strumenti integrati per diagnostica IHC pratica e gamified
-        <br><strong style="color: var(--pos);">v2.24 FIX:</strong> Allineato a PDF Master Anticorpi_FBF (144 marker bianco) | +15 marker (Alk D5F3, CD-10, CD-14, CD-56, CD-138, MUC-2/4/6, Inibina-α, PDL1 SP142, CMV, HPV, IgG, Androgeni, Annexin A1)
-      </p>
-      <div class="header-badges">
-        <span class="badge fbf">85+ marker FBF</span>
-        <span class="badge inverse">Inverse Lookup</span>
-        <span class="badge quiz">Quiz Mode</span>
-      </div>
-    </header>
-
-    <!-- TAB NAVIGATION -->
-    <div class="tabs-wrapper">
-      <button class="tab-btn active" onclick="switchTab('inverse')">🔍 Inverse Lookup</button>
-      <button class="tab-btn" onclick="switchTab('quiz')">🎮 Quiz Mode</button>
-      <button class="tab-btn" onclick="switchTab('cascade')">📊 IHC Cascade v2.24</button>
+<div class="container">
+  <header>
+    <h1>🧬 IHC Hub v3.0</h1>
+    <p class="version">True Bayesian Engine · Marker Canonici · FBF/SACCO · Information Gain · Explainability</p>
+    <div class="header-badges">
+      <span class="badge fbf">143 FBF</span>
+      <span class="badge sacco">+29 SACCO</span>
+      <span class="badge engine">Bayes log-space</span>
+      <span class="badge version">v3.0</span>
     </div>
+  </header>
 
-    <!-- ============== INVERSE LOOKUP TAB ============== -->
-    <div id="inverse-tab" class="tab-content active">
-      <div class="info-box">
-        <span>💡</span>
-        <div>
-          <strong>Come usare:</strong> Trascina i marker dalla sezione "Disponibili" nelle colonne "Positivi" o "Negativi". Poi clicca "ANALIZZA MARKER" per calcolare le diagnosi più probabili.
-          <br><strong style="color: var(--pos);">v2.24:</strong> Marker allineati a PDF Master (144 FBF). In attesa conferma definitiva.
-        </div>
-      </div>
-
-      <div class="lookup-container">
-        <!-- POSITIVE MARKERS -->
-        <div class="marker-panel positive">
-          <h2>✅ Marker Positivi <span class="marker-count" id="posCount">0</span></h2>
-          <p style="font-size: 0.9rem; color: var(--subtext); margin-bottom: 10px;">Trascina marker qui →</p>
-          <div class="marker-grid" id="positivePanel" ondrop="handleDrop(event, 'positive')" ondragover="handleDragOver(event, 'positive')" ondragleave="handleDragLeave(event, 'positive')">
-          </div>
-        </div>
-
-        <!-- NEGATIVE MARKERS -->
-        <div class="marker-panel negative">
-          <h2>❌ Marker Negativi <span class="marker-count" id="negCount" style="background: var(--neg);">0</span></h2>
-          <p style="font-size: 0.9rem; color: var(--subtext); margin-bottom: 10px;">Trascina marker qui →</p>
-          <div class="marker-grid" id="negativePanel" ondrop="handleDrop(event, 'negative')" ondragover="handleDragOver(event, 'negative')" ondragleave="handleDragLeave(event, 'negative')">
-          </div>
-        </div>
-
-        <!-- AVAILABLE MARKERS (TO DRAG) -->
-        <div style="grid-column: 1 / -1; padding: 25px; background: var(--card); border: 3px dashed var(--fbf); border-radius: 12px;">
-          <h3 style="margin-bottom: 15px; color: var(--fbf); display: flex; align-items: center; gap: 8px;">
-            <span>📋</span> Marker Disponibili FBF — Ordine Alfabetico
-            <span class="marker-count" id="availCount">0</span>
-          </h3>
-          <div class="marker-grid" id="availableMarkers" style="max-height: 400px; min-height: 200px; border: 2px dashed var(--fbf); display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; padding: 15px; overflow-y: auto;">
-          </div>
-        </div>
-
-        <!-- CONTROLS -->
-        <div class="controls">
-          <button class="btn btn-analyze" onclick="analyzeMarkers()">🔍 ANALIZZA MARKER</button>
-          <button class="btn btn-reset" onclick="resetLookup()">🔄 RESET</button>
-        </div>
-      </div>
-
-      <!-- RESULTS -->
-      <div id="lookupResults" style="display: none;">
-        <div class="results-container">
-          <h2>📊 RISULTATI BAYESIANI</h2>
-          <div id="diagnosisResults"></div>
-        </div>
-      </div>
-
-      <div id="emptyLookupState" class="empty-state">
-        <h2>👈 Trascina marker nelle colonne</h2>
-        <p>Seleziona i marker positivi e negativi, poi clicca "ANALIZZA MARKER"</p>
-      </div>
-    </div>
-
-    <!-- ============== QUIZ MODE TAB ============== -->
-    <div id="quiz-tab" class="tab-content">
-      <div class="quiz-container">
-        <div class="quiz-card">
-          <div class="quiz-title">🎮 INDOVINA LA DIAGNOSI</div>
-          
-          <div class="stats">
-            <div class="stat-box">
-              <div class="stat-label">Corrette</div>
-              <div class="stat-value" id="correctCount">0</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-label">Streak 🔥</div>
-              <div class="stat-value" id="streakCount">0</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-label">Accuracy %</div>
-              <div class="stat-value" id="accuracyPercent">0%</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-label">Totale</div>
-              <div class="stat-value" id="totalCount">0</div>
-            </div>
-          </div>
-
-          <div class="markers-display">
-            <h3>Questi marker sono POSITIVI:</h3>
-            <div class="marker-list-quiz" id="quizMarkersList"></div>
-          </div>
-
-          <p style="font-size: 1.05rem; color: var(--subtext); margin-bottom: 25px;">Qual è la diagnosi più probabile?</p>
-
-          <div class="diagnosis-options" id="quizOptions"></div>
-          <div id="quizFeedback" class="feedback"></div>
-
-          <button class="btn btn-analyze" onclick="nextQuizRound()" style="margin-top: 20px;">⏭️ PROSSIMA DIAGNOSI</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============== CASCADE TAB ============== -->
-    <div id="cascade-tab" class="tab-content">
-      <div class="cascade-card">
-        <h2>📊 IHC Cascade v2.22</h2>
-        <p>
-          Tool completo per diagnosi differenziale da profilo immunoistochimico.<br>
-          <strong>Big Four (CK7, CK20, TTF-1, CDX2) + Pannelli specifici + Probabilità Bayesiane</strong>
-        </p>
-        <a href="./cascade.html" target="_blank">🔗 Apri IHC Cascade v2.22</a>
-      </div>
-    </div>
+  <div class="tabs-wrapper">
+    <button class="tab-btn active" onclick="switchTab('inverse')">🔍 Inverse Lookup</button>
+    <button class="tab-btn" onclick="switchTab('quiz')">🎮 Quiz Mode</button>
   </div>
 
-  <script>
-    // ============================================
-    // v2.23 FIX: MARKER DATABASE - SOLO FBF (da CSV definitivo)
-    // ORDINE ALFABETICO
-    // Rimossi: CD10 (SACCO), CD56 (SACCO), MyoD1 (SACCO)
-    // Aggiunti: marker FBF mancanti dal CSV
-    // ============================================
-    
-    // v2.24: 143 marker da PDF Master "Anticorpi_FBF" (BIANCO = FBF+SACCO)
-    // In attesa di conferma definitiva
-    const markers = [
-      // A
-      'Actina HHF35',
-      'Actina m.l. (SMA)',
-      'AFP',
-      'Alk D5F3',
-      'Androgeni',
-      'Annexin A1',
-      'Arginasi',
-      'ATRX',
-      // B
-      'BCL-1',
-      'BCL-2',
-      'BCL-6',
-      'BCL-10',
-      'BRG-1/SMARCA4',
-      'β-Catenina',
-      // C
-      'CA-125',
-      'CA-IX',
-      'Calcitonina',
-      'Caldesmon',
-      'Calponina',
-      'Calretinina',
-      'CD-1',
-      'CD-2',
-      'CD-3',
-      'CD-4',
-      'CD-5',
-      'CD-7',
-      'CD-8',
-      'CD-10',
-      'CD-14',
-      'CD-15',
-      'CD-19',
-      'CD-20',
-      'CD-21',
-      'CD-23',
-      'CD-30',
-      'CD-31',
-      'CD-34',
-      'CD-38',
-      'CD-44',
-      'CD-45',
-      'CD-56',
-      'CD-61',
-      'CD-68 KP1',
-      'CD-68 PG-M1',
-      'CD-79a',
-      'CD-99',
-      'CD-117',
-      'CD-138',
-      'CD-163',
-      'CDK4',
-      'CDX-2',
-      'CEA Mono',
-      'CK 5/6',
-      'CK 7',
-      'CK 19',
-      'CK 20',
-      'CK 34βE12',
-      'CK AE1/AE3',
-      'CK CAM 5.2',
-      'Claudina-18',
-      'CMV',
-      'C-myc',
-      'Cromogranina',
-      // D
-      'D2-40',
-      'Desmina',
-      'DOG1',
-      // E
-      'E-Caderina',
-      'EMA',
-      'EP-CAM',
-      'ER',
-      'ERG',
-      // F
-      'Fattore VIII',
-      'Fattore XIII',
-      'Fumarato Idratasi',
-      // G
-      'Galectina 3',
-      'GATA3',
-      'GFAP',
-      'Glicoforina',
-      'Glut-1',
-      'Glut Sintetasi',
-      'Glypican-3',
-      // H
-      'HCG',
-      'Hep-Par-1 (HSA)',
-      'HER-2',
-      'HGAL',
-      'HHV8',
-      'HMB45',
-      'HPV',
-      // I
-      'IDH1',
-      'IgG',
-      'IgG4',
-      'Inibina-α',
-      // K
-      'Ki-67',
-      'κ',
-      // L
-      'λ',
-      // M
-      'Mammoglobina',
-      'MDM2',
-      'Melan-A',
-      'Mieloperossidasi',
-      'Miogenina',
-      'MLH1',
-      'MSH2',
-      'MSH6',
-      'MUC-2',
-      'MUC-4',
-      'MUC-6',
-      'MUM-1',
-      // N
-      'Napsina',
-      'Neurofilamenti',
-      'NKX3',
-      'NSE',
-      // O
-      'Olig-2',
-      // P
-      'p16',
-      'p40',
-      'p53',
-      'p57',
-      'p63',
-      'PAX-5',
-      'PAX-8',
-      'PDL1 (SP142)',
-      'PDL1 (SP263)',
-      'PHH3',
-      'PLAP',
-      'PMS2',
-      'PR',
-      'PRAME',
-      'PSA',
-      'PSAP',
-      'PTEN',
-      // R
-      'Racemasi',
-      'RCC',
-      // S
-      'S100',
-      'SALL4',
-      'SATB2',
-      'Sinaptofsina',
-      'SOX-10',
-      'SOX-11',
-      'STAT6',
-      // T
-      'TdT',
-      'Thyroglobulin',
-      'TTF-1',
-      // V
-      'Vimentina',
-      // W
-      'WT1'
-    ];
+  <!-- INVERSE -->
+  <div id="inverse-tab" class="tab-content active">
+    <div class="mode-toggle">
+      <span style="font-size:.88rem;">🏥</span>
+      <input type="radio" name="siteMode" id="modeFBF" value="fbf" checked onchange="onModeChange()">
+      <label for="modeFBF" class="lbl-fbf">Solo FBF (143)</label>
+      <input type="radio" name="siteMode" id="modeAll" value="all" onchange="onModeChange()">
+      <label for="modeAll" class="lbl-all">FBF + SACCO (172)</label>
+    </div>
+    <div class="info-box"><span>💡</span><div><strong>v3.0:</strong> Bayes vero (log-space, sens/spec). Alias canonici. <strong>Prossimo miglior colpo</strong> = information gain. Trascina → POS/NEG → ANALIZZA. Doppio-click = rimuovi.</div></div>
+    <div class="lookup-container">
+      <div class="marker-panel positive"><h2>✅ Positivi <span class="marker-count" id="posCount">0</span></h2><div class="marker-grid" id="positivePanel" ondrop="handleDrop(event,'positive')" ondragover="handleDragOver(event,'positive')" ondragleave="handleDragLeave(event,'positive')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui →</p></div></div>
+      <div class="marker-panel negative"><h2>❌ Negativi <span class="marker-count" id="negCount" style="background:var(--neg);">0</span></h2><div class="marker-grid" id="negativePanel" ondrop="handleDrop(event,'negative')" ondragover="handleDragOver(event,'negative')" ondragleave="handleDragLeave(event,'negative')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui →</p></div></div>
+      <div id="availableMarkersWrap" style="grid-column:1/-1;padding:16px;background:var(--card);border:3px dashed var(--fbf);border-radius:12px;">
+        <h3 style="margin-bottom:8px;color:var(--fbf);display:flex;align-items:center;gap:6px;">📋 Disponibili <span class="marker-count" id="availCount">0</span><input type="text" id="markerSearch" placeholder="Cerca..." oninput="renderAvailableMarkers()" style="margin-left:auto;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-size:.83rem;width:160px;"></h3>
+        <div class="marker-grid" id="availableMarkers" style="max-height:320px;overflow-y:auto;border:2px dashed var(--fbf);padding:8px;"></div>
+      </div>
+      <div class="controls"><button class="btn btn-analyze" onclick="analyzeMarkers()">🔍 ANALIZZA (Bayes)</button><button class="btn btn-reset" onclick="resetLookup()">🔄 RESET</button></div>
+    </div>
+    <div id="lookupResults" style="display:none;"><div class="results-container"><h2>📊 Risultati — True Bayesian</h2><div id="diagnosisResults"></div></div><div id="nextBestSection"></div></div>
+    <div id="emptyLookupState" class="empty-state"><h2>👈 Trascina marker</h2><p>POS e NEG → ANALIZZA</p></div>
+  </div>
 
-    // ============================================
-    // v2.24: DIAGNOSIS DATABASE
-    // Allineato a PDF Master. +15 marker disponibili.
-    // Aggiunto: Mieloma (CD-138), CUP workup migliorato
-    // ============================================
-    
-    const diagnoses = [
-      // === CARCINOMI ===
-      { name: 'Adenocarcinoma Polmonare', markers: { pos: ['TTF-1', 'Napsina', 'CK 7'], neg: ['CK 20', 'CDX-2', 'SATB2'] }, score: 89 },
-      { name: 'Carcinoma Mammario', markers: { pos: ['ER', 'PR', 'GATA3', 'Mammoglobina'], neg: ['CK 20', 'TTF-1', 'CDX-2'] }, score: 90 },
-      { name: 'Adenocarcinoma Colorettale', markers: { pos: ['CK 20', 'CDX-2', 'SATB2'], neg: ['CK 7', 'TTF-1'] }, score: 87 },
-      { name: 'Carcinoma Epatocellulare (HCC)', markers: { pos: ['Hep-Par-1 (HSA)', 'Glypican-3', 'Arginasi', 'AFP'], neg: ['CK 7', 'CK 20'] }, score: 95 },
-      { name: 'Adenocarcinoma Pancreatico', markers: { pos: ['CK 7', 'CK 19', 'p53'], neg: ['TTF-1', 'SATB2'] }, score: 88 },
-      { name: 'Carcinoma Ovarico HGSC', markers: { pos: ['PAX-8', 'WT1', 'CA-125', 'ER', 'p53'], neg: ['CK 20', 'CDX-2', 'GATA3'] }, score: 88 },
-      { name: 'Carcinoma Uroteliale', markers: { pos: ['GATA3', 'CK 7', 'CK 20', 'p63'], neg: ['PSA', 'TTF-1', 'CDX-2'] }, score: 85 },
-      { name: 'Carcinoma Prostatico', markers: { pos: ['PSA', 'PSAP', 'NKX3', 'ERG'], neg: ['CK 7', 'CK 20', 'GATA3'] }, score: 91 },
-      { name: 'Carcinoma Renale (RCC)', markers: { pos: ['PAX-8', 'RCC', 'CA-IX', 'Vimentina'], neg: ['CK 20', 'TTF-1', 'CK 7'] }, score: 84 },
-      { name: 'Carcinoma Tiroideo (PTC)', markers: { pos: ['TTF-1', 'Thyroglobulin', 'PAX-8', 'CK 19'], neg: ['CK 20', 'CDX-2', 'Calcitonina'] }, score: 92 },
-      { name: 'Mesotelioma Epitelioide', markers: { pos: ['Calretinina', 'WT1', 'D2-40', 'CK 5/6'], neg: ['CK 20', 'TTF-1', 'PAX-8'] }, score: 86 },
-      { name: 'Carcinoma Squamoso (SCC)', markers: { pos: ['p40', 'p63', 'CK 5/6'], neg: ['CK 7', 'CK 20', 'TTF-1'] }, score: 87 },
+  <!-- QUIZ -->
+  <div id="quiz-tab" class="tab-content">
+    <div class="quiz-container"><div class="quiz-card">
+      <div class="quiz-title">🎮 INDOVINA LA DIAGNOSI</div>
+      <div class="stats"><div class="stat-box"><div class="stat-label">Corrette</div><div class="stat-value" id="correctCount">0</div></div><div class="stat-box"><div class="stat-label">Streak 🔥</div><div class="stat-value" id="streakCount">0</div></div><div class="stat-box"><div class="stat-label">Accuracy</div><div class="stat-value" id="accuracyPercent">0%</div></div><div class="stat-box"><div class="stat-label">Totale</div><div class="stat-value" id="totalCount">0</div></div></div>
+      <div class="markers-display"><h3>Marker POSITIVI:</h3><div id="quizMarkersList"></div></div>
+      <p style="font-size:.95rem;color:var(--subtext);margin-bottom:16px;">Diagnosi più probabile?</p>
+      <div id="quizOptions"></div>
+      <div id="quizFeedback" class="feedback"></div>
+      <button class="btn btn-analyze" onclick="nextQuizRound()" style="margin-top:12px;">⏭️ PROSSIMA</button>
+    </div></div>
+  </div>
+</div>
 
-      // === NEUROENDOCRINE ===
-      { name: 'Neoplasia Neuroendocrina GI', markers: { pos: ['Sinaptofsina', 'Cromogranina', 'CDX-2'], neg: ['TTF-1'] }, score: 88 },
-      { name: 'Neoplasia Neuroendocrina Polmonare', markers: { pos: ['Sinaptofsina', 'Cromogranina', 'TTF-1'], neg: ['CDX-2', 'CK 20'] }, score: 86 },
+<script>
 
-      // === MELANOMA & NEURAL ===
-      { name: 'Melanoma', markers: { pos: ['S100', 'SOX-10', 'Melan-A', 'HMB45', 'PRAME'], neg: ['CK AE1/AE3', 'CD-20', 'CD-45'] }, score: 93 },
-      { name: 'MPNST', markers: { pos: ['S100', 'SOX-10', 'Vimentina'], neg: ['Melan-A', 'HMB45', 'Desmina'] }, score: 80 },
+const markerDB = {
+'ACTINA_HHF35':{display:'Actina HHF35',aliases:['actina hhf35','hhf35'],site:'fbf'},
+'ACTINA_SMA':{display:'Actina m.l. (SMA)',aliases:['actina ml','sma','smooth muscle actin'],site:'fbf'},
+'AFP':{display:'AFP',aliases:['alfa-fetoproteina','alpha-fetoprotein'],site:'fbf'},
+'ALK_D5F3':{display:'Alk D5F3',aliases:['alk d5f3','alk'],site:'fbf'},
+'ANDROGENI':{display:'Androgeni',aliases:['androgen','ar'],site:'fbf'},
+'ANNEXIN_A1':{display:'Annexin A1',aliases:['annexin a1'],site:'fbf'},
+'ARGINASI':{display:'Arginasi',aliases:['arginase'],site:'fbf'},
+'ATRX':{display:'ATRX',aliases:['atrx'],site:'fbf'},
+'BCL1':{display:'BCL-1',aliases:['bcl-1','bcl1','cyclina d1','cyclin d1'],site:'fbf'},
+'BCL10':{display:'BCL-10',aliases:['bcl-10','bcl10'],site:'fbf'},
+'BCL2':{display:'BCL-2',aliases:['bcl-2','bcl2'],site:'fbf'},
+'BCL6':{display:'BCL-6',aliases:['bcl-6','bcl6'],site:'fbf'},
+'BETA_CATENIN':{display:'\u03b2-Catenina',aliases:['beta-catenina','beta-catenin'],site:'fbf'},
+'BRG1':{display:'BRG-1/SMARCA4',aliases:['brg1','smarca4','brg-1','brgl'],site:'fbf'},
+'CA125':{display:'CA-125',aliases:['ca-125','ca125'],site:'fbf'},
+'CAIX':{display:'CA-IX',aliases:['ca-ix','ca9','caix'],site:'fbf'},
+'CALCITONINA':{display:'Calcitonina',aliases:['calcitonina','calcitonin'],site:'fbf'},
+'CALDESMON':{display:'Caldesmon',aliases:['caldesmon','caldesmone','h-caldesmon'],site:'fbf'},
+'CALPONINA':{display:'Calponina',aliases:['calponina','calponin'],site:'fbf'},
+'CALRETININA':{display:'Calretinina',aliases:['calretinina','calretinin'],site:'fbf'},
+'CD1':{display:'CD-1a',aliases:['cd-1','cd1','cd1a'],site:'fbf'},
+'CD10':{display:'CD-10',aliases:['cd-10','cd10','calla'],site:'fbf'},
+'CD117':{display:'CD-117',aliases:['cd-117','cd117','c-kit','kit'],site:'fbf'},
+'CD138':{display:'CD-138',aliases:['cd-138','cd138','syndecan-1'],site:'fbf'},
+'CD14':{display:'CD-14',aliases:['cd-14','cd14'],site:'fbf'},
+'CD15':{display:'CD-15',aliases:['cd-15','cd15','leu-m1'],site:'fbf'},
+'CD163':{display:'CD-163',aliases:['cd-163','cd163'],site:'fbf'},
+'CD19':{display:'CD-19',aliases:['cd-19','cd19'],site:'fbf'},
+'CD2':{display:'CD-2',aliases:['cd-2','cd2'],site:'fbf'},
+'CD20':{display:'CD-20',aliases:['cd-20','cd20','l26'],site:'fbf'},
+'CD21':{display:'CD-21',aliases:['cd-21','cd21'],site:'fbf'},
+'CD23':{display:'CD-23',aliases:['cd-23','cd23'],site:'fbf'},
+'CD3':{display:'CD-3',aliases:['cd-3','cd3'],site:'fbf'},
+'CD30':{display:'CD-30',aliases:['cd-30','cd30','ki-1'],site:'fbf'},
+'CD31':{display:'CD-31',aliases:['cd-31','cd31','pecam'],site:'fbf'},
+'CD34':{display:'CD-34',aliases:['cd-34','cd34'],site:'fbf'},
+'CD38':{display:'CD-38',aliases:['cd-38','cd38'],site:'fbf'},
+'CD4':{display:'CD-4',aliases:['cd-4','cd4'],site:'fbf'},
+'CD44':{display:'CD-44',aliases:['cd-44','cd44'],site:'fbf'},
+'CD45':{display:'CD-45',aliases:['cd-45','cd45','lca'],site:'fbf'},
+'CD5':{display:'CD-5',aliases:['cd-5','cd5'],site:'fbf'},
+'CD56':{display:'CD-56',aliases:['cd-56','cd56','ncam'],site:'fbf'},
+'CD61':{display:'CD-61',aliases:['cd-61','cd61'],site:'fbf'},
+'CD68_KP1':{display:'CD-68 KP1',aliases:['cd68 kp1','cd-68 kp1','cd68'],site:'fbf'},
+'CD68_PGM1':{display:'CD-68 PG-M1',aliases:['cd68 pg-m1','cd-68 pg-m1'],site:'fbf'},
+'CD7':{display:'CD-7',aliases:['cd-7','cd7'],site:'fbf'},
+'CD79A':{display:'CD-79a',aliases:['cd-79a','cd79a','cd79'],site:'fbf'},
+'CD8':{display:'CD-8',aliases:['cd-8','cd8'],site:'fbf'},
+'CD99':{display:'CD-99',aliases:['cd-99','cd99','mic2'],site:'fbf'},
+'CDK4':{display:'CDK4',aliases:['cdk4'],site:'fbf'},
+'CDX2':{display:'CDX-2',aliases:['cdx-2','cdx2'],site:'fbf'},
+'CEA_MONO':{display:'CEA Mono',aliases:['cea mono','cea monoclonale'],site:'fbf'},
+'CK19':{display:'CK 19',aliases:['ck 19','ck19'],site:'fbf'},
+'CK20':{display:'CK 20',aliases:['ck 20','ck20'],site:'fbf'},
+'CK34BE12':{display:'CK 34\u03b2E12',aliases:['ck 34be12','34be12'],site:'fbf'},
+'CK56':{display:'CK 5/6',aliases:['ck 5/6','ck5/6','ck5'],site:'fbf'},
+'CK7':{display:'CK 7',aliases:['ck 7','ck7'],site:'fbf'},
+'CKAE':{display:'CK AE1/AE3',aliases:['ck ae1/ae3','ae1/ae3','ck pan','panck'],site:'fbf'},
+'CKCAM52':{display:'CK CAM 5.2',aliases:['ck cam 5.2','cam 5.2'],site:'fbf'},
+'CLAUDINA18':{display:'Claudina-18',aliases:['claudina-18','claudin-18','cldn18'],site:'fbf'},
+'CMV':{display:'CMV',aliases:['cmv','citomegalovirus'],site:'fbf'},
+'CMYC':{display:'C-myc',aliases:['c-myc','cmyc','myc'],site:'fbf'},
+'CROMOGRANINA':{display:'Cromogranina',aliases:['cromogranina','chromogranin','cga'],site:'fbf'},
+'D240':{display:'D2-40',aliases:['d2-40','d240','podoplanina'],site:'fbf'},
+'DESMINA':{display:'Desmina',aliases:['desmina','desmin'],site:'fbf'},
+'DOG1':{display:'DOG1',aliases:['dog1','dog-1'],site:'fbf'},
+'ECAD':{display:'E-Caderina',aliases:['e-caderina','e-cadherin','e-cad'],site:'fbf'},
+'EMA':{display:'EMA',aliases:['ema','epithelial membrane antigen'],site:'fbf'},
+'EPCAM':{display:'EP-CAM',aliases:['ep-cam','epcam','berep4','ber-ep4'],site:'fbf'},
+'ER':{display:'ER',aliases:['er','estrogen receptor'],site:'fbf'},
+'ERG':{display:'ERG',aliases:['erg'],site:'fbf'},
+'FH':{display:'Fumarato Idratasi',aliases:['fumarato idratasi','fumarate hydratase','fh'],site:'fbf'},
+'FVIII':{display:'Fattore VIII',aliases:['fattore viii','factor viii','von willebrand'],site:'fbf'},
+'FXIII':{display:'Fattore XIIIa',aliases:['fattore xiiia','fattore xiii','factor xiiia'],site:'fbf'},
+'GALECTINA3':{display:'Galectina 3',aliases:['galectina 3','galectin-3','gal-3'],site:'fbf'},
+'GATA3':{display:'GATA3',aliases:['gata3','gata-3'],site:'fbf'},
+'GFAP':{display:'GFAP',aliases:['gfap'],site:'fbf'},
+'GLICOFORINA':{display:'Glicoforina',aliases:['glicoforina','glycophorin'],site:'fbf'},
+'GLUT1':{display:'Glut-1',aliases:['glut-1','glut1'],site:'fbf'},
+'GLUTSYN':{display:'Glut Sintetasi',aliases:['glut sintetasi','glutamine synthetase','gs-6'],site:'fbf'},
+'GLYPICAN3':{display:'Glypican-3',aliases:['glypican-3','glypican 3','gpc3'],site:'fbf'},
+'HCG':{display:'HCG',aliases:['hcg','beta-hcg'],site:'fbf'},
+'HEPPAR':{display:'Hep-Par-1 (HSA)',aliases:['hep-par-1','heppar','hsa','hepatocyte','hepar1'],site:'fbf'},
+'HER2':{display:'HER-2',aliases:['her-2','her2','c-erbb2','cerbb2'],site:'fbf'},
+'HGAL':{display:'HGAL',aliases:['hgal'],site:'fbf'},
+'HHV8':{display:'HHV8',aliases:['hhv8','hhv-8','orf73'],site:'fbf'},
+'HMB45':{display:'HMB45',aliases:['hmb45','hmb-45'],site:'fbf'},
+'HPV':{display:'HPV',aliases:['hpv'],site:'fbf'},
+'IDH1':{display:'IDH1',aliases:['idh1','idh-1'],site:'fbf'},
+'IGG':{display:'IgG',aliases:['igg'],site:'fbf'},
+'IGG4':{display:'IgG4',aliases:['igg4'],site:'fbf'},
+'INIBINA_A':{display:'Inibina-\u03b1',aliases:['inibina','inhibin alpha','inibina alfa'],site:'fbf'},
+'KAPPA':{display:'\u03ba',aliases:['kappa','catena kappa'],site:'fbf'},
+'KI67':{display:'Ki-67',aliases:['ki-67','ki67','mib-1','mib1'],site:'fbf'},
+'LAMBDA':{display:'\u03bb',aliases:['lambda','catena lambda'],site:'fbf'},
+'MAMMOGLOB':{display:'Mammoglobina',aliases:['mammoglobina','mammaglobin'],site:'fbf'},
+'MDM2':{display:'MDM2',aliases:['mdm2'],site:'fbf'},
+'MELANA':{display:'Melan-A',aliases:['melan-a','melana','mart-1','mart1'],site:'fbf'},
+'MIOGENINA':{display:'Miogenina',aliases:['miogenina','myogenin'],site:'fbf'},
+'MLH1':{display:'MLH1',aliases:['mlh1'],site:'fbf'},
+'MPO':{display:'Mieloperossidasi',aliases:['mieloperossidasi','myeloperoxidase','mpo'],site:'fbf'},
+'MSH2':{display:'MSH2',aliases:['msh2'],site:'fbf'},
+'MSH6':{display:'MSH6',aliases:['msh6'],site:'fbf'},
+'MUC2':{display:'MUC-2',aliases:['muc-2','muc2'],site:'fbf'},
+'MUC4':{display:'MUC-4',aliases:['muc-4','muc4'],site:'fbf'},
+'MUC6':{display:'MUC-6',aliases:['muc-6','muc6'],site:'fbf'},
+'MUM1':{display:'MUM-1',aliases:['mum-1','mum1','irf4'],site:'fbf'},
+'NAPSINA':{display:'Napsina',aliases:['napsina','napsin a'],site:'fbf'},
+'NF':{display:'Neurofilamenti',aliases:['neurofilamenti','neurofilament'],site:'fbf'},
+'NKX3':{display:'NKX3.1',aliases:['nkx3','nkx3.1'],site:'fbf'},
+'NSE':{display:'NSE',aliases:['nse'],site:'fbf'},
+'OLIG2':{display:'Olig-2',aliases:['olig-2','olig2'],site:'fbf'},
+'P16':{display:'p16',aliases:['p16','cdkn2a'],site:'fbf'},
+'P40':{display:'p40',aliases:['p40'],site:'fbf'},
+'P53':{display:'p53',aliases:['p53','tp53'],site:'fbf'},
+'P57':{display:'p57',aliases:['p57'],site:'fbf'},
+'P63':{display:'p63',aliases:['p63','tp63'],site:'fbf'},
+'PAX5':{display:'PAX-5',aliases:['pax-5','pax5'],site:'fbf'},
+'PAX8':{display:'PAX-8',aliases:['pax-8','pax8'],site:'fbf'},
+'PDL1_142':{display:'PDL1 (SP142)',aliases:['pdl1 sp142','pd-l1 sp142'],site:'fbf'},
+'PDL1_263':{display:'PDL1 (SP263)',aliases:['pdl1 sp263','pd-l1 sp263'],site:'fbf'},
+'PHH3':{display:'PHH3',aliases:['phh3'],site:'fbf'},
+'PLAP':{display:'PLAP',aliases:['plap'],site:'fbf'},
+'PMS2':{display:'PMS2',aliases:['pms2'],site:'fbf'},
+'PR':{display:'PR',aliases:['pr','pgr','progesterone receptor'],site:'fbf'},
+'PRAME':{display:'PRAME',aliases:['prame'],site:'fbf'},
+'PSA':{display:'PSA',aliases:['psa'],site:'fbf'},
+'PSAP':{display:'PSAP',aliases:['psap'],site:'fbf'},
+'PTEN':{display:'PTEN',aliases:['pten'],site:'fbf'},
+'RACEMASI':{display:'Racemasi',aliases:['racemasi','amacr','p504s'],site:'fbf'},
+'RCC':{display:'RCC',aliases:['rcc'],site:'fbf'},
+'S100':{display:'S100',aliases:['s100','s-100'],site:'fbf'},
+'SALL4':{display:'SALL4',aliases:['sall4'],site:'fbf'},
+'SATB2':{display:'SATB2',aliases:['satb2'],site:'fbf'},
+'SINAPTOFISINA':{display:'Sinaptofsina',aliases:['sinaptofsina','sinaptofisina','synaptophysin'],site:'fbf'},
+'SOX10':{display:'SOX-10',aliases:['sox-10','sox10'],site:'fbf'},
+'SOX11':{display:'SOX-11',aliases:['sox-11','sox11'],site:'fbf'},
+'STAT6':{display:'STAT6',aliases:['stat6'],site:'fbf'},
+'TDT':{display:'TdT',aliases:['tdt'],site:'fbf'},
+'THYROGLOB':{display:'Thyroglobulina',aliases:['thyroglobulin','thyroglobulina','tg'],site:'fbf'},
+'TTF1':{display:'TTF-1',aliases:['ttf-1','ttf1','nkx2-1'],site:'fbf'},
+'VIMENTINA':{display:'Vimentina',aliases:['vimentina','vimentin'],site:'fbf'},
+'WT1':{display:'WT1',aliases:['wt1','wt-1'],site:'fbf'},
+'ALK1_S':{display:'Alk-1',aliases:['alk-1','alk1'],site:'sacco'},
+'AMILOIDE_A':{display:'Amiloide A',aliases:['amiloide a'],site:'sacco'},
+'AMILOIDE_P':{display:'Amiloide P',aliases:['amiloide p'],site:'sacco'},
+'ARID1A_S':{display:'ARID1A (Sacco)',aliases:['arid1a sacco'],site:'sacco'},
+'CD11':{display:'CD-11',aliases:['cd-11','cd11'],site:'sacco'},
+'CD146':{display:'CD-146',aliases:['cd-146','cd146','mcam'],site:'sacco'},
+'CD43':{display:'CD-43',aliases:['cd-43','cd43'],site:'sacco'},
+'CD57':{display:'CD-57',aliases:['cd-57','cd57','leu-7'],site:'sacco'},
+'CEA_POLI':{display:'CEA Poli',aliases:['cea poli','cea policlonale'],site:'sacco'},
+'COLLAGENE4':{display:'Collagene IV',aliases:['collagene iv','collagen iv'],site:'sacco'},
+'EBVEBER':{display:'EBV/EBER',aliases:['ebv/eber','eber','ebv eber'],site:'sacco'},
+'GASTRINA_S':{display:'Gastrina',aliases:['gastrina','gastrin'],site:'sacco'},
+'GCDFP15':{display:'GCDFP-15',aliases:['gcdfp 15','gcdfp-15','gcdfp15'],site:'sacco'},
+'HPL_S':{display:'HPL',aliases:['hpl'],site:'sacco'},
+'HSV1':{display:'HSV-1',aliases:['hsv 1','hsv-1','hsv1'],site:'sacco'},
+'HSV2':{display:'HSV-2',aliases:['hsv 2','hsv-2','hsv2'],site:'sacco'},
+'IGD':{display:'IgD',aliases:['igd','ig d'],site:'sacco'},
+'INIBINA1':{display:'Inibina-1',aliases:['inibina-1'],site:'sacco'},
+'MUC1_S':{display:'MUC-1',aliases:['muc-1 sacco'],site:'sacco'},
+'MYOD1':{display:'MyoD1',aliases:['myod1','myo-d1'],site:'sacco'},
+'OCT2_S':{display:'OCT-2',aliases:['oct-2 sacco'],site:'sacco'},
+'OCT34':{display:'OCT 3/4',aliases:['oct 3/4','oct-3/4','pou5f1'],site:'sacco'},
+'PARVO':{display:'Parvovirus B19',aliases:['parvovirus b19'],site:'sacco'},
+'PERFORINA':{display:'Perforina',aliases:['perforina','perforin'],site:'sacco'},
+'PTH_S':{display:'PTH',aliases:['pth','paratormone'],site:'sacco'},
+'SF1_S':{display:'SF1',aliases:['sf1','nr5a1'],site:'sacco'},
+'SOX2':{display:'SOX-2',aliases:['sox-2','sox2'],site:'sacco'},
+'SV40':{display:'SV40',aliases:['sv40'],site:'sacco'},
+'TIA1':{display:'Tia-1',aliases:['tia-1','tia1','t1a1'],site:'sacco'}
+};
 
-      // === SARCOMI ===
-      { name: 'GIST', markers: { pos: ['CD-117', 'DOG1', 'CD-34'], neg: ['Desmina', 'S100', 'SOX-10'] }, score: 94 },
-      { name: 'Leiomiosarcoma', markers: { pos: ['Actina HHF35', 'Actina m.l. (SMA)', 'Desmina', 'Caldesmon'], neg: ['S100', 'CD-34', 'CD-117'] }, score: 91 },
-      { name: 'Rabdomiosarcoma', markers: { pos: ['Desmina', 'Miogenina'], neg: ['CD-20', 'CD-3', 'S100'] }, score: 93 },
-      { name: 'Sarcoma Sinoviale', markers: { pos: ['CK AE1/AE3', 'EMA', 'BCL-2', 'CD-99'], neg: ['Desmina', 'S100', 'CD-34'] }, score: 90 },
-      { name: 'Sarcoma di Ewing', markers: { pos: ['CD-99', 'Vimentina'], neg: ['Desmina', 'Miogenina', 'CD-20'] }, score: 94 },
-      { name: 'Tumore Fibroso Solitario', markers: { pos: ['STAT6', 'CD-34', 'Vimentina', 'BCL-2'], neg: ['Desmina', 'S100'] }, score: 92 },
-      { name: 'Liposarcoma Dedifferenziato', markers: { pos: ['MDM2', 'CDK4', 'Vimentina'], neg: ['CD-20', 'Desmina', 'S100'] }, score: 85 },
+// Alias index
+const aliasIndex = {};
+for (const [id, m] of Object.entries(markerDB)) {
+  aliasIndex[m.display.toLowerCase()] = id;
+  for (const a of m.aliases) aliasIndex[a.toLowerCase()] = id;
+}
 
-      // === LINFOMI ===
-      { name: 'DLBCL', markers: { pos: ['CD-20', 'CD-79a', 'PAX-5', 'BCL-6', 'MUM-1'], neg: ['CD-3', 'TdT'] }, score: 92 },
-      { name: 'Linfoma T Periferico', markers: { pos: ['CD-3', 'CD-5', 'CD-45'], neg: ['CD-20', 'TdT', 'PAX-5'] }, score: 85 },
-      { name: 'Linfoma Linfoblastico', markers: { pos: ['TdT', 'CD-19', 'CD-99'], neg: ['CD-20'] }, score: 93 },
-      { name: 'Linfoma di Hodgkin', markers: { pos: ['CD-15', 'CD-30'], neg: ['CD-20', 'CD-3', 'CD-45'] }, score: 91 },
-      { name: 'Mieloma/Plasmacitoma', markers: { pos: ['CD-138', 'MUM-1', 'κ', 'λ'], neg: ['CD-20', 'CD-3', 'PAX-5'] }, score: 90 },
+function getDisplay(id) { return markerDB[id]?.display || id; }
+function getSite(id) { return markerDB[id]?.site || 'fbf'; }
 
-      // === GCT ===
-      { name: 'Seminoma/Disgerminoma', markers: { pos: ['SALL4', 'PLAP', 'CD-117'], neg: ['AFP', 'CK AE1/AE3'] }, score: 91 },
-      { name: 'Yolk Sac Tumor', markers: { pos: ['AFP', 'SALL4', 'Glypican-3'], neg: ['CD-30', 'HCG'] }, score: 89 },
-      { name: 'Coriocarcinoma', markers: { pos: ['HCG', 'CK AE1/AE3'], neg: ['SALL4', 'AFP'] }, score: 88 },
-    ];
+// BAYESIAN DATABASE
+const bayesDB = [
+{name:'Adenocarcinoma Polmonare',prior:0.08,markers:{'TTF1':{s:0.85,n:0.92,w:1.2},'NAPSINA':{s:0.75,n:0.95,w:1.1},'CK7':{s:0.95,n:0.4,w:0.6},'CK20':{s:0.05,n:0.9,w:0.8},'CDX2':{s:0.03,n:0.95,w:0.9},'P40':{s:0.02,n:0.95,w:1.0}}},
+{name:'Carcinoma Squamoso (SCC)',prior:0.07,markers:{'P40':{s:0.95,n:0.92,w:1.3},'P63':{s:0.9,n:0.85,w:1.0},'CK56':{s:0.9,n:0.8,w:1.0},'CK7':{s:0.3,n:0.6,w:0.5},'TTF1':{s:0.05,n:0.9,w:0.9}}},
+{name:'Carcinoma Mammario (NST)',prior:0.09,markers:{'ER':{s:0.8,n:0.9,w:1.2},'PR':{s:0.65,n:0.9,w:1.0},'GATA3':{s:0.9,n:0.88,w:1.2},'MAMMOGLOB':{s:0.6,n:0.95,w:1.0},'CK7':{s:0.92,n:0.3,w:0.4},'CK20':{s:0.03,n:0.9,w:0.7},'TTF1':{s:0.02,n:0.85,w:0.6}}},
+{name:'Adenocarcinoma Colorettale',prior:0.08,markers:{'CK20':{s:0.85,n:0.88,w:1.2},'CDX2':{s:0.93,n:0.9,w:1.3},'SATB2':{s:0.85,n:0.92,w:1.2},'CK7':{s:0.15,n:0.7,w:0.6},'TTF1':{s:0.01,n:0.95,w:0.7}}},
+{name:'HCC',prior:0.04,markers:{'HEPPAR':{s:0.85,n:0.95,w:1.3},'GLYPICAN3':{s:0.75,n:0.95,w:1.2},'ARGINASI':{s:0.85,n:0.95,w:1.2},'AFP':{s:0.3,n:0.95,w:0.9}}},
+{name:'Adenocarcinoma Pancreatico',prior:0.04,markers:{'CK7':{s:0.95,n:0.3,w:0.5},'CK19':{s:0.9,n:0.4,w:0.5},'MUC4':{s:0.75,n:0.85,w:1.0},'P53':{s:0.6,n:0.5,w:0.5},'TTF1':{s:0.01,n:0.95,w:0.6}}},
+{name:'Carcinoma Ovarico HGSC',prior:0.04,markers:{'PAX8':{s:0.95,n:0.85,w:1.3},'WT1':{s:0.9,n:0.9,w:1.2},'CA125':{s:0.8,n:0.7,w:0.8},'ER':{s:0.7,n:0.5,w:0.5},'P53':{s:0.85,n:0.4,w:0.6}}},
+{name:'Carcinoma Uroteliale',prior:0.05,markers:{'GATA3':{s:0.85,n:0.85,w:1.2},'CK7':{s:0.9,n:0.3,w:0.4},'CK20':{s:0.55,n:0.6,w:0.5},'P63':{s:0.8,n:0.6,w:0.6},'PSA':{s:0.01,n:0.98,w:0.9}}},
+{name:'Carcinoma Prostatico',prior:0.05,markers:{'PSA':{s:0.9,n:0.97,w:1.4},'PSAP':{s:0.85,n:0.95,w:1.2},'NKX3':{s:0.9,n:0.95,w:1.3},'ERG':{s:0.45,n:0.9,w:0.8},'RACEMASI':{s:0.8,n:0.65,w:0.7}}},
+{name:'RCC a cellule chiare',prior:0.03,markers:{'PAX8':{s:0.92,n:0.85,w:1.3},'RCC':{s:0.75,n:0.95,w:1.1},'CAIX':{s:0.85,n:0.9,w:1.2},'VIMENTINA':{s:0.9,n:0.4,w:0.4}}},
+{name:'Ca Tiroideo (PTC)',prior:0.03,markers:{'TTF1':{s:0.95,n:0.8,w:1.0},'THYROGLOB':{s:0.95,n:0.98,w:1.4},'PAX8':{s:0.92,n:0.8,w:1.0},'GALECTINA3':{s:0.8,n:0.8,w:0.9},'CALCITONINA':{s:0.01,n:0.98,w:1.0}}},
+{name:'Ca Midollare Tiroideo',prior:0.01,markers:{'CALCITONINA':{s:0.95,n:0.99,w:1.5},'CROMOGRANINA':{s:0.9,n:0.6,w:0.7},'SINAPTOFISINA':{s:0.85,n:0.6,w:0.6},'CEA_MONO':{s:0.8,n:0.7,w:0.7},'THYROGLOB':{s:0.02,n:0.95,w:1.2}}},
+{name:'Mesotelioma Epitelioide',prior:0.02,markers:{'CALRETININA':{s:0.9,n:0.9,w:1.3},'WT1':{s:0.85,n:0.9,w:1.2},'D240':{s:0.85,n:0.8,w:1.0},'CK56':{s:0.75,n:0.6,w:0.5},'CEA_MONO':{s:0.02,n:0.95,w:1.1},'EPCAM':{s:0.05,n:0.9,w:0.9}}},
+{name:'NEN G1-G2 (GI)',prior:0.03,markers:{'CROMOGRANINA':{s:0.9,n:0.85,w:1.2},'SINAPTOFISINA':{s:0.95,n:0.8,w:1.1},'CDX2':{s:0.6,n:0.7,w:0.6}}},
+{name:'NEN Polmonare',prior:0.02,markers:{'CROMOGRANINA':{s:0.85,n:0.8,w:1.1},'SINAPTOFISINA':{s:0.92,n:0.8,w:1.1},'TTF1':{s:0.7,n:0.6,w:0.6},'CD56':{s:0.8,n:0.7,w:0.7}}},
+{name:'Melanoma',prior:0.05,markers:{'S100':{s:0.95,n:0.75,w:1.0},'SOX10':{s:0.93,n:0.92,w:1.3},'MELANA':{s:0.85,n:0.95,w:1.2},'HMB45':{s:0.8,n:0.95,w:1.1},'PRAME':{s:0.75,n:0.9,w:1.0},'CKAE':{s:0.02,n:0.95,w:0.9},'CD45':{s:0.01,n:0.98,w:0.8}}},
+{name:'MPNST',prior:0.01,markers:{'S100':{s:0.5,n:0.7,w:0.8},'SOX10':{s:0.6,n:0.8,w:0.9},'MELANA':{s:0.01,n:0.98,w:1.0},'HMB45':{s:0.01,n:0.98,w:1.0},'DESMINA':{s:0.05,n:0.8,w:0.6}}},
+{name:'GIST',prior:0.03,markers:{'CD117':{s:0.95,n:0.95,w:1.4},'DOG1':{s:0.95,n:0.97,w:1.5},'CD34':{s:0.7,n:0.8,w:0.7},'DESMINA':{s:0.02,n:0.9,w:0.8},'S100':{s:0.05,n:0.85,w:0.6}}},
+{name:'Leiomiosarcoma',prior:0.02,markers:{'ACTINA_SMA':{s:0.9,n:0.8,w:1.1},'DESMINA':{s:0.8,n:0.8,w:1.0},'CALDESMON':{s:0.85,n:0.92,w:1.2},'CD117':{s:0.02,n:0.9,w:0.7}}},
+{name:'Rabdomiosarcoma',prior:0.01,markers:{'DESMINA':{s:0.95,n:0.7,w:1.0},'MIOGENINA':{s:0.9,n:0.98,w:1.5}}},
+{name:'Sarcoma Sinoviale',prior:0.01,markers:{'CKAE':{s:0.7,n:0.5,w:0.6},'EMA':{s:0.75,n:0.6,w:0.6},'BCL2':{s:0.85,n:0.4,w:0.4},'CD99':{s:0.6,n:0.5,w:0.4}}},
+{name:'Sarcoma di Ewing',prior:0.01,markers:{'CD99':{s:0.95,n:0.7,w:1.2},'VIMENTINA':{s:0.9,n:0.2,w:0.2},'DESMINA':{s:0.05,n:0.85,w:0.7}}},
+{name:'Tumore Fibroso Solitario',prior:0.01,markers:{'STAT6':{s:0.95,n:0.99,w:1.6},'CD34':{s:0.9,n:0.7,w:0.8},'BCL2':{s:0.8,n:0.4,w:0.3}}},
+{name:'Liposarcoma Dediff.',prior:0.01,markers:{'MDM2':{s:0.9,n:0.97,w:1.5},'CDK4':{s:0.85,n:0.95,w:1.3}}},
+{name:'DLBCL',prior:0.05,markers:{'CD20':{s:0.95,n:0.8,w:1.2},'CD79A':{s:0.85,n:0.85,w:1.0},'PAX5':{s:0.92,n:0.88,w:1.1},'BCL6':{s:0.7,n:0.65,w:0.5},'MUM1':{s:0.5,n:0.55,w:0.3},'CD3':{s:0.01,n:0.98,w:0.9},'TDT':{s:0.01,n:0.99,w:0.8}}},
+{name:'Linfoma T Periferico',prior:0.02,markers:{'CD3':{s:0.9,n:0.85,w:1.2},'CD5':{s:0.75,n:0.7,w:0.7},'CD7':{s:0.6,n:0.6,w:0.5},'CD20':{s:0.02,n:0.95,w:0.9},'PAX5':{s:0.01,n:0.97,w:0.8}}},
+{name:'Linfoma di Hodgkin',prior:0.03,markers:{'CD30':{s:0.95,n:0.8,w:1.2},'CD15':{s:0.8,n:0.9,w:1.1},'PAX5':{s:0.9,n:0.6,w:0.4},'CD45':{s:0.05,n:0.85,w:0.8},'CD3':{s:0.02,n:0.9,w:0.7}}},
+{name:'Linfoma Linfoblastico',prior:0.01,markers:{'TDT':{s:0.95,n:0.99,w:1.5},'CD19':{s:0.8,n:0.7,w:0.7},'CD99':{s:0.8,n:0.5,w:0.4}}},
+{name:'Mieloma/Plasmacitoma',prior:0.02,markers:{'CD138':{s:0.95,n:0.92,w:1.4},'MUM1':{s:0.9,n:0.7,w:1.0},'CD20':{s:0.05,n:0.85,w:0.7},'PAX5':{s:0.05,n:0.85,w:0.7},'CD3':{s:0.01,n:0.95,w:0.6}}},
+{name:'Seminoma',prior:0.02,markers:{'SALL4':{s:0.9,n:0.9,w:1.3},'PLAP':{s:0.85,n:0.92,w:1.2},'CD117':{s:0.85,n:0.7,w:0.7},'AFP':{s:0.01,n:0.98,w:1.0}}},
+{name:'Yolk Sac Tumor',prior:0.01,markers:{'AFP':{s:0.9,n:0.95,w:1.4},'SALL4':{s:0.85,n:0.85,w:1.1},'GLYPICAN3':{s:0.8,n:0.85,w:1.0},'CD30':{s:0.01,n:0.9,w:0.7}}},
+{name:'Coriocarcinoma',prior:0.005,markers:{'HCG':{s:0.95,n:0.98,w:1.5},'CKAE':{s:0.9,n:0.3,w:0.3}}}
+];
 
-    let positiveMarkers = new Set();
-    let negativeMarkers = new Set();
-    let quizStats = { correct: 0, total: 0, streak: 0 };
-    let currentQuizDx = null;
+// STATE
+let positiveMarkers = new Set();
+let negativeMarkers = new Set();
+let currentMode = 'fbf';
+let quizStats = { correct:0, total:0, streak:0 };
+let currentQuizDx = null;
+let lastResults = [];
 
-    function init() {
-      renderAvailableMarkers();
-      nextQuizRound();
-    }
+// BAYES ENGINE
+function logSumExp(lv) {
+  if (!lv.length) return -Infinity;
+  const mx = Math.max(...lv);
+  if (mx === -Infinity) return -Infinity;
+  let s = 0; for (const v of lv) s += Math.exp(v - mx);
+  return mx + Math.log(s);
+}
 
-    // ============================================
-    // INVERSE LOOKUP
-    // ============================================
-
-    function updateCounts() {
-      document.getElementById('posCount').textContent = positiveMarkers.size;
-      document.getElementById('negCount').textContent = negativeMarkers.size;
-      const avail = markers.filter(m => !positiveMarkers.has(m) && !negativeMarkers.has(m));
-      document.getElementById('availCount').textContent = avail.length;
-    }
-
-    function renderAvailableMarkers() {
-      const available = markers.filter(m => !positiveMarkers.has(m) && !negativeMarkers.has(m));
-      const container = document.getElementById('availableMarkers');
-      
-      container.innerHTML = available.map(m => `
-        <div class="marker-item" 
-             draggable="true" 
-             ondragstart="handleDragStart(event, '${m}')"
-             ondragend="handleDragEnd(event)">
-          <span style="font-size: 0.85rem;">${m}</span>
-        </div>
-      `).join('');
-
-      if (available.length === 0) {
-        container.innerHTML = '<p style="color: var(--subtext); text-align: center; padding: 20px;">✅ Tutti i marker sono stati selezionati!</p>';
-      }
-
-      renderSelectedMarkers();
-      updateCounts();
-    }
-
-    function renderSelectedMarkers() {
-      const posPanel = document.getElementById('positivePanel');
-      const negPanel = document.getElementById('negativePanel');
-
-      posPanel.innerHTML = Array.from(positiveMarkers).sort().map(m => `
-        <div class="marker-item selected-pos" 
-             draggable="true" 
-             ondragstart="handleDragStart(event, '${m}')"
-             ondblclick="removeMarker('${m}')">
-          <span>${m}</span>
-          <span class="marker-badge pos">✅</span>
-        </div>
-      `).join('');
-
-      if (positiveMarkers.size === 0) {
-        posPanel.innerHTML = '<p style="color: var(--subtext); text-align: center; padding: 20px;">Trascina marker positivi qui</p>';
-      }
-
-      negPanel.innerHTML = Array.from(negativeMarkers).sort().map(m => `
-        <div class="marker-item selected-neg"
-             draggable="true" 
-             ondragstart="handleDragStart(event, '${m}')"
-             ondblclick="removeMarker('${m}')">
-          <span>${m}</span>
-          <span class="marker-badge neg">❌</span>
-        </div>
-      `).join('');
-
-      if (negativeMarkers.size === 0) {
-        negPanel.innerHTML = '<p style="color: var(--subtext); text-align: center; padding: 20px;">Trascina marker negativi qui</p>';
-      }
-    }
-
-    function removeMarker(marker) {
-      positiveMarkers.delete(marker);
-      negativeMarkers.delete(marker);
-      renderAvailableMarkers();
-    }
-
-    let draggedMarker = null;
-
-    function handleDragStart(event, marker) {
-      draggedMarker = marker;
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', marker);
-      event.target.closest('.marker-item').classList.add('dragging');
-    }
-
-    function handleDragEnd(event) {
-      event.target.closest('.marker-item')?.classList.remove('dragging');
-      document.querySelectorAll('.marker-grid').forEach(g => {
-        g.classList.remove('drag-over-pos', 'drag-over-neg');
-      });
-    }
-
-    function handleDragOver(event, type) {
-      event.preventDefault();
-      event.dataTransfer.dropEffect = 'move';
-      const grid = event.currentTarget;
-      grid.classList.add(type === 'positive' ? 'drag-over-pos' : 'drag-over-neg');
-    }
-
-    function handleDragLeave(event, type) {
-      const grid = event.currentTarget;
-      grid.classList.remove(type === 'positive' ? 'drag-over-pos' : 'drag-over-neg');
-    }
-
-    function handleDrop(event, type) {
-      event.preventDefault();
-      const marker = draggedMarker || event.dataTransfer.getData('text/plain');
-      
-      positiveMarkers.delete(marker);
-      negativeMarkers.delete(marker);
-
-      if (type === 'positive') {
-        positiveMarkers.add(marker);
-      } else if (type === 'negative') {
-        negativeMarkers.add(marker);
-      }
-
-      renderAvailableMarkers();
-      
-      const grid = event.currentTarget;
-      grid.classList.remove('drag-over-pos', 'drag-over-neg');
-    }
-
-    function analyzeMarkers() {
-      if (positiveMarkers.size === 0 && negativeMarkers.size === 0) {
-        alert('Seleziona almeno un marker!');
-        return;
-      }
-
-      const results = calculateBayesian();
-      displayResults(results);
-
-      document.getElementById('emptyLookupState').style.display = 'none';
-      document.getElementById('lookupResults').style.display = 'block';
-    }
-
-    function calculateBayesian() {
-      const scores = [];
-
-      diagnoses.forEach(dx => {
-        let score = 0;
-        let reasoning = [];
-        let matchCount = 0;
-
-        // Score positive matches
-        dx.markers.pos.forEach(marker => {
-          if (positiveMarkers.has(marker)) {
-            score += 15;
-            matchCount++;
-            reasoning.push(`✅ ${marker} presente`);
-          }
-        });
-
-        // Score negative matches (confirmatory exclusions)
-        dx.markers.neg.forEach(marker => {
-          if (negativeMarkers.has(marker)) {
-            score += 12;
-            matchCount++;
-            reasoning.push(`❌ ${marker} assente (esclude alternative)`);
-          }
-        });
-
-        // Penalty: expected positive but found negative
-        dx.markers.pos.forEach(marker => {
-          if (negativeMarkers.has(marker)) {
-            score -= 25; // Heavy penalty
-            reasoning.push(`⚠️ ${marker} NEGATIVO (atteso positivo!) — penalità`);
-          }
-        });
-
-        // Penalty: expected negative but found positive
-        dx.markers.neg.forEach(marker => {
-          if (positiveMarkers.has(marker)) {
-            score -= 20;
-            reasoning.push(`⚠️ ${marker} POSITIVO (atteso negativo!) — penalità`);
-          }
-        });
-
-        // Bonus for multiple concordant matches
-        if (matchCount >= 4) {
-          score += 25;
-          reasoning.push(`🎯 ${matchCount} marker concordanti (profilo forte)`);
-        } else if (matchCount >= 3) {
-          score += 15;
-          reasoning.push(`🎯 ${matchCount} marker concordanti`);
-        }
-
-        if (score > 0) {
-          scores.push({ ...dx, bayesianScore: score, reasoning });
-        }
-      });
-
-      return scores
-        .sort((a, b) => b.bayesianScore - a.bayesianScore)
-        .slice(0, 8);
-    }
-
-    function displayResults(results) {
-      const container = document.getElementById('diagnosisResults');
-      
-      if (results.length === 0) {
-        container.innerHTML = '<div class="empty-state"><p>❌ Nessuna diagnosi matcha i marker selezionati. Verifica la selezione.</p></div>';
-        return;
-      }
-
-      const maxScore = results[0].bayesianScore;
-
-      container.innerHTML = results.map((dx, idx) => {
-        const relativeScore = dx.bayesianScore / maxScore;
-        const percentage = Math.round(50 + (relativeScore * 45));
-        const confidence = percentage >= 80 ? 'high' : percentage >= 65 ? 'medium' : 'low';
-
-        return `
-          <div class="diagnosis-result ${confidence}">
-            <div class="dx-header">
-              <div class="dx-name">${idx + 1}. ${dx.name}</div>
-              <div class="dx-score ${confidence}">${percentage}%</div>
-            </div>
-            <div class="dx-reasoning">
-              ${dx.reasoning.join('<br>') || 'Nessun match specifico'}
-            </div>
-            <div class="marker-list">
-              ${dx.markers.pos.map(m => `<span class="marker-tag ${positiveMarkers.has(m) ? 'pos' : ''}">${m}</span>`).join('')}
-              ${dx.markers.neg.map(m => `<span class="marker-tag ${negativeMarkers.has(m) ? 'neg' : ''}">${m}</span>`).join('')}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function resetLookup() {
-      positiveMarkers.clear();
-      negativeMarkers.clear();
-      renderAvailableMarkers();
-      document.getElementById('emptyLookupState').style.display = 'block';
-      document.getElementById('lookupResults').style.display = 'none';
-    }
-
-    // ============================================
-    // QUIZ MODE
-    // ============================================
-
-    function nextQuizRound() {
-      currentQuizDx = diagnoses[Math.floor(Math.random() * diagnoses.length)];
-      const quizMarkers = currentQuizDx.markers.pos.slice(0, Math.min(currentQuizDx.markers.pos.length, 4));
-
-      document.getElementById('quizMarkersList').innerHTML = quizMarkers
-        .map(m => `<span class="marker-chip">${m}</span>`).join('');
-
-      // Pick 4 random diagnoses including the correct one
-      const shuffled = [...diagnoses].sort(() => Math.random() - 0.5);
-      const options = shuffled.filter(d => d.name !== currentQuizDx.name).slice(0, 3);
-      options.push(currentQuizDx);
-      options.sort(() => Math.random() - 0.5);
-
-      document.getElementById('quizOptions').innerHTML = options
-        .map((dx, idx) => `
-          <div class="dx-option" onclick="selectAnswer(${idx}, '${dx.name.replace(/'/g, "\\'")}')">
-            ${dx.name}
-          </div>
-        `).join('');
-
-      document.getElementById('quizFeedback').className = 'feedback';
-      document.getElementById('quizFeedback').innerHTML = '';
-    }
-
-    function selectAnswer(idx, name) {
-      const isCorrect = name === currentQuizDx.name;
-      const feedback = document.getElementById('quizFeedback');
-
-      quizStats.total++;
-      if (isCorrect) {
-        quizStats.correct++;
-        quizStats.streak++;
-        feedback.className = 'feedback correct';
-        feedback.innerHTML = `✅ CORRETTO! Era <strong>${currentQuizDx.name}</strong>`;
+function computeBayes() {
+  const tested = new Set([...positiveMarkers, ...negativeMarkers]);
+  if (tested.size === 0) return [];
+  const results = [];
+  for (const dx of bayesDB) {
+    let logP = Math.log(dx.prior);
+    const reasoning = []; const flags = [];
+    for (const [mid, p] of Object.entries(dx.markers)) {
+      if (!tested.has(mid)) continue;
+      const d = getDisplay(mid);
+      const isPos = positiveMarkers.has(mid);
+      if (isPos) {
+        // LR+ = sensitivity / (1 - specificity)
+        const lr = p.s / Math.max(1 - p.n, 0.001);
+        logP += p.w * Math.log(Math.max(lr, 0.001));
+        if (p.s >= 0.6) reasoning.push({type:'support',text:'\u2705 '+d+' (+) LR+ '+lr.toFixed(1)});
+        else { flags.push('\u26a0\ufe0f '+d+' POS inatteso (sens '+Math.round(p.s*100)+'%)'); reasoning.push({type:'flag',text:'\u26a0\ufe0f '+d+' (+) inatteso — sens '+Math.round(p.s*100)+'%'}); }
       } else {
-        quizStats.streak = 0;
-        feedback.className = 'feedback incorrect';
-        feedback.innerHTML = `❌ SBAGLIATO! Era <strong>${currentQuizDx.name}</strong> — Profilo: ${currentQuizDx.markers.pos.join(', ')}`;
+        // LR- = (1 - sensitivity) / specificity
+        const lr = (1 - p.s) / Math.max(p.n, 0.001);
+        logP += p.w * Math.log(Math.max(lr, 0.001));
+        if (p.s >= 0.7) { flags.push('\ud83d\udeab '+d+' NEG (atteso pos, sens '+Math.round(p.s*100)+'%)'); reasoning.push({type:'flag',text:'\ud83d\udeab '+d+' (-) atteso pos (sens '+Math.round(p.s*100)+'%)'}); }
+        else if (p.s <= 0.10) reasoning.push({type:'exclude',text:'\u274c '+d+' (-) confermato neg — LR- '+lr.toFixed(2)});
       }
-
-      updateStats();
-      setTimeout(() => nextQuizRound(), 2500);
     }
+    results.push({name:dx.name,logP,reasoning,flags,markers:dx.markers});
+  }
+  const logN = logSumExp(results.map(r=>r.logP));
+  return results.map(r => ({...r, posterior:Math.exp(r.logP-logN)})).sort((a,b)=>b.posterior-a.posterior).slice(0,10);
+}
 
-    function updateStats() {
-      document.getElementById('correctCount').textContent = quizStats.correct;
-      document.getElementById('totalCount').textContent = quizStats.total;
-      document.getElementById('streakCount').textContent = quizStats.streak;
-      const accuracy = quizStats.total > 0 ? Math.round((quizStats.correct / quizStats.total) * 100) : 0;
-      document.getElementById('accuracyPercent').textContent = accuracy + '%';
-    }
+// INFO GAIN
+function computeInfoGain() {
+  const tested = new Set([...positiveMarkers,...negativeMarkers]);
+  if (lastResults.length < 2) return [];
+  const cands = new Set();
+  for (const r of lastResults.slice(0,5))
+    for (const mid of Object.keys(r.markers))
+      if (!tested.has(mid) && (currentMode==='all' || getSite(mid)==='fbf')) cands.add(mid);
+  const H0 = -lastResults.reduce((s,r)=>s+(r.posterior>0?r.posterior*Math.log2(r.posterior):0),0);
+  const gains = [];
+  for (const mid of cands) {
+    positiveMarkers.add(mid); const rP = computeBayes(); positiveMarkers.delete(mid);
+    negativeMarkers.add(mid); const rN = computeBayes(); negativeMarkers.delete(mid);
+    const HP = -rP.reduce((s,r)=>s+(r.posterior>0?r.posterior*Math.log2(r.posterior):0),0);
+    const HN = -rN.reduce((s,r)=>s+(r.posterior>0?r.posterior*Math.log2(r.posterior):0),0);
+    gains.push({id:mid,display:getDisplay(mid),gain:H0-0.5*(HP+HN),site:getSite(mid)});
+  }
+  return gains.sort((a,b)=>b.gain-a.gain).slice(0,5);
+}
 
-    // ============================================
-    // TAB SWITCHING
-    // ============================================
+// UI
+function getActiveIds() {
+  return Object.keys(markerDB).filter(id=>currentMode==='all'||markerDB[id].site==='fbf').sort((a,b)=>getDisplay(a).localeCompare(getDisplay(b)));
+}
+function onModeChange() { currentMode=document.querySelector('input[name=siteMode]:checked').value; renderAvailableMarkers(); }
 
-    function switchTab(tabName) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+function renderAvailableMarkers() {
+  const search=(document.getElementById('markerSearch')?.value||'').toLowerCase();
+  const avail=getActiveIds().filter(id=>!positiveMarkers.has(id)&&!negativeMarkers.has(id)&&(search===''||getDisplay(id).toLowerCase().includes(search)||markerDB[id].aliases.some(a=>a.includes(search))));
+  const c=document.getElementById('availableMarkers');
+  c.innerHTML=avail.map(id=>{
+    const m=markerDB[id]; const st=m.site==='sacco'?'<span class="sacco-tag">SACCO</span>':'';
+    return '<div class="marker-item" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondragend="handleDragEnd(event)"><span style="font-size:.8rem;">'+m.display+'</span>'+st+'</div>';
+  }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;">Nessun marker</p>';
+  renderSelectedMarkers(); updateCounts();
+}
 
-      document.getElementById(tabName + '-tab').classList.add('active');
-      event.target.classList.add('active');
-    }
+function renderSelectedMarkers() {
+  const pp=document.getElementById('positivePanel');
+  const np=document.getElementById('negativePanel');
+  pp.innerHTML=Array.from(positiveMarkers).sort((a,b)=>getDisplay(a).localeCompare(getDisplay(b))).map(id=>{
+    const st=getSite(id)==='sacco'?'<span class="sacco-tag">S</span>':'';
+    return '<div class="marker-item selected-pos" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')"><span>'+getDisplay(id)+'</span>'+st+'<span class="marker-badge">\u2705</span></div>';
+  }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui \u2192</p>';
+  np.innerHTML=Array.from(negativeMarkers).sort((a,b)=>getDisplay(a).localeCompare(getDisplay(b))).map(id=>{
+    const st=getSite(id)==='sacco'?'<span class="sacco-tag">S</span>':'';
+    return '<div class="marker-item selected-neg" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')"><span>'+getDisplay(id)+'</span>'+st+'<span class="marker-badge">\u274c</span></div>';
+  }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui \u2192</p>';
+}
 
-    init();
-  </script>
+function updateCounts() {
+  document.getElementById('posCount').textContent=positiveMarkers.size;
+  document.getElementById('negCount').textContent=negativeMarkers.size;
+  document.getElementById('availCount').textContent=getActiveIds().filter(id=>!positiveMarkers.has(id)&&!negativeMarkers.has(id)).length;
+}
+function removeMarker(id) { positiveMarkers.delete(id); negativeMarkers.delete(id); renderAvailableMarkers(); }
+
+let draggedMarker=null;
+function handleDragStart(e,id){ draggedMarker=id; e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',id); e.target.closest('.marker-item')?.classList.add('dragging'); }
+function handleDragEnd(e){ e.target.closest('.marker-item')?.classList.remove('dragging'); document.querySelectorAll('.marker-grid').forEach(g=>g.classList.remove('drag-over-pos','drag-over-neg')); }
+function handleDragOver(e,t){ e.preventDefault(); e.dataTransfer.dropEffect='move'; e.currentTarget.classList.add(t==='positive'?'drag-over-pos':'drag-over-neg'); }
+function handleDragLeave(e,t){ e.currentTarget.classList.remove(t==='positive'?'drag-over-pos':'drag-over-neg'); }
+function handleDrop(e,t){ e.preventDefault(); const id=draggedMarker||e.dataTransfer.getData('text/plain'); positiveMarkers.delete(id); negativeMarkers.delete(id); if(t==='positive')positiveMarkers.add(id);else negativeMarkers.add(id); renderAvailableMarkers(); e.currentTarget.classList.remove('drag-over-pos','drag-over-neg'); }
+
+function analyzeMarkers() {
+  if(positiveMarkers.size===0&&negativeMarkers.size===0){ alert('Seleziona almeno un marker!'); return; }
+  lastResults=computeBayes(); displayResults(lastResults);
+  displayNextBest(computeInfoGain());
+  document.getElementById('emptyLookupState').style.display='none';
+  document.getElementById('lookupResults').style.display='block';
+}
+
+function displayResults(results) {
+  const c=document.getElementById('diagnosisResults');
+  if(!results.length){ c.innerHTML='<div class="empty-state"><p>Nessuna diagnosi compatibile.</p></div>'; return; }
+  c.innerHTML=results.map((dx,i)=>{
+    const pct=Math.round(dx.posterior*100);
+    const conf=pct>=25?'high':pct>=10?'medium':'low';
+    const rHTML=dx.reasoning.map(r=>'<span class="'+r.type+'">'+r.text+'</span>').join('<br>');
+    const fHTML=dx.flags.length?'<div class="flags-box"><strong style="color:var(--flag);">\ud83d\udea9 Contraddizioni:</strong><br>'+dx.flags.join('<br>')+'</div>':'';
+    const mTags=Object.keys(dx.markers).map(mid=>{
+      const d=getDisplay(mid);
+      if(positiveMarkers.has(mid))return '<span class="marker-tag pos">'+d+' +</span>';
+      if(negativeMarkers.has(mid))return '<span class="marker-tag neg">'+d+' -</span>';
+      return '<span class="marker-tag untested">'+d+' ?</span>';
+    }).join('');
+    return '<div class="diagnosis-result '+conf+'"><div class="dx-header"><div class="dx-name">'+(i+1)+'. '+dx.name+'</div><div class="dx-score '+conf+'">'+pct+'%</div></div><div class="dx-reasoning">'+rHTML+'</div>'+fHTML+'<div class="marker-list">'+mTags+'</div></div>';
+  }).join('');
+}
+
+function displayNextBest(gains) {
+  const s=document.getElementById('nextBestSection');
+  if(!gains.length){ s.innerHTML=''; return; }
+  s.innerHTML='<div class="next-best"><h3>\ud83c\udfaf Prossimo Miglior Colpo (Information Gain)</h3><p style="font-size:.83rem;color:var(--subtext);margin-bottom:8px;">'+(currentMode==='fbf'?'Solo FBF.':'Inclusi SACCO.')+'</p>'+gains.map((g,i)=>'<div class="suggestion"><span class="gain-score">#'+(i+1)+'</span><strong>'+g.display+'</strong>'+(g.site==='sacco'?'<span class="sacco-tag" style="margin-left:4px;">SACCO</span>':'')+'<span style="margin-left:auto;font-size:.78rem;color:var(--gain);">IG: '+g.gain.toFixed(3)+' bit</span></div>').join('')+'</div>';
+}
+
+function resetLookup() {
+  positiveMarkers.clear(); negativeMarkers.clear(); lastResults=[];
+  document.getElementById('markerSearch').value=''; renderAvailableMarkers();
+  document.getElementById('emptyLookupState').style.display='block';
+  document.getElementById('lookupResults').style.display='none';
+  document.getElementById('nextBestSection').innerHTML='';
+}
+
+// QUIZ
+function nextQuizRound() {
+  currentQuizDx=bayesDB[Math.floor(Math.random()*bayesDB.length)];
+  const pm=Object.entries(currentQuizDx.markers).filter(([_,p])=>p.s>=0.60).sort((a,b)=>b[1].s-a[1].s).slice(0,4).map(([id])=>getDisplay(id));
+  document.getElementById('quizMarkersList').innerHTML=pm.map(m=>'<span class="marker-chip">'+m+'</span>').join('');
+  const opts=[...bayesDB].sort(()=>Math.random()-.5).filter(d=>d.name!==currentQuizDx.name).slice(0,3);
+  opts.push(currentQuizDx); opts.sort(()=>Math.random()-.5);
+  document.getElementById('quizOptions').innerHTML=opts.map((dx,i)=>"<div class='dx-option' onclick=\"selectAnswer("+i+",'"+dx.name.replace(/'/g,"\\'")+"')\">"+dx.name+"</div>").join('');
+  document.getElementById('quizFeedback').className='feedback';
+  document.getElementById('quizFeedback').innerHTML='';
+}
+
+function selectAnswer(i,name) {
+  const ok=name===currentQuizDx.name; const fb=document.getElementById('quizFeedback');
+  quizStats.total++;
+  if(ok){ quizStats.correct++; quizStats.streak++; fb.className='feedback correct'; fb.innerHTML='\u2705 CORRETTO! <strong>'+currentQuizDx.name+'</strong>'; }
+  else { quizStats.streak=0; fb.className='feedback incorrect';
+    const tp=Object.entries(currentQuizDx.markers).filter(([_,p])=>p.s>=0.6).map(([id])=>getDisplay(id)).join(', ');
+    fb.innerHTML='\u274c Era <strong>'+currentQuizDx.name+'</strong> — '+tp; }
+  document.getElementById('correctCount').textContent=quizStats.correct;
+  document.getElementById('totalCount').textContent=quizStats.total;
+  document.getElementById('streakCount').textContent=quizStats.streak;
+  document.getElementById('accuracyPercent').textContent=(quizStats.total>0?Math.round(quizStats.correct/quizStats.total*100):0)+'%';
+  setTimeout(()=>nextQuizRound(),2500);
+}
+
+function switchTab(t) {
+  document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById(t+'-tab').classList.add('active');
+  event.target.classList.add('active');
+}
+
+(function init(){ renderAvailableMarkers(); nextQuizRound(); })();
+
+</script>
 </body>
 </html>
