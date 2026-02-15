@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IHC Hub - Inverse Lookup + Quiz + Cascade v2.22</title>
+  <title>IHC Hub - Inverse Lookup + Quiz + Cascade v2.24</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -17,6 +17,7 @@
       --border: #e2e8f0;
       --shadow: rgba(0, 0, 0, 0.1);
       --fbf: #3b82f6;
+      --sacco: #a855f7;
     }
 
     * {
@@ -77,17 +78,9 @@
       font-weight: 700;
     }
 
-    .badge.fbf {
-      background: var(--fbf);
-    }
-
-    .badge.inverse {
-      background: var(--warn);
-    }
-
-    .badge.quiz {
-      background: var(--pos);
-    }
+    .badge.fbf { background: var(--fbf); }
+    .badge.inverse { background: var(--warn); }
+    .badge.quiz { background: var(--pos); }
 
     /* TAB NAVIGATION */
     .tabs-wrapper {
@@ -113,23 +106,15 @@
       transition: all 0.3s ease;
     }
 
-    .tab-btn:hover {
-      background: var(--bg);
-    }
-
-    .tab-btn.active {
-      background: var(--fbf);
-      color: white;
-    }
+    .tab-btn:hover { background: var(--bg); }
+    .tab-btn.active { background: var(--fbf); color: white; }
 
     .tab-content {
       display: none;
       animation: fadeIn 0.3s ease;
     }
 
-    .tab-content.active {
-      display: block;
-    }
+    .tab-content.active { display: block; }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
@@ -160,13 +145,8 @@
       gap: 10px;
     }
 
-    .marker-panel.positive h2 {
-      color: var(--pos);
-    }
-
-    .marker-panel.negative h2 {
-      color: var(--neg);
-    }
+    .marker-panel.positive h2 { color: var(--pos); }
+    .marker-panel.negative h2 { color: var(--neg); }
 
     .marker-grid {
       display: flex;
@@ -208,21 +188,9 @@
       box-shadow: 0 2px 4px var(--shadow);
     }
 
-    .marker-item:active {
-      cursor: grabbing;
-      opacity: 0.7;
-      transform: scale(1.02);
-    }
-
-    .marker-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px var(--shadow);
-    }
-
-    .marker-item.dragging {
-      opacity: 0.5;
-      transform: scale(0.95);
-    }
+    .marker-item:active { cursor: grabbing; opacity: 0.7; transform: scale(1.02); }
+    .marker-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px var(--shadow); }
+    .marker-item.dragging { opacity: 0.5; transform: scale(0.95); }
 
     .marker-item.selected-pos {
       background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
@@ -245,23 +213,10 @@
       padding: 4px 8px;
       border-radius: 4px;
       font-weight: 700;
-      animation: pulse 0.6s ease-in-out infinite;
     }
 
-    .marker-badge.pos {
-      background: var(--pos);
-      color: white;
-    }
-
-    .marker-badge.neg {
-      background: var(--neg);
-      color: white;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-    }
+    .marker-badge.pos { background: var(--pos); color: white; }
+    .marker-badge.neg { background: var(--neg); color: white; }
 
     .controls {
       grid-column: 1 / -1;
@@ -281,34 +236,10 @@
       transition: all 0.3s ease;
     }
 
-    .btn-analyze {
-      background: var(--fbf);
-      color: white;
-    }
-
-    .btn-analyze:hover {
-      transform: scale(1.05);
-      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-    }
-
-    .btn-reset {
-      background: var(--subtext);
-      color: white;
-    }
-
-    .btn-reset:hover {
-      background: #475569;
-    }
-
-    .btn-external {
-      background: var(--warn);
-      color: white;
-    }
-
-    .btn-external:hover {
-      transform: scale(1.05);
-      box-shadow: 0 8px 20px rgba(217, 119, 6, 0.3);
-    }
+    .btn-analyze { background: var(--fbf); color: white; }
+    .btn-analyze:hover { transform: scale(1.05); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); }
+    .btn-reset { background: var(--subtext); color: white; }
+    .btn-reset:hover { background: #475569; }
 
     /* RESULTS */
     .results-container {
@@ -333,32 +264,12 @@
       margin-bottom: 15px;
     }
 
-    .diagnosis-result.high {
-      border-color: var(--pos);
-      background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
-    }
+    .diagnosis-result.high { border-color: var(--pos); background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%); }
+    .diagnosis-result.medium { border-color: var(--warn); background: linear-gradient(135deg, #fef3c7 0%, #fefce8 100%); }
+    .diagnosis-result.low { border-color: #94a3b8; background: linear-gradient(135deg, #f1f5f9 0%, #f8fafc 100%); }
 
-    .diagnosis-result.medium {
-      border-color: var(--warn);
-      background: linear-gradient(135deg, #fef3c7 0%, #fefce8 100%);
-    }
-
-    .diagnosis-result.low {
-      border-color: #94a3b8;
-      background: linear-gradient(135deg, #f1f5f9 0%, #f8fafc 100%);
-    }
-
-    .dx-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .dx-name {
-      font-size: 1.2rem;
-      font-weight: 700;
-    }
+    .dx-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .dx-name { font-size: 1.2rem; font-weight: 700; }
 
     .dx-score {
       font-size: 1.3rem;
@@ -369,55 +280,20 @@
       box-shadow: 0 2px 6px var(--shadow);
     }
 
-    .dx-score.high {
-      color: var(--pos);
-    }
+    .dx-score.high { color: var(--pos); }
+    .dx-score.medium { color: var(--warn); }
+    .dx-score.low { color: #94a3b8; }
 
-    .dx-score.medium {
-      color: var(--warn);
-    }
+    .dx-reasoning { font-size: 0.95rem; color: #475569; line-height: 1.7; }
+    .marker-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 
-    .dx-score.low {
-      color: #94a3b8;
-    }
-
-    .dx-reasoning {
-      font-size: 0.95rem;
-      color: #475569;
-      line-height: 1.7;
-    }
-
-    .marker-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .marker-tag {
-      padding: 4px 12px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-
-    .marker-tag.pos {
-      background: #dcfce7;
-      color: #065f46;
-      border: 1px solid #6ee7b7;
-    }
-
-    .marker-tag.neg {
-      background: #fee2e2;
-      color: #7f1d1d;
-      border: 1px solid #fca5a5;
-    }
+    .marker-tag { padding: 4px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; }
+    .marker-tag.pos { background: #dcfce7; color: #065f46; border: 1px solid #6ee7b7; }
+    .marker-tag.neg { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
+    .marker-tag.sacco { background: #f3e8ff; color: #6b21a8; border: 1px solid #c084fc; font-style: italic; }
 
     /* QUIZ MODE */
-    .quiz-container {
-      max-width: 1000px;
-      margin: 0 auto;
-    }
+    .quiz-container { max-width: 1000px; margin: 0 auto; }
 
     .quiz-card {
       background: var(--card);
@@ -429,12 +305,7 @@
       margin-bottom: 30px;
     }
 
-    .quiz-title {
-      font-size: 1.8rem;
-      margin-bottom: 30px;
-      color: var(--fbf);
-      font-weight: 700;
-    }
+    .quiz-title { font-size: 1.8rem; margin-bottom: 30px; color: var(--fbf); font-weight: 700; }
 
     .markers-display {
       background: var(--bg);
@@ -444,17 +315,9 @@
       border: 2px solid var(--fbf);
     }
 
-    .markers-display h3 {
-      margin-bottom: 15px;
-      color: var(--text);
-    }
+    .markers-display h3 { margin-bottom: 15px; color: var(--text); }
 
-    .marker-list-quiz {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-    }
+    .marker-list-quiz { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 
     .marker-chip {
       padding: 10px 20px;
@@ -484,17 +347,8 @@
       text-align: center;
     }
 
-    .dx-option:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 16px var(--shadow);
-      border-color: var(--fbf);
-    }
-
-    .dx-option.selected {
-      background: var(--fbf);
-      color: white;
-      border-color: var(--fbf);
-    }
+    .dx-option:hover { transform: translateY(-4px); box-shadow: 0 8px 16px var(--shadow); border-color: var(--fbf); }
+    .dx-option.selected { background: var(--fbf); color: white; border-color: var(--fbf); }
 
     .feedback {
       padding: 20px;
@@ -505,19 +359,8 @@
       display: none;
     }
 
-    .feedback.correct {
-      background: #dcfce7;
-      color: #065f46;
-      border: 2px solid var(--pos);
-      display: block;
-    }
-
-    .feedback.incorrect {
-      background: #fee2e2;
-      color: #7f1d1d;
-      border: 2px solid var(--neg);
-      display: block;
-    }
+    .feedback.correct { background: #dcfce7; color: #065f46; border: 2px solid var(--pos); display: block; }
+    .feedback.incorrect { background: #fee2e2; color: #7f1d1d; border: 2px solid var(--neg); display: block; }
 
     .stats {
       background: var(--bg);
@@ -530,33 +373,12 @@
       gap: 20px;
     }
 
-    .stat-box {
-      flex: 1;
-    }
+    .stat-box { flex: 1; }
+    .stat-label { font-size: 0.9rem; color: var(--subtext); margin-bottom: 5px; }
+    .stat-value { font-size: 2rem; font-weight: 900; color: var(--fbf); }
 
-    .stat-label {
-      font-size: 0.9rem;
-      color: var(--subtext);
-      margin-bottom: 5px;
-    }
-
-    .stat-value {
-      font-size: 2rem;
-      font-weight: 900;
-      color: var(--fbf);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--subtext);
-    }
-
-    .empty-state h2 {
-      font-size: 1.5rem;
-      margin-bottom: 15px;
-      color: var(--text);
-    }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--subtext); }
+    .empty-state h2 { font-size: 1.5rem; margin-bottom: 15px; color: var(--text); }
 
     .info-box {
       background: #fef3c7;
@@ -569,14 +391,8 @@
       align-items: flex-start;
     }
 
-    .info-box span {
-      font-size: 1.5rem;
-      flex-shrink: 0;
-    }
-
-    .info-box div {
-      flex: 1;
-    }
+    .info-box span { font-size: 1.5rem; flex-shrink: 0; }
+    .info-box div { flex: 1; }
 
     /* CASCADE TAB */
     .cascade-card {
@@ -588,18 +404,8 @@
       box-shadow: 0 4px 12px var(--shadow);
     }
 
-    .cascade-card h2 {
-      font-size: 1.8rem;
-      margin-bottom: 20px;
-      color: var(--fbf);
-    }
-
-    .cascade-card p {
-      font-size: 1.1rem;
-      color: var(--subtext);
-      margin-bottom: 30px;
-      line-height: 1.8;
-    }
+    .cascade-card h2 { font-size: 1.8rem; margin-bottom: 20px; color: var(--fbf); }
+    .cascade-card p { font-size: 1.1rem; color: var(--subtext); margin-bottom: 30px; line-height: 1.8; }
 
     .cascade-card a {
       display: inline-block;
@@ -613,23 +419,24 @@
       transition: all 0.3s ease;
     }
 
-    .cascade-card a:hover {
-      transform: scale(1.05);
-      box-shadow: 0 8px 20px rgba(217, 119, 6, 0.3);
+    .cascade-card a:hover { transform: scale(1.05); box-shadow: 0 8px 20px rgba(217, 119, 6, 0.3); }
+
+    /* MARKER COUNT BADGE */
+    .marker-count {
+      display: inline-block;
+      background: var(--fbf);
+      color: white;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-left: 8px;
     }
 
     @media (max-width: 1200px) {
-      .lookup-container {
-        grid-template-columns: 1fr;
-      }
-
-      .controls {
-        flex-direction: column;
-      }
-
-      h1 {
-        font-size: 2rem;
-      }
+      .lookup-container { grid-template-columns: 1fr; }
+      .controls { flex-direction: column; }
+      h1 { font-size: 2rem; }
     }
   </style>
 </head>
@@ -637,9 +444,11 @@
   <div class="container">
     <header>
       <h1>🧬 IHC Hub</h1>
-      <p class="version">Strumenti integrati per diagnostica IHC pratica e gamified</p>
+      <p class="version">v2.24 — Strumenti integrati per diagnostica IHC pratica e gamified
+        <br><strong style="color: var(--pos);">v2.24 FIX:</strong> Allineato a PDF Master Anticorpi_FBF (144 marker bianco) | +15 marker (Alk D5F3, CD-10, CD-14, CD-56, CD-138, MUC-2/4/6, Inibina-α, PDL1 SP142, CMV, HPV, IgG, Androgeni, Annexin A1)
+      </p>
       <div class="header-badges">
-        <span class="badge fbf">60+ marker FBF</span>
+        <span class="badge fbf">85+ marker FBF</span>
         <span class="badge inverse">Inverse Lookup</span>
         <span class="badge quiz">Quiz Mode</span>
       </div>
@@ -649,7 +458,7 @@
     <div class="tabs-wrapper">
       <button class="tab-btn active" onclick="switchTab('inverse')">🔍 Inverse Lookup</button>
       <button class="tab-btn" onclick="switchTab('quiz')">🎮 Quiz Mode</button>
-      <button class="tab-btn" onclick="switchTab('cascade')">📊 IHC Cascade v2.22</button>
+      <button class="tab-btn" onclick="switchTab('cascade')">📊 IHC Cascade v2.24</button>
     </div>
 
     <!-- ============== INVERSE LOOKUP TAB ============== -->
@@ -658,35 +467,34 @@
         <span>💡</span>
         <div>
           <strong>Come usare:</strong> Trascina i marker dalla sezione "Disponibili" nelle colonne "Positivi" o "Negativi". Poi clicca "ANALIZZA MARKER" per calcolare le diagnosi più probabili.
+          <br><strong style="color: var(--pos);">v2.24:</strong> Marker allineati a PDF Master (144 FBF). In attesa conferma definitiva.
         </div>
       </div>
 
       <div class="lookup-container">
         <!-- POSITIVE MARKERS -->
         <div class="marker-panel positive">
-          <h2>✅ Marker Positivi</h2>
+          <h2>✅ Marker Positivi <span class="marker-count" id="posCount">0</span></h2>
           <p style="font-size: 0.9rem; color: var(--subtext); margin-bottom: 10px;">Trascina marker qui →</p>
           <div class="marker-grid" id="positivePanel" ondrop="handleDrop(event, 'positive')" ondragover="handleDragOver(event, 'positive')" ondragleave="handleDragLeave(event, 'positive')">
-            <!-- Generated by JS -->
           </div>
         </div>
 
         <!-- NEGATIVE MARKERS -->
         <div class="marker-panel negative">
-          <h2>❌ Marker Negativi</h2>
+          <h2>❌ Marker Negativi <span class="marker-count" id="negCount" style="background: var(--neg);">0</span></h2>
           <p style="font-size: 0.9rem; color: var(--subtext); margin-bottom: 10px;">Trascina marker qui →</p>
           <div class="marker-grid" id="negativePanel" ondrop="handleDrop(event, 'negative')" ondragover="handleDragOver(event, 'negative')" ondragleave="handleDragLeave(event, 'negative')">
-            <!-- Generated by JS -->
           </div>
         </div>
 
         <!-- AVAILABLE MARKERS (TO DRAG) -->
         <div style="grid-column: 1 / -1; padding: 25px; background: var(--card); border: 3px dashed var(--fbf); border-radius: 12px;">
           <h3 style="margin-bottom: 15px; color: var(--fbf); display: flex; align-items: center; gap: 8px;">
-            <span>📋</span> Marker Disponibili FBF (trascina a sinistra o destra)
+            <span>📋</span> Marker Disponibili FBF — Ordine Alfabetico
+            <span class="marker-count" id="availCount">0</span>
           </h3>
-          <div class="marker-grid" id="availableMarkers" style="max-height: 350px; min-height: 200px; border: 2px dashed var(--fbf); display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding: 15px; overflow-y: auto;">
-            <!-- Generated by JS -->
+          <div class="marker-grid" id="availableMarkers" style="max-height: 400px; min-height: 200px; border: 2px dashed var(--fbf); display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; padding: 15px; overflow-y: auto;">
           </div>
         </div>
 
@@ -701,15 +509,13 @@
       <div id="lookupResults" style="display: none;">
         <div class="results-container">
           <h2>📊 RISULTATI BAYESIANI</h2>
-          <div id="diagnosisResults">
-            <!-- Generated by JS -->
-          </div>
+          <div id="diagnosisResults"></div>
         </div>
       </div>
 
       <div id="emptyLookupState" class="empty-state">
         <h2>👈 Trascina marker nelle colonne</h2>
-        <p>Seleziona i marker positivi e negativi, poi clicca "ANALIZZA MARKER" per calcolare le diagnosi più probabili</p>
+        <p>Seleziona i marker positivi e negativi, poi clicca "ANALIZZA MARKER"</p>
       </div>
     </div>
 
@@ -740,20 +546,13 @@
 
           <div class="markers-display">
             <h3>Questi marker sono POSITIVI:</h3>
-            <div class="marker-list-quiz" id="quizMarkersList">
-              <!-- Generated by JS -->
-            </div>
+            <div class="marker-list-quiz" id="quizMarkersList"></div>
           </div>
 
           <p style="font-size: 1.05rem; color: var(--subtext); margin-bottom: 25px;">Qual è la diagnosi più probabile?</p>
 
-          <div class="diagnosis-options" id="quizOptions">
-            <!-- Generated by JS -->
-          </div>
-
-          <div id="quizFeedback" class="feedback">
-            <!-- Generated by JS -->
-          </div>
+          <div class="diagnosis-options" id="quizOptions"></div>
+          <div id="quizFeedback" class="feedback"></div>
 
           <button class="btn btn-analyze" onclick="nextQuizRound()" style="margin-top: 20px;">⏭️ PROSSIMA DIAGNOSI</button>
         </div>
@@ -775,60 +574,229 @@
 
   <script>
     // ============================================
-    // MARKER DATABASE - SOLO FBF
+    // v2.23 FIX: MARKER DATABASE - SOLO FBF (da CSV definitivo)
+    // ORDINE ALFABETICO
+    // Rimossi: CD10 (SACCO), CD56 (SACCO), MyoD1 (SACCO)
+    // Aggiunti: marker FBF mancanti dal CSV
     // ============================================
     
+    // v2.24: 143 marker da PDF Master "Anticorpi_FBF" (BIANCO = FBF+SACCO)
+    // In attesa di conferma definitiva
     const markers = [
-      'CD20', 'CD3', 'CD5', 'CD10', 'CD15', 'CD19', 'CD23', 'CD30', 'CD34', 'CD45',
-      'CD56', 'CD79a', 'PAX5', 'TdT', 'BCL2', 'BCL6', 'MUM1',
-      'CK7', 'CK20', 'CK5/6', 'p40', 'p63', 'CKAE1',
-      'TTF-1', 'Napsin-A', 'p53', 'CDX2', 'PAX8',
-      'ER', 'PR', 'GATA3', 'Mammoglobina',
-      'PSA', 'PSAP', 'NKX3', 'ERG', 'RCC',
-      'WT1', 'CA-125', 'Calretinina', 'D2-40',
-      'Sinaptofsina', 'Cromogranina', 'CD56',
-      'S100', 'SOX10', 'Melan-A', 'HMB45', 'PRAME',
-      'Desmin', 'SMA', 'Miogenina', 'MyoD1', 'Actina HHF35', 'Vimentina',
-      'STAT6', 'DOG1', 'H3K27me3', 'INI1', 'SMARCA4',
-      'Hep-Par-1', 'Glypican-3', 'Arginasi', 'AFP',
-      'Calcitonina', 'Thyroglobulin', 'HBME-1'
+      // A
+      'Actina HHF35',
+      'Actina m.l. (SMA)',
+      'AFP',
+      'Alk D5F3',
+      'Androgeni',
+      'Annexin A1',
+      'Arginasi',
+      'ATRX',
+      // B
+      'BCL-1',
+      'BCL-2',
+      'BCL-6',
+      'BCL-10',
+      'BRG-1/SMARCA4',
+      'β-Catenina',
+      // C
+      'CA-125',
+      'CA-IX',
+      'Calcitonina',
+      'Caldesmon',
+      'Calponina',
+      'Calretinina',
+      'CD-1',
+      'CD-2',
+      'CD-3',
+      'CD-4',
+      'CD-5',
+      'CD-7',
+      'CD-8',
+      'CD-10',
+      'CD-14',
+      'CD-15',
+      'CD-19',
+      'CD-20',
+      'CD-21',
+      'CD-23',
+      'CD-30',
+      'CD-31',
+      'CD-34',
+      'CD-38',
+      'CD-44',
+      'CD-45',
+      'CD-56',
+      'CD-61',
+      'CD-68 KP1',
+      'CD-68 PG-M1',
+      'CD-79a',
+      'CD-99',
+      'CD-117',
+      'CD-138',
+      'CD-163',
+      'CDK4',
+      'CDX-2',
+      'CEA Mono',
+      'CK 5/6',
+      'CK 7',
+      'CK 19',
+      'CK 20',
+      'CK 34βE12',
+      'CK AE1/AE3',
+      'CK CAM 5.2',
+      'Claudina-18',
+      'CMV',
+      'C-myc',
+      'Cromogranina',
+      // D
+      'D2-40',
+      'Desmina',
+      'DOG1',
+      // E
+      'E-Caderina',
+      'EMA',
+      'EP-CAM',
+      'ER',
+      'ERG',
+      // F
+      'Fattore VIII',
+      'Fattore XIII',
+      'Fumarato Idratasi',
+      // G
+      'Galectina 3',
+      'GATA3',
+      'GFAP',
+      'Glicoforina',
+      'Glut-1',
+      'Glut Sintetasi',
+      'Glypican-3',
+      // H
+      'HCG',
+      'Hep-Par-1 (HSA)',
+      'HER-2',
+      'HGAL',
+      'HHV8',
+      'HMB45',
+      'HPV',
+      // I
+      'IDH1',
+      'IgG',
+      'IgG4',
+      'Inibina-α',
+      // K
+      'Ki-67',
+      'κ',
+      // L
+      'λ',
+      // M
+      'Mammoglobina',
+      'MDM2',
+      'Melan-A',
+      'Mieloperossidasi',
+      'Miogenina',
+      'MLH1',
+      'MSH2',
+      'MSH6',
+      'MUC-2',
+      'MUC-4',
+      'MUC-6',
+      'MUM-1',
+      // N
+      'Napsina',
+      'Neurofilamenti',
+      'NKX3',
+      'NSE',
+      // O
+      'Olig-2',
+      // P
+      'p16',
+      'p40',
+      'p53',
+      'p57',
+      'p63',
+      'PAX-5',
+      'PAX-8',
+      'PDL1 (SP142)',
+      'PDL1 (SP263)',
+      'PHH3',
+      'PLAP',
+      'PMS2',
+      'PR',
+      'PRAME',
+      'PSA',
+      'PSAP',
+      'PTEN',
+      // R
+      'Racemasi',
+      'RCC',
+      // S
+      'S100',
+      'SALL4',
+      'SATB2',
+      'Sinaptofsina',
+      'SOX-10',
+      'SOX-11',
+      'STAT6',
+      // T
+      'TdT',
+      'Thyroglobulin',
+      'TTF-1',
+      // V
+      'Vimentina',
+      // W
+      'WT1'
     ];
 
+    // ============================================
+    // v2.24: DIAGNOSIS DATABASE
+    // Allineato a PDF Master. +15 marker disponibili.
+    // Aggiunto: Mieloma (CD-138), CUP workup migliorato
+    // ============================================
+    
     const diagnoses = [
-      // PREDICT
-      { name: 'Carcinoma Epatocellulare (HCC)', markers: { pos: ['Hep-Par-1', 'Glypican-3', 'AFP'], neg: ['CK7', 'CK20'] }, score: 95 },
-      { name: 'Adenocarcinoma Pancreatico', markers: { pos: ['CA19-9', 'CK7', 'p53'], neg: ['TTF-1', 'CDX2'] }, score: 90 },
-      { name: 'Carcinoma Ovarico', markers: { pos: ['WT1', 'CA-125', 'PAX8'], neg: ['CK20', 'CDX2'] }, score: 88 },
-      { name: 'Carcinoma Uroteliale', markers: { pos: ['GATA3', 'CK7', 'CK20'], neg: ['PSA', 'TTF-1'] }, score: 85 },
-      { name: 'Neuroendocrina GI', markers: { pos: ['Sinaptofsina', 'Cromogranina', 'CD56'], neg: ['CK7', 'CK20'] }, score: 88 },
-      { name: 'Carcinoma Tiroideo', markers: { pos: ['TTF-1', 'Thyroglobulin', 'PAX8'], neg: ['CK20', 'CDX2'] }, score: 92 },
-      { name: 'Carcinoma Mammario', markers: { pos: ['ER', 'PR', 'GATA3', 'Mammoglobina'], neg: ['CK20', 'TTF-1'] }, score: 90 },
-      { name: 'Adenocarcinoma Colico', markers: { pos: ['CK20', 'CDX2'], neg: ['CK7', 'TTF-1'] }, score: 87 },
-      { name: 'Adenocarcinoma Gastrico', markers: { pos: ['CK7', 'p53'], neg: ['CK20', 'TTF-1'] }, score: 85 },
-      { name: 'Adenocarcinoma Polmonare', markers: { pos: ['TTF-1', 'Napsin-A', 'CK7'], neg: ['CK20', 'CDX2'] }, score: 89 },
-      { name: 'Mesotelioma', markers: { pos: ['Calretinina', 'WT1', 'D2-40', 'Vimentina'], neg: ['CK20', 'TTF-1'] }, score: 86 },
-      { name: 'Carcinoma Renale', markers: { pos: ['RCC', 'PAX8', 'CD10'], neg: ['CK20', 'TTF-1'] }, score: 84 },
+      // === CARCINOMI ===
+      { name: 'Adenocarcinoma Polmonare', markers: { pos: ['TTF-1', 'Napsina', 'CK 7'], neg: ['CK 20', 'CDX-2', 'SATB2'] }, score: 89 },
+      { name: 'Carcinoma Mammario', markers: { pos: ['ER', 'PR', 'GATA3', 'Mammoglobina'], neg: ['CK 20', 'TTF-1', 'CDX-2'] }, score: 90 },
+      { name: 'Adenocarcinoma Colorettale', markers: { pos: ['CK 20', 'CDX-2', 'SATB2'], neg: ['CK 7', 'TTF-1'] }, score: 87 },
+      { name: 'Carcinoma Epatocellulare (HCC)', markers: { pos: ['Hep-Par-1 (HSA)', 'Glypican-3', 'Arginasi', 'AFP'], neg: ['CK 7', 'CK 20'] }, score: 95 },
+      { name: 'Adenocarcinoma Pancreatico', markers: { pos: ['CK 7', 'CK 19', 'p53'], neg: ['TTF-1', 'SATB2'] }, score: 88 },
+      { name: 'Carcinoma Ovarico HGSC', markers: { pos: ['PAX-8', 'WT1', 'CA-125', 'ER', 'p53'], neg: ['CK 20', 'CDX-2', 'GATA3'] }, score: 88 },
+      { name: 'Carcinoma Uroteliale', markers: { pos: ['GATA3', 'CK 7', 'CK 20', 'p63'], neg: ['PSA', 'TTF-1', 'CDX-2'] }, score: 85 },
+      { name: 'Carcinoma Prostatico', markers: { pos: ['PSA', 'PSAP', 'NKX3', 'ERG'], neg: ['CK 7', 'CK 20', 'GATA3'] }, score: 91 },
+      { name: 'Carcinoma Renale (RCC)', markers: { pos: ['PAX-8', 'RCC', 'CA-IX', 'Vimentina'], neg: ['CK 20', 'TTF-1', 'CK 7'] }, score: 84 },
+      { name: 'Carcinoma Tiroideo (PTC)', markers: { pos: ['TTF-1', 'Thyroglobulin', 'PAX-8', 'CK 19'], neg: ['CK 20', 'CDX-2', 'Calcitonina'] }, score: 92 },
+      { name: 'Mesotelioma Epitelioide', markers: { pos: ['Calretinina', 'WT1', 'D2-40', 'CK 5/6'], neg: ['CK 20', 'TTF-1', 'PAX-8'] }, score: 86 },
+      { name: 'Carcinoma Squamoso (SCC)', markers: { pos: ['p40', 'p63', 'CK 5/6'], neg: ['CK 7', 'CK 20', 'TTF-1'] }, score: 87 },
 
-      // SECONDARY - Sarcomi
-      { name: 'Sarcoma di Ewing', markers: { pos: ['CD99', 'BCL2', 'Vimentina'], neg: ['Desmin', 'MyoD1', 'CD20'] }, score: 94 },
-      { name: 'Leiomiosarcoma', markers: { pos: ['Actina HHF35', 'Desmin', 'Vimentina', 'SMA'], neg: ['S100', 'CD34'] }, score: 91 },
-      { name: 'Rabdomiosarcoma', markers: { pos: ['Desmin', 'MyoD1', 'Miogenina'], neg: ['CD20', 'CD3', 'S100'] }, score: 93 },
-      { name: 'Tumore Stromale GI (GIST)', markers: { pos: ['DOG1', 'CD34'], neg: ['Desmin', 'S100'] }, score: 94 },
-      { name: 'Sarcoma Sinoviale', markers: { pos: ['Vimentina', 'CD34'], neg: ['Desmin', 'CD3'] }, score: 90 },
-      { name: 'Liposarcoma', markers: { pos: ['Vimentina', 'MDM2'], neg: ['CD20', 'Desmin'] }, score: 80 },
+      // === NEUROENDOCRINE ===
+      { name: 'Neoplasia Neuroendocrina GI', markers: { pos: ['Sinaptofsina', 'Cromogranina', 'CDX-2'], neg: ['TTF-1'] }, score: 88 },
+      { name: 'Neoplasia Neuroendocrina Polmonare', markers: { pos: ['Sinaptofsina', 'Cromogranina', 'TTF-1'], neg: ['CDX-2', 'CK 20'] }, score: 86 },
 
-      // SECONDARY - Linfomi
-      { name: 'Linfoma B Diffuso Grande Cellule', markers: { pos: ['CD20', 'CD19', 'PAX5', 'MUM1'], neg: ['CD3', 'TdT'] }, score: 92 },
-      { name: 'Linfoma T Periferico', markers: { pos: ['CD3', 'CD5', 'CD45'], neg: ['CD20', 'TdT'] }, score: 85 },
-      { name: 'Linfoma Linfoblastico (ALL)', markers: { pos: ['TdT', 'CD19', 'CD10'], neg: ['CD20', 'CD3'] }, score: 93 },
+      // === MELANOMA & NEURAL ===
+      { name: 'Melanoma', markers: { pos: ['S100', 'SOX-10', 'Melan-A', 'HMB45', 'PRAME'], neg: ['CK AE1/AE3', 'CD-20', 'CD-45'] }, score: 93 },
+      { name: 'MPNST', markers: { pos: ['S100', 'SOX-10', 'Vimentina'], neg: ['Melan-A', 'HMB45', 'Desmina'] }, score: 80 },
 
-      // SECONDARY - Melanoma & Neural
-      { name: 'Melanoma', markers: { pos: ['S100', 'SOX10', 'Melan-A', 'HMB45'], neg: ['CD20', 'CK7'] }, score: 93 },
-      { name: 'MPNST', markers: { pos: ['S100', 'Vimentina'], neg: ['H3K27me3', 'INI1'] }, score: 80 },
+      // === SARCOMI ===
+      { name: 'GIST', markers: { pos: ['CD-117', 'DOG1', 'CD-34'], neg: ['Desmina', 'S100', 'SOX-10'] }, score: 94 },
+      { name: 'Leiomiosarcoma', markers: { pos: ['Actina HHF35', 'Actina m.l. (SMA)', 'Desmina', 'Caldesmon'], neg: ['S100', 'CD-34', 'CD-117'] }, score: 91 },
+      { name: 'Rabdomiosarcoma', markers: { pos: ['Desmina', 'Miogenina'], neg: ['CD-20', 'CD-3', 'S100'] }, score: 93 },
+      { name: 'Sarcoma Sinoviale', markers: { pos: ['CK AE1/AE3', 'EMA', 'BCL-2', 'CD-99'], neg: ['Desmina', 'S100', 'CD-34'] }, score: 90 },
+      { name: 'Sarcoma di Ewing', markers: { pos: ['CD-99', 'Vimentina'], neg: ['Desmina', 'Miogenina', 'CD-20'] }, score: 94 },
+      { name: 'Tumore Fibroso Solitario', markers: { pos: ['STAT6', 'CD-34', 'Vimentina', 'BCL-2'], neg: ['Desmina', 'S100'] }, score: 92 },
+      { name: 'Liposarcoma Dedifferenziato', markers: { pos: ['MDM2', 'CDK4', 'Vimentina'], neg: ['CD-20', 'Desmina', 'S100'] }, score: 85 },
 
-      // SECONDARY - GCT & Others
-      { name: 'Tumore Germinale', markers: { pos: ['AFP', 'SALL4', 'PLAP'], neg: ['CD20', 'CD3'] }, score: 91 },
-      { name: 'Carcinoma Squamoso CUP', markers: { pos: ['p40', 'p63', 'CK5/6'], neg: ['CK7', 'CK20', 'TTF-1'] }, score: 87 },
+      // === LINFOMI ===
+      { name: 'DLBCL', markers: { pos: ['CD-20', 'CD-79a', 'PAX-5', 'BCL-6', 'MUM-1'], neg: ['CD-3', 'TdT'] }, score: 92 },
+      { name: 'Linfoma T Periferico', markers: { pos: ['CD-3', 'CD-5', 'CD-45'], neg: ['CD-20', 'TdT', 'PAX-5'] }, score: 85 },
+      { name: 'Linfoma Linfoblastico', markers: { pos: ['TdT', 'CD-19', 'CD-99'], neg: ['CD-20'] }, score: 93 },
+      { name: 'Linfoma di Hodgkin', markers: { pos: ['CD-15', 'CD-30'], neg: ['CD-20', 'CD-3', 'CD-45'] }, score: 91 },
+      { name: 'Mieloma/Plasmacitoma', markers: { pos: ['CD-138', 'MUM-1', 'κ', 'λ'], neg: ['CD-20', 'CD-3', 'PAX-5'] }, score: 90 },
+
+      // === GCT ===
+      { name: 'Seminoma/Disgerminoma', markers: { pos: ['SALL4', 'PLAP', 'CD-117'], neg: ['AFP', 'CK AE1/AE3'] }, score: 91 },
+      { name: 'Yolk Sac Tumor', markers: { pos: ['AFP', 'SALL4', 'Glypican-3'], neg: ['CD-30', 'HCG'] }, score: 89 },
+      { name: 'Coriocarcinoma', markers: { pos: ['HCG', 'CK AE1/AE3'], neg: ['SALL4', 'AFP'] }, score: 88 },
     ];
 
     let positiveMarkers = new Set();
@@ -845,6 +813,13 @@
     // INVERSE LOOKUP
     // ============================================
 
+    function updateCounts() {
+      document.getElementById('posCount').textContent = positiveMarkers.size;
+      document.getElementById('negCount').textContent = negativeMarkers.size;
+      const avail = markers.filter(m => !positiveMarkers.has(m) && !negativeMarkers.has(m));
+      document.getElementById('availCount').textContent = avail.length;
+    }
+
     function renderAvailableMarkers() {
       const available = markers.filter(m => !positiveMarkers.has(m) && !negativeMarkers.has(m));
       const container = document.getElementById('availableMarkers');
@@ -854,8 +829,7 @@
              draggable="true" 
              ondragstart="handleDragStart(event, '${m}')"
              ondragend="handleDragEnd(event)">
-          <span>${m}</span>
-          <span style="font-size: 0.75rem; color: var(--subtext);">Trascina →</span>
+          <span style="font-size: 0.85rem;">${m}</span>
         </div>
       `).join('');
 
@@ -864,16 +838,18 @@
       }
 
       renderSelectedMarkers();
+      updateCounts();
     }
 
     function renderSelectedMarkers() {
       const posPanel = document.getElementById('positivePanel');
       const negPanel = document.getElementById('negativePanel');
 
-      posPanel.innerHTML = Array.from(positiveMarkers).map(m => `
+      posPanel.innerHTML = Array.from(positiveMarkers).sort().map(m => `
         <div class="marker-item selected-pos" 
              draggable="true" 
-             ondragstart="handleDragStart(event, '${m}')">
+             ondragstart="handleDragStart(event, '${m}')"
+             ondblclick="removeMarker('${m}')">
           <span>${m}</span>
           <span class="marker-badge pos">✅</span>
         </div>
@@ -883,10 +859,11 @@
         posPanel.innerHTML = '<p style="color: var(--subtext); text-align: center; padding: 20px;">Trascina marker positivi qui</p>';
       }
 
-      negPanel.innerHTML = Array.from(negativeMarkers).map(m => `
+      negPanel.innerHTML = Array.from(negativeMarkers).sort().map(m => `
         <div class="marker-item selected-neg"
              draggable="true" 
-             ondragstart="handleDragStart(event, '${m}')">
+             ondragstart="handleDragStart(event, '${m}')"
+             ondblclick="removeMarker('${m}')">
           <span>${m}</span>
           <span class="marker-badge neg">❌</span>
         </div>
@@ -895,6 +872,12 @@
       if (negativeMarkers.size === 0) {
         negPanel.innerHTML = '<p style="color: var(--subtext); text-align: center; padding: 20px;">Trascina marker negativi qui</p>';
       }
+    }
+
+    function removeMarker(marker) {
+      positiveMarkers.delete(marker);
+      negativeMarkers.delete(marker);
+      renderAvailableMarkers();
     }
 
     let draggedMarker = null;
@@ -907,7 +890,7 @@
     }
 
     function handleDragEnd(event) {
-      event.target.closest('.marker-item').classList.remove('dragging');
+      event.target.closest('.marker-item')?.classList.remove('dragging');
       document.querySelectorAll('.marker-grid').forEach(g => {
         g.classList.remove('drag-over-pos', 'drag-over-neg');
       });
@@ -961,42 +944,59 @@
       const scores = [];
 
       diagnoses.forEach(dx => {
-        const hasPositiveMatch = dx.markers.pos.some(m => positiveMarkers.has(m));
-        const hasNegativeMatch = dx.markers.neg.some(m => negativeMarkers.has(m));
-
-        if (!hasPositiveMatch && !hasNegativeMatch) {
-          return;
-        }
-
         let score = 0;
         let reasoning = [];
+        let matchCount = 0;
 
+        // Score positive matches
         dx.markers.pos.forEach(marker => {
           if (positiveMarkers.has(marker)) {
-            score += 10;
+            score += 15;
+            matchCount++;
             reasoning.push(`✅ ${marker} presente`);
           }
         });
 
+        // Score negative matches (confirmatory exclusions)
         dx.markers.neg.forEach(marker => {
           if (negativeMarkers.has(marker)) {
-            score += 15;
-            reasoning.push(`❌ ${marker} assente (esclude diagnosi alternative)`);
+            score += 12;
+            matchCount++;
+            reasoning.push(`❌ ${marker} assente (esclude alternative)`);
           }
         });
 
-        const totalMatches = dx.markers.pos.filter(m => positiveMarkers.has(m)).length +
-                            dx.markers.neg.filter(m => negativeMarkers.has(m)).length;
-        if (totalMatches >= 3) {
-          score += 20;
-          reasoning.push(`🎯 ${totalMatches} marker matchano questo profilo`);
+        // Penalty: expected positive but found negative
+        dx.markers.pos.forEach(marker => {
+          if (negativeMarkers.has(marker)) {
+            score -= 25; // Heavy penalty
+            reasoning.push(`⚠️ ${marker} NEGATIVO (atteso positivo!) — penalità`);
+          }
+        });
+
+        // Penalty: expected negative but found positive
+        dx.markers.neg.forEach(marker => {
+          if (positiveMarkers.has(marker)) {
+            score -= 20;
+            reasoning.push(`⚠️ ${marker} POSITIVO (atteso negativo!) — penalità`);
+          }
+        });
+
+        // Bonus for multiple concordant matches
+        if (matchCount >= 4) {
+          score += 25;
+          reasoning.push(`🎯 ${matchCount} marker concordanti (profilo forte)`);
+        } else if (matchCount >= 3) {
+          score += 15;
+          reasoning.push(`🎯 ${matchCount} marker concordanti`);
         }
 
-        scores.push({ ...dx, bayesianScore: score, reasoning });
+        if (score > 0) {
+          scores.push({ ...dx, bayesianScore: score, reasoning });
+        }
       });
 
       return scores
-        .filter(s => s.bayesianScore > 0)
         .sort((a, b) => b.bayesianScore - a.bayesianScore)
         .slice(0, 8);
     }
@@ -1016,8 +1016,6 @@
         const percentage = Math.round(50 + (relativeScore * 45));
         const confidence = percentage >= 80 ? 'high' : percentage >= 65 ? 'medium' : 'low';
 
-        const suggestedSacco = getSuggestedSaccoMarkers(dx.name);
-
         return `
           <div class="diagnosis-result ${confidence}">
             <div class="dx-header">
@@ -1025,32 +1023,15 @@
               <div class="dx-score ${confidence}">${percentage}%</div>
             </div>
             <div class="dx-reasoning">
-              <strong>Motivo:</strong><br>
               ${dx.reasoning.join('<br>') || 'Nessun match specifico'}
             </div>
             <div class="marker-list">
-              ${dx.markers.pos.map(m => `<span class="marker-tag pos">${m}</span>`).join('')}
-              ${dx.markers.neg.map(m => `<span class="marker-tag neg">${m}</span>`).join('')}
+              ${dx.markers.pos.map(m => `<span class="marker-tag ${positiveMarkers.has(m) ? 'pos' : ''}">${m}</span>`).join('')}
+              ${dx.markers.neg.map(m => `<span class="marker-tag ${negativeMarkers.has(m) ? 'neg' : ''}">${m}</span>`).join('')}
             </div>
-            ${suggestedSacco ? `<div style="margin-top: 12px; padding: 12px; background: linear-gradient(135deg, #f3e8ff 0%, #faf5ff 100%); border-left: 4px solid #a78bfa; border-radius: 6px;">
-              <strong style="color: #6d28d9;">💡 Per circostanziare meglio:</strong> <span style="color: #6d28d9;">${suggestedSacco}</span>
-            </div>` : ''}
           </div>
         `;
       }).join('');
-    }
-
-    function getSuggestedSaccoMarkers(diagnosisName) {
-      const suggestions = {
-        'Sarcoma di Ewing': 'FISH t(11;22) (quando disponibile)',
-        'Rabdomiosarcoma': 'Al SACCO: MYOD1 per conferma',
-        'Linfoma Linfoblastico (ALL)': 'Al SACCO: OCT-3, Tia-1 per profilo T/B',
-        'Tumore Germinale': 'β-HCG serico (marcatore tumorale)',
-        'Adenocarcinoma Pancreatico': 'Al SACCO: MUC-1, MUC-4, MUC-6 per mucine pancreatiche',
-        'Carcinoma Ovarico': 'Al SACCO: ARID1A loss (clear cell, endometrioide)',
-        'Neuroendocrina GI': 'Marcatori neuroendocrini sierici (CgA, NSE)',
-      };
-      return suggestions[diagnosisName] || null;
     }
 
     function resetLookup() {
@@ -1067,20 +1048,20 @@
 
     function nextQuizRound() {
       currentQuizDx = diagnoses[Math.floor(Math.random() * diagnoses.length)];
-      const markerCount = 5 + Math.floor(Math.random() * 2);
-      const markers = currentQuizDx.markers.pos.slice(0, markerCount);
+      const quizMarkers = currentQuizDx.markers.pos.slice(0, Math.min(currentQuizDx.markers.pos.length, 4));
 
-      document.getElementById('quizMarkersList').innerHTML = markers
+      document.getElementById('quizMarkersList').innerHTML = quizMarkers
         .map(m => `<span class="marker-chip">${m}</span>`).join('');
 
-      const allDx = diagnoses.sort(() => Math.random() - 0.5).slice(0, 4);
-      if (!allDx.includes(currentQuizDx)) {
-        allDx[Math.floor(Math.random() * 4)] = currentQuizDx;
-      }
+      // Pick 4 random diagnoses including the correct one
+      const shuffled = [...diagnoses].sort(() => Math.random() - 0.5);
+      const options = shuffled.filter(d => d.name !== currentQuizDx.name).slice(0, 3);
+      options.push(currentQuizDx);
+      options.sort(() => Math.random() - 0.5);
 
-      document.getElementById('quizOptions').innerHTML = allDx
+      document.getElementById('quizOptions').innerHTML = options
         .map((dx, idx) => `
-          <div class="dx-option" onclick="selectAnswer(${idx}, '${dx.name}')">
+          <div class="dx-option" onclick="selectAnswer(${idx}, '${dx.name.replace(/'/g, "\\'")}')">
             ${dx.name}
           </div>
         `).join('');
@@ -1098,15 +1079,15 @@
         quizStats.correct++;
         quizStats.streak++;
         feedback.className = 'feedback correct';
-        feedback.innerHTML = `✅ CORRETTO! Era ${currentQuizDx.name}`;
+        feedback.innerHTML = `✅ CORRETTO! Era <strong>${currentQuizDx.name}</strong>`;
       } else {
         quizStats.streak = 0;
         feedback.className = 'feedback incorrect';
-        feedback.innerHTML = `❌ SBAGLIATO! Era ${currentQuizDx.name}`;
+        feedback.innerHTML = `❌ SBAGLIATO! Era <strong>${currentQuizDx.name}</strong> — Profilo: ${currentQuizDx.markers.pos.join(', ')}`;
       }
 
       updateStats();
-      setTimeout(() => nextQuizRound(), 2000);
+      setTimeout(() => nextQuizRound(), 2500);
     }
 
     function updateStats() {
