@@ -77,20 +77,43 @@
     .feedback{padding:12px;border-radius:10px;text-align:center;font-weight:600;margin-top:12px;min-height:18px}
     .feedback.correct{background:#d1fae5;color:#065f46}.feedback.incorrect{background:#fee2e2;color:#991b1b}
     .empty-state{text-align:center;padding:35px;color:var(--subtext)}
-    @media print{body{padding:0;background:#fff;font-size:10pt}.tabs-wrapper,.controls,.mode-toggle,.info-box,#availableMarkersWrap,.empty-state,.next-best{display:none!important}.tab-content{display:block!important}.diagnosis-result{break-inside:avoid;box-shadow:none;border:1px solid #ccc}}
+    @media print{body{padding:0;background:#fff;font-size:10pt}.tabs-wrapper,.controls,.mode-toggle,.info-box,#availableMarkersWrap,.empty-state,.next-best{display:none!important}.tab-content{display:block!important}.diagnosis-result{break-inside:avoid;box-shadow:none;border:1px solid #ccc}.audit-stamp{display:block!important}}
     @media(max-width:768px){.lookup-container{grid-template-columns:1fr}.marker-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}h1{font-size:1.8rem}}
+
+    /* Morphology selector */
+    .morph-selector{display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:12px;padding:8px;background:var(--card);border-radius:10px;border:1px solid var(--border);flex-wrap:wrap}
+    .morph-selector select{padding:5px 10px;border:2px solid var(--accent);border-radius:8px;font-size:.88rem;font-weight:600;background:var(--card);cursor:pointer}
+    .morph-selector .ts-label{font-size:.82rem;color:var(--subtext);margin-left:12px}
+    .morph-selector select.ts-select{border-color:var(--gain);font-size:.82rem}
+    /* Confidence badge */
+    .conf-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.72rem;font-weight:700;margin-left:6px}
+    .conf-badge.conf-high{background:#d1fae5;color:#065f46}
+    .conf-badge.conf-mid{background:#fef3c7;color:#92400e}
+    .conf-badge.conf-low{background:#fee2e2;color:#991b1b}
+    /* Red flag score */
+    .flag-score{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:6px;font-size:.75rem;font-weight:700;margin-left:6px}
+    .flag-score.fs-0{background:#d1fae5;color:#065f46}
+    .flag-score.fs-1{background:#fef3c7;color:#92400e}
+    .flag-score.fs-2{background:#fee2e2;color:#991b1b}
+    /* Warning bar */
+    .warn-bar{padding:8px 14px;background:#fef3c7;border-left:4px solid var(--warn);border-radius:8px;font-size:.85rem;margin-bottom:14px;display:none}
+    /* Tumor board mode */
+    .tb-toggle{font-size:.82rem;margin-left:auto;display:flex;align-items:center;gap:4px}
+    .tb-toggle input{cursor:pointer}
+    /* Audit stamp */
+    .audit-stamp{font-size:.72rem;color:var(--subtext);text-align:right;margin-top:6px;font-family:monospace}
   </style>
 </head>
 <body>
 <div class="container">
   <header>
-    <h1>🧬 IHC Hub v3.0</h1>
-    <p class="version">True Bayesian Engine · Marker Canonici · FBF/SACCO · Information Gain · Explainability</p>
+    <h1>🧬 IHC Hub v3.1</h1>
+    <p class="version">True Bayesian · Morfologia Gatekeeper · Confidence Classes · Tissue Sparing · Tumor Board</p>
     <div class="header-badges">
       <span class="badge fbf">143 FBF</span>
       <span class="badge sacco">+29 SACCO</span>
       <span class="badge engine">Bayes log-space</span>
-      <span class="badge version">v3.0</span>
+      <span class="badge version">v3.1</span>
     </div>
   </header>
 
@@ -107,8 +130,28 @@
       <label for="modeFBF" class="lbl-fbf">Solo FBF (143)</label>
       <input type="radio" name="siteMode" id="modeAll" value="all" onchange="onModeChange()">
       <label for="modeAll" class="lbl-all">FBF + SACCO (172)</label>
+      <span class="tb-toggle"><input type="checkbox" id="tbMode" onchange="onTBToggle()"> Tumor Board</span>
     </div>
-    <div class="info-box"><span>💡</span><div><strong>v3.0:</strong> Bayes vero (log-space, sens/spec). Alias canonici. <strong>Prossimo miglior colpo</strong> = information gain. Trascina → POS/NEG → ANALIZZA. Doppio-click = rimuovi.</div></div>
+    <div class="morph-selector">
+      <span style="font-size:.88rem;">🔬 Morfologia:</span>
+      <select id="morphSelect" onchange="onMorphChange()">
+        <option value="any">— Non specificata —</option>
+        <option value="epiteliale">Epiteliale / Carcinoma</option>
+        <option value="linfoide">Linfoide</option>
+        <option value="mesenchimale">Mesenchimale / Sarcoma</option>
+        <option value="melanocitico">Melanocitico</option>
+        <option value="neuroendocrino">Neuroendocrino</option>
+        <option value="germinale">Germinale</option>
+      </select>
+      <span class="ts-label">🧫 Tissue sparing:</span>
+      <select id="tsSelect" class="ts-select" onchange="onTSChange()">
+        <option value="0">Nessun limite</option>
+        <option value="1">Max 1 marker</option>
+        <option value="2">Max 2 marker</option>
+        <option value="3">Max 3 marker</option>
+      </select>
+    </div>
+    <div class="info-box"><span>💡</span><div><strong>v3.1:</strong> Bayes LR · Morfologia modula prior · Confidence class (Δ top1-top2) · Red Flag Score · IG pesato su posterior · Tissue sparing · Tumor Board mode. Trascina → POS/NEG → ANALIZZA.</div></div>
     <div class="lookup-container">
       <div class="marker-panel positive"><h2>✅ Positivi <span class="marker-count" id="posCount">0</span></h2><div class="marker-grid" id="positivePanel" ondrop="handleDrop(event,'positive')" ondragover="handleDragOver(event,'positive')" ondragleave="handleDragLeave(event,'positive')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui →</p></div></div>
       <div class="marker-panel negative"><h2>❌ Negativi <span class="marker-count" id="negCount" style="background:var(--neg);">0</span></h2><div class="marker-grid" id="negativePanel" ondrop="handleDrop(event,'negative')" ondragover="handleDragOver(event,'negative')" ondragleave="handleDragLeave(event,'negative')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui →</p></div></div>
@@ -118,6 +161,7 @@
       </div>
       <div class="controls"><button class="btn btn-analyze" onclick="analyzeMarkers()">🔍 ANALIZZA (Bayes)</button><button class="btn btn-reset" onclick="resetLookup()">🔄 RESET</button></div>
     </div>
+    <div id="warnBar" class="warn-bar"></div>
     <div id="lookupResults" style="display:none;"><div class="results-container"><h2>📊 Risultati — True Bayesian</h2><div id="diagnosisResults"></div></div><div id="nextBestSection"></div></div>
     <div id="emptyLookupState" class="empty-state"><h2>👈 Trascina marker</h2><p>POS e NEG → ANALIZZA</p></div>
   </div>
@@ -366,6 +410,59 @@ let currentMode = 'fbf';
 let quizStats = { correct:0, total:0, streak:0 };
 let currentQuizDx = null;
 let lastResults = [];
+let morphology = 'any';
+let tissueLimit = 0;
+let tumorBoardMode = false;
+const BAYES_VERSION = 'FBF v3.1 \u2013 Feb 2026';
+
+// Morphology prior adjustment (point 1)
+function adjustPrior(dx) {
+  let p = dx.prior;
+  const n = dx.name;
+  if (morphology === 'linfoide') {
+    if (!n.includes('Linf') && !n.includes('Mieloma') && !n.includes('DLBCL') && !n.includes('Hodgkin')) p *= 0.15;
+  } else if (morphology === 'mesenchimale') {
+    if (n.includes('Carcinoma') || n.includes('Adeno') || n.includes('HCC') || n.includes('Melanoma')) p *= 0.2;
+    else if (n.includes('Linf') || n.includes('DLBCL') || n.includes('Hodgkin') || n.includes('Mieloma')) p *= 0.15;
+  } else if (morphology === 'epiteliale') {
+    if (n.includes('Sarcoma') || n.includes('GIST') || n.includes('Fibroso') || n.includes('Liposarcoma') || n.includes('Leiomio') || n.includes('Rabdo') || n.includes('Ewing') || n.includes('MPNST')) p *= 0.2;
+    else if (n.includes('Melanoma')) p *= 0.15;
+    else if (n.includes('Linf') || n.includes('DLBCL') || n.includes('Hodgkin') || n.includes('Mieloma')) p *= 0.2;
+  } else if (morphology === 'melanocitico') {
+    if (!n.includes('Melanoma') && !n.includes('MPNST')) p *= 0.15;
+  } else if (morphology === 'neuroendocrino') {
+    if (!n.includes('NEN') && !n.includes('Midollare') && !n.includes('Seminoma')) p *= 0.3;
+  } else if (morphology === 'germinale') {
+    if (!n.includes('Seminoma') && !n.includes('Yolk') && !n.includes('Corio')) p *= 0.15;
+  }
+  return p;
+}
+
+// Correlated marker weight reduction (point 8)
+const correlatedGroups = [
+  ['CD20','PAX5','CD79A'],  // B-cell
+  ['CD3','CD5','CD7'],       // T-cell
+  ['SOX10','MELANA','HMB45'],// Melanocytic
+  ['CROMOGRANINA','SINAPTOFISINA','CD56'], // NE
+  ['ACTINA_SMA','ACTINA_HHF35','CALDESMON'], // Smooth muscle
+  ['MLH1','MSH2','MSH6','PMS2'], // MMR
+  ['PSA','PSAP','NKX3'],    // Prostate
+];
+
+function getCorrelationPenalty(mid) {
+  for (const group of correlatedGroups) {
+    if (!group.includes(mid)) continue;
+    const othersPos = group.filter(g => g !== mid && positiveMarkers.has(g)).length;
+    if (othersPos >= 2) return 0.5;
+    if (othersPos >= 1) return 0.7;
+  }
+  return 1.0;
+}
+
+// UI handlers
+function onMorphChange() { morphology = document.getElementById('morphSelect').value; }
+function onTSChange() { tissueLimit = parseInt(document.getElementById('tsSelect').value) || 0; }
+function onTBToggle() { tumorBoardMode = document.getElementById('tbMode').checked; if (lastResults.length) { displayResults(lastResults); } }
 
 // BAYES ENGINE
 function logSumExp(lv) {
@@ -381,7 +478,7 @@ function computeBayes() {
   if (tested.size === 0) return [];
   const results = [];
   for (const dx of bayesDB) {
-    let logP = Math.log(dx.prior);
+    let logP = Math.log(adjustPrior(dx));
     const reasoning = []; const flags = [];
     for (const [mid, p] of Object.entries(dx.markers)) {
       if (!tested.has(mid)) continue;
@@ -390,13 +487,15 @@ function computeBayes() {
       if (isPos) {
         // LR+ = sensitivity / (1 - specificity)
         const lr = p.s / Math.max(1 - p.n, 0.001);
-        logP += p.w * Math.log(Math.max(lr, 0.001));
+        const corrW = p.w * getCorrelationPenalty(mid);
+        logP += corrW * Math.log(Math.max(lr, 0.001));
         if (p.s >= 0.6) reasoning.push({type:'support',text:'\u2705 '+d+' (+) LR+ '+lr.toFixed(1)});
         else { flags.push('\u26a0\ufe0f '+d+' POS inatteso (sens '+Math.round(p.s*100)+'%)'); reasoning.push({type:'flag',text:'\u26a0\ufe0f '+d+' (+) inatteso — sens '+Math.round(p.s*100)+'%'}); }
       } else {
         // LR- = (1 - sensitivity) / specificity
         const lr = (1 - p.s) / Math.max(p.n, 0.001);
-        logP += p.w * Math.log(Math.max(lr, 0.001));
+        const corrW = p.w * getCorrelationPenalty(mid);
+        logP += corrW * Math.log(Math.max(lr, 0.001));
         if (p.s >= 0.7) { flags.push('\ud83d\udeab '+d+' NEG (atteso pos, sens '+Math.round(p.s*100)+'%)'); reasoning.push({type:'flag',text:'\ud83d\udeab '+d+' (-) atteso pos (sens '+Math.round(p.s*100)+'%)'}); }
         else if (p.s <= 0.10) reasoning.push({type:'exclude',text:'\u274c '+d+' (-) confermato neg — LR- '+lr.toFixed(2)});
       }
@@ -418,13 +517,21 @@ function computeInfoGain() {
   const H0 = -lastResults.reduce((s,r)=>s+(r.posterior>0?r.posterior*Math.log2(r.posterior):0),0);
   const gains = [];
   for (const mid of cands) {
+    // Weighted IG (point 4): pPos = sum posterior(dx) * sens(dx, marker)
+    let pPos = 0;
+    for (const r of lastResults) { const mk = r.markers[mid]; if (mk) pPos += r.posterior * mk.s; }
+    pPos = Math.max(0.05, Math.min(0.95, pPos)); // clamp
     positiveMarkers.add(mid); const rP = computeBayes(); positiveMarkers.delete(mid);
     negativeMarkers.add(mid); const rN = computeBayes(); negativeMarkers.delete(mid);
     const HP = -rP.reduce((s,r)=>s+(r.posterior>0?r.posterior*Math.log2(r.posterior):0),0);
     const HN = -rN.reduce((s,r)=>s+(r.posterior>0?r.posterior*Math.log2(r.posterior):0),0);
-    gains.push({id:mid,display:getDisplay(mid),gain:H0-0.5*(HP+HN),site:getSite(mid)});
+    const ig = H0 - (pPos * HP + (1 - pPos) * HN);
+    gains.push({id:mid,display:getDisplay(mid),gain:ig,site:getSite(mid)});
   }
-  return gains.sort((a,b)=>b.gain-a.gain).slice(0,5);
+  const sorted = gains.sort((a,b)=>b.gain-a.gain);
+  // Tissue sparing (point 5): limit suggestions
+  const limit = tissueLimit > 0 ? tissueLimit : 5;
+  return sorted.slice(0, limit);
 }
 
 // UI
@@ -473,6 +580,12 @@ function handleDrop(e,t){ e.preventDefault(); const id=draggedMarker||e.dataTran
 
 function analyzeMarkers() {
   if(positiveMarkers.size===0&&negativeMarkers.size===0){ alert('Seleziona almeno un marker!'); return; }
+  // Warning bar (point 9)
+  const wb = document.getElementById('warnBar');
+  const nTested = positiveMarkers.size + negativeMarkers.size;
+  if (nTested < 2) { wb.style.display='block'; wb.innerHTML='\u26a0\ufe0f <strong>Inferenza fragile</strong> (n='+nTested+'). Aggiungere almeno 2 marker per risultati affidabili.'; }
+  else if (nTested < 3) { wb.style.display='block'; wb.innerHTML='\ud83d\udfe1 Inferenza con '+nTested+' marker. Risultati indicativi.'; }
+  else { wb.style.display='none'; }
   lastResults=computeBayes(); displayResults(lastResults);
   displayNextBest(computeInfoGain());
   document.getElementById('emptyLookupState').style.display='none';
@@ -482,19 +595,32 @@ function analyzeMarkers() {
 function displayResults(results) {
   const c=document.getElementById('diagnosisResults');
   if(!results.length){ c.innerHTML='<div class="empty-state"><p>Nessuna diagnosi compatibile.</p></div>'; return; }
-  c.innerHTML=results.map((dx,i)=>{
+  // Tumor board: show only top 3
+  const shown = tumorBoardMode ? results.slice(0,3) : results;
+  // Confidence class (point 2): delta between top1 and top2
+  const delta = results.length >= 2 ? results[0].posterior - results[1].posterior : 1;
+  const confClass = delta > 0.15 ? 'conf-high' : delta > 0.05 ? 'conf-mid' : 'conf-low';
+  const confLabel = delta > 0.15 ? 'Alta' : delta > 0.05 ? 'Intermedia' : 'Incerta (top vicine)';
+  c.innerHTML='<div style="margin-bottom:10px;font-size:.88rem;">Confidenza globale: <span class="conf-badge '+confClass+'">'+confLabel+' (\u0394='+Math.round(delta*100)+'%)</span>'+(morphology!=='any'?' · Morfologia: <strong>'+morphology+'</strong>':'')+'</div>'+
+  shown.map((dx,i)=>{
     const pct=Math.round(dx.posterior*100);
-    const conf=pct>=25?'high':pct>=10?'medium':'low';
+    const scoreClass=pct>=25?'high':pct>=10?'medium':'low';
     const rHTML=dx.reasoning.map(r=>'<span class="'+r.type+'">'+r.text+'</span>').join('<br>');
-    const fHTML=dx.flags.length?'<div class="flags-box"><strong style="color:var(--flag);">\ud83d\udea9 Contraddizioni:</strong><br>'+dx.flags.join('<br>')+'</div>':'';
+    // Red flag score (point 3)
+    const fs=dx.flags.length;
+    const fsClass=fs===0?'fs-0':fs<=2?'fs-1':'fs-2';
+    const fsLabel=fs===0?'\u2705 Coerente':fs<=2?'\u26a0\ufe0f Cautela ('+fs+')':'\ud83d\udea9 Instabile ('+fs+')';
+    const fsBadge='<span class="flag-score '+fsClass+'">'+fsLabel+'</span>';
+    const fHTML=dx.flags.length?'<div class="flags-box"><strong style="color:var(--flag);">Contraddizioni:</strong><br>'+dx.flags.join('<br>')+'</div>':'';
     const mTags=Object.keys(dx.markers).map(mid=>{
       const d=getDisplay(mid);
       if(positiveMarkers.has(mid))return '<span class="marker-tag pos">'+d+' +</span>';
       if(negativeMarkers.has(mid))return '<span class="marker-tag neg">'+d+' -</span>';
       return '<span class="marker-tag untested">'+d+' ?</span>';
     }).join('');
-    return '<div class="diagnosis-result '+conf+'"><div class="dx-header"><div class="dx-name">'+(i+1)+'. '+dx.name+'</div><div class="dx-score '+conf+'">'+pct+'%</div></div><div class="dx-reasoning">'+rHTML+'</div>'+fHTML+'<div class="marker-list">'+mTags+'</div></div>';
-  }).join('');
+    return '<div class="diagnosis-result '+scoreClass+'"><div class="dx-header"><div class="dx-name">'+(i+1)+'. '+dx.name+fsBadge+'</div><div class="dx-score '+scoreClass+'">'+pct+'%</div></div><div class="dx-reasoning">'+(rHTML||'<em>Nessun marker testato</em>')+'</div>'+fHTML+'<div class="marker-list">'+mTags+'</div></div>';
+  }).join('')+
+  '<div class="audit-stamp">'+BAYES_VERSION+' | Morfologia: '+(morphology==='any'?'n.s.':morphology)+' | Marker testati: '+(positiveMarkers.size+negativeMarkers.size)+' | '+new Date().toISOString().slice(0,16)+'</div>';
 }
 
 function displayNextBest(gains) {
@@ -509,6 +635,7 @@ function resetLookup() {
   document.getElementById('emptyLookupState').style.display='block';
   document.getElementById('lookupResults').style.display='none';
   document.getElementById('nextBestSection').innerHTML='';
+  document.getElementById('warnBar').style.display='none';
 }
 
 // QUIZ
