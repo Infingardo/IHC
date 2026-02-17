@@ -99,6 +99,12 @@
     .panel-marker:hover{border-color:var(--accent)}
     .panel-marker.pm-pos{background:#d1fae5;border-color:var(--pos);color:#065f46}
     .panel-marker.pm-neg{background:#fee2e2;border-color:var(--neg);color:#991b1b}
+    /* Semaforo disponibilità */
+    .site-fbf{border-left:4px solid #22c55e}.site-sacco{border-left:4px solid #f59e0b}.site-nd{border-left:4px solid #ef4444;opacity:.85}
+    .site-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+    .site-dot.dot-fbf{background:#22c55e}.site-dot.dot-sacco{background:#f59e0b}.site-dot.dot-nd{background:#ef4444}
+    .site-legend{display:flex;gap:14px;justify-content:center;font-size:.78rem;color:var(--subtext);margin-bottom:10px;flex-wrap:wrap}
+    .site-legend span{display:flex;align-items:center;gap:4px}
     @media print{body{padding:0;background:#fff;font-size:10pt}.tabs-wrapper,.controls,.mode-toggle,.info-box,#availableMarkersWrap,.empty-state,.next-best{display:none!important}.tab-content{display:block!important}.diagnosis-result{break-inside:avoid;box-shadow:none;border:1px solid #ccc}.audit-stamp{display:block!important}}
     @media(max-width:768px){.lookup-container{grid-template-columns:1fr}.marker-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}h1{font-size:1.8rem}}
 
@@ -130,23 +136,23 @@
 <div class="container">
   <header>
     <h1>🧬 IHC Hub v3.1</h1>
-    <p class="version">True Bayesian · Morfologia Gatekeeper · Confidence Classes · Tissue Sparing · Tumor Board</p>
+    <p class="version">Motore Bayesiano · Filtro Morfologico · Classi di Confidenza · Risparmio Tessuto · Tumor Board</p>
     <div class="header-badges">
       <span class="badge fbf">143 FBF</span>
       <span class="badge sacco">+29 SACCO</span>
-      <span class="badge engine">Bayes log-space</span>
+      <span class="badge engine">Motore Bayesiano</span>
       <span class="badge version">v3.1</span>
     </div>
   </header>
 
   <div class="tabs-wrapper">
-    <button class="tab-btn active" onclick="switchTab('inverse')">🔍 Inverse Lookup</button>
-    <button class="tab-btn" onclick="switchTab('quiz')">🎮 Quiz Mode</button>
-    <button class="tab-btn" onclick="switchTab('cascade')">📊 IHC Cascade</button>
+    <button class="tab-btn active" onclick="switchTab('cascade')">📊 IHC Cascade</button>
+    <button class="tab-btn" onclick="switchTab('inverse')">🔍 Ricerca Inversa</button>
+    <button class="tab-btn" onclick="switchTab('quiz')">🎮 Quiz</button>
   </div>
 
   <!-- INVERSE -->
-  <div id="inverse-tab" class="tab-content active">
+  <div id="inverse-tab" class="tab-content">
     <div class="mode-toggle">
       <span style="font-size:.88rem;">🏥</span>
       <input type="radio" name="siteMode" id="modeFBF" value="fbf" checked onchange="onModeChange()">
@@ -166,7 +172,7 @@
         <option value="neuroendocrino">Neuroendocrino</option>
         <option value="germinale">Germinale</option>
       </select>
-      <span class="ts-label">🧫 Tissue sparing:</span>
+      <span class="ts-label">🧫 Risparmio tessuto:</span>
       <select id="tsSelect" class="ts-select" onchange="onTSChange()">
         <option value="0">Nessun limite</option>
         <option value="1">Max 1 marker</option>
@@ -174,26 +180,27 @@
         <option value="3">Max 3 marker</option>
       </select>
     </div>
-    <div class="info-box"><span>💡</span><div><strong>v3.1:</strong> Bayes LR · Morfologia modula prior · Confidence class (Δ top1-top2) · Red Flag Score · IG pesato su posterior · Tissue sparing · Tumor Board mode. Trascina → POS/NEG → ANALIZZA.</div></div>
+    <div class="info-box"><span>💡</span><div><strong>v3.1:</strong> Bayes LR · Morfologia modula priore · Classe di confidenza (Δ top1-top2) · Punteggio criticità · IG pesato su posteriore · Risparmio tessuto · Modalità Tumor Board. Trascina → POS/NEG → ANALIZZA.</div></div>
     <div class="lookup-container">
       <div class="marker-panel positive"><h2>✅ Positivi <span class="marker-count" id="posCount">0</span></h2><div class="marker-grid" id="positivePanel" ondrop="handleDrop(event,'positive')" ondragover="handleDragOver(event,'positive')" ondragleave="handleDragLeave(event,'positive')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui →</p></div></div>
       <div class="marker-panel negative"><h2>❌ Negativi <span class="marker-count" id="negCount" style="background:var(--neg);">0</span></h2><div class="marker-grid" id="negativePanel" ondrop="handleDrop(event,'negative')" ondragover="handleDragOver(event,'negative')" ondragleave="handleDragLeave(event,'negative')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui →</p></div></div>
       <div id="availableMarkersWrap" style="grid-column:1/-1;padding:16px;background:var(--card);border:3px dashed var(--fbf);border-radius:12px;">
         <h3 style="margin-bottom:8px;color:var(--fbf);display:flex;align-items:center;gap:6px;">📋 Disponibili <span class="marker-count" id="availCount">0</span><input type="text" id="markerSearch" placeholder="Cerca..." oninput="renderAvailableMarkers()" style="margin-left:auto;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-size:.83rem;width:160px;"></h3>
+        <div id="siteLegend" class="site-legend" style="display:none;"><span><span class="site-dot dot-fbf"></span>FBF</span><span><span class="site-dot dot-sacco"></span>SACCO</span><span><span class="site-dot dot-nd"></span>Non disponibile</span></div>
         <div class="marker-grid" id="availableMarkers" style="max-height:320px;overflow-y:auto;border:2px dashed var(--fbf);padding:8px;"></div>
       </div>
       <div class="controls"><button class="btn btn-analyze" onclick="analyzeMarkers()">🔍 ANALIZZA (Bayes)</button><button class="btn btn-reset" onclick="resetLookup()">🔄 RESET</button></div>
     </div>
     <div id="warnBar" class="warn-bar"></div>
-    <div id="lookupResults" style="display:none;"><div class="results-container"><h2>📊 Risultati — True Bayesian</h2><div id="diagnosisResults"></div></div><div id="nextBestSection"></div></div>
-    <div id="emptyLookupState" class="empty-state"><h2>👈 Trascina marker</h2><p>POS e NEG → ANALIZZA</p></div>
+    <div id="lookupResults" style="display:none;"><div class="results-container"><h2>📊 Risultati — Analisi Bayesiana</h2><div id="diagnosisResults"></div></div><div id="nextBestSection"></div></div>
+    <div id="emptyLookupState" class="empty-state"><h2>👈 Trascina i marker</h2><p>POS e NEG → ANALIZZA</p></div>
   </div>
 
   <!-- QUIZ -->
   <div id="quiz-tab" class="tab-content">
     <div class="quiz-container"><div class="quiz-card">
       <div class="quiz-title">🎮 INDOVINA LA DIAGNOSI</div>
-      <div class="stats"><div class="stat-box"><div class="stat-label">Corrette</div><div class="stat-value" id="correctCount">0</div></div><div class="stat-box"><div class="stat-label">Streak 🔥</div><div class="stat-value" id="streakCount">0</div></div><div class="stat-box"><div class="stat-label">Accuracy</div><div class="stat-value" id="accuracyPercent">0%</div></div><div class="stat-box"><div class="stat-label">Totale</div><div class="stat-value" id="totalCount">0</div></div></div>
+      <div class="stats"><div class="stat-box"><div class="stat-label">Corrette</div><div class="stat-value" id="correctCount">0</div></div><div class="stat-box"><div class="stat-label">Serie 🔥</div><div class="stat-value" id="streakCount">0</div></div><div class="stat-box"><div class="stat-label">Precisione</div><div class="stat-value" id="accuracyPercent">0%</div></div><div class="stat-box"><div class="stat-label">Totale</div><div class="stat-value" id="totalCount">0</div></div></div>
       <div class="markers-display"><h3>Marker POSITIVI:</h3><div id="quizMarkersList"></div></div>
       <p style="font-size:.95rem;color:var(--subtext);margin-bottom:16px;">Diagnosi più probabile?</p>
       <div id="quizOptions"></div>
@@ -203,55 +210,72 @@
   </div>
 
   <!-- CASCADE GUIDATA -->
-  <div id="cascade-tab" class="tab-content">
+  <div id="cascade-tab" class="tab-content active">
     <div style="max-width:800px;margin:0 auto;">
+      <!-- NUOVO CASO -->
+      <div style="text-align:center;margin-bottom:14px;">
+        <button onclick="cascReset()" style="padding:14px 40px;border:none;border-radius:12px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;font-weight:800;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 14px rgba(239,68,68,.35);transition:all .2s;letter-spacing:.3px;" onmouseover="this.style.transform='scale(1.05)';this.style.boxShadow='0 6px 20px rgba(239,68,68,.45)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 14px rgba(239,68,68,.35)'">🆕 Nuovo Caso</button>
+      </div>
       <!-- PROGRESS BAR -->
       <div id="cascadeProgress" style="display:flex;gap:4px;margin-bottom:18px;">
         <div class="casc-step active" id="cStep1">1. Morfologia</div>
-        <div class="casc-step" id="cStep2">2. Big Four</div>
-        <div class="casc-step" id="cStep3">3. Pannello</div>
-        <div class="casc-step" id="cStep4">4. Diagnosi</div>
+        <div class="casc-step" id="cStep2">2. Screening IHC</div>
+        <div class="casc-step" id="cStep3">3. CK secondo livello</div>
+        <div class="casc-step" id="cStep4">4. Pannello mirato</div>
+        <div class="casc-step" id="cStep5">5. Diagnosi</div>
       </div>
 
       <!-- STEP 1: MORFOLOGIA -->
       <div id="cascStep1" class="casc-panel">
-        <h2 style="margin-bottom:6px;">🔬 Step 1 — Impressione Morfologica</h2>
+        <h2 style="margin-bottom:6px;">🔬 Passo 1 — Impressione Morfologica</h2>
         <p style="color:var(--subtext);margin-bottom:16px;font-size:.9rem;">Cosa vedi all'EE? Seleziona il pattern predominante.</p>
         <div id="morphButtons" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;"></div>
       </div>
 
-      <!-- STEP 2: BIG FOUR (solo epiteliale) -->
+      <!-- PASSO 2: PANNELLO SCREENING (CK/Vim/S100/CD45) -->
       <div id="cascStep2" class="casc-panel" style="display:none;">
-        <h2 style="margin-bottom:6px;">🧪 Step 2 — Big Four</h2>
-        <p style="color:var(--subtext);margin-bottom:16px;font-size:.9rem;">Risultati dei 4 marker di primo livello. Seleziona +, − o ? (non testato).</p>
-        <div id="bigFourGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;"></div>
+        <h2 style="margin-bottom:6px;">🧫 Passo 2 — Pannello di Screening</h2>
+        <p style="color:var(--subtext);margin-bottom:16px;font-size:.9rem;">I 4 marker fondamentali — coprono il 95% della diagnostica. Seleziona +, − o ? (non testato).</p>
+        <div id="screenGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;"></div>
+        <div id="screenHint" style="margin-top:14px;padding:10px;background:#eff6ff;border-radius:8px;font-size:.85rem;color:var(--accent);text-align:center;"></div>
         <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;">
           <button class="btn btn-reset" onclick="cascBack(1)">← Indietro</button>
-          <button class="btn btn-analyze" onclick="cascAdvance(3)">Avanti →</button>
+          <button class="btn btn-analyze" onclick="cascFromScreening()">Avanti →</button>
         </div>
       </div>
 
-      <!-- STEP 3: PANNELLO SPECIFICO -->
+      <!-- PASSO 3: CK SECONDO LIVELLO (solo epiteliale) -->
       <div id="cascStep3" class="casc-panel" style="display:none;">
-        <h2 style="margin-bottom:6px;">🎯 Step 3 — Pannello Mirato</h2>
+        <h2 style="margin-bottom:6px;">🧪 Passo 3 — CK di Secondo Livello</h2>
+        <p style="color:var(--subtext);margin-bottom:16px;font-size:.9rem;">Pannello CK di secondo livello per carcinomi. Seleziona +, − o ?.</p>
+        <div id="bigFourGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;"></div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;">
+          <button class="btn btn-reset" onclick="cascBack(2)">← Indietro</button>
+          <button class="btn btn-analyze" onclick="cascAdvance(4)">Avanti →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: PANNELLO SPECIFICO -->
+      <div id="cascStep4" class="casc-panel" style="display:none;">
+        <h2 style="margin-bottom:6px;">🎯 Passo 4 — Pannello Mirato</h2>
         <p style="color:var(--subtext);margin-bottom:4px;font-size:.9rem;" id="cascPanelHint"></p>
         <div id="cascPanelSummary" style="margin-bottom:14px;"></div>
         <div id="panelGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;"></div>
         <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;">
-          <button class="btn btn-reset" onclick="cascBack(2)">← Indietro</button>
-          <button class="btn btn-analyze" onclick="cascAdvance(4)">🔍 Calcola Diagnosi</button>
+          <button class="btn btn-reset" id="panelBackBtn" onclick="cascBack(3)">← Indietro</button>
+          <button class="btn btn-analyze" onclick="cascAdvance(5)">🔍 Calcola Diagnosi</button>
         </div>
       </div>
 
-      <!-- STEP 4: RISULTATI -->
-      <div id="cascStep4" class="casc-panel" style="display:none;">
-        <h2 style="margin-bottom:6px;">📊 Step 4 — Diagnosi Differenziale</h2>
+      <!-- STEP 5: RISULTATI -->
+      <div id="cascStep5" class="casc-panel" style="display:none;">
+        <h2 style="margin-bottom:6px;">📊 Passo 5 — Diagnosi Differenziale</h2>
         <div id="cascAudit" style="font-size:.8rem;color:var(--subtext);margin-bottom:12px;"></div>
         <div id="cascResults"></div>
         <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;">
-          <button class="btn btn-reset" onclick="cascBack(3)">← Modifica Pannello</button>
+          <button class="btn btn-reset" onclick="cascBack(4)">← Modifica Pannello</button>
           <button class="btn btn-analyze" onclick="cascReset()">🔄 Ricomincia</button>
-          <button class="btn btn-analyze" onclick="cascToInverse()" style="background:var(--gain);">↗ Apri in Inverse Lookup</button>
+          <button class="btn btn-analyze" onclick="cascToInverse()" style="background:var(--gain);">↗ Apri in Ricerca Inversa</button>
         </div>
       </div>
     </div>
@@ -432,7 +456,16 @@ const markerDB = {
 'SF1_S':{display:'SF1',aliases:['sf1','nr5a1'],site:'sacco'},
 'SOX2':{display:'SOX-2',aliases:['sox-2','sox2'],site:'sacco'},
 'SV40':{display:'SV40',aliases:['sv40'],site:'sacco'},
-'TIA1':{display:'Tia-1',aliases:['tia-1','tia1','t1a1'],site:'sacco'}
+'TIA1':{display:'Tia-1',aliases:['tia-1','tia1','t1a1'],site:'sacco'},
+// === NON DISPONIBILI (importanti ma assenti da FBF e SACCO) ===
+'BAP1':{display:'BAP-1',aliases:['bap-1','bap1','brca1 associated protein'],site:'nd'},
+'MTAP':{display:'MTAP',aliases:['mtap','p16 proxy','cdkn2a proxy'],site:'nd'},
+'CLAUDINA4':{display:'Claudina-4',aliases:['claudina-4','claudina4','cldn4'],site:'nd'},
+'MOC31':{display:'MOC-31',aliases:['moc-31','moc31','epcam moc31'],site:'nd'},
+'TRIPSINA':{display:'Tripsina',aliases:['tripsina','trypsin'],site:'nd'},
+'CHIMOTRIPSINA':{display:'Chimotripsina',aliases:['chimotripsina','chymotrypsin'],site:'nd'},
+'FLI1':{display:'FLI-1',aliases:['fli-1','fli1'],site:'nd'},
+'INSM1':{display:'INSM1',aliases:['insm1','insm-1'],site:'nd'}
 };
 
 // Alias index
@@ -453,13 +486,14 @@ const bayesDB = [
 {name:'Adenocarcinoma Colorettale',prior:0.08,markers:{'CK20':{s:0.85,n:0.88,w:1.2},'CDX2':{s:0.93,n:0.9,w:1.3},'SATB2':{s:0.85,n:0.92,w:1.2},'CK7':{s:0.15,n:0.7,w:0.6},'TTF1':{s:0.01,n:0.95,w:0.7}}},
 {name:'HCC',prior:0.04,markers:{'HEPPAR':{s:0.85,n:0.95,w:1.3},'GLYPICAN3':{s:0.75,n:0.95,w:1.2},'ARGINASI':{s:0.85,n:0.95,w:1.2},'AFP':{s:0.3,n:0.95,w:0.9}}},
 {name:'Adenocarcinoma Pancreatico',prior:0.04,markers:{'CK7':{s:0.95,n:0.3,w:0.5},'CK19':{s:0.9,n:0.4,w:0.5},'MUC4':{s:0.75,n:0.85,w:1.0},'P53':{s:0.6,n:0.5,w:0.5},'TTF1':{s:0.01,n:0.95,w:0.6}}},
+{name:'Ca Acinare Pancreatico',prior:0.005,markers:{'BCL10':{s:0.9,n:0.95,w:1.5},'TRIPSINA':{s:0.9,n:0.95,w:1.4},'CHIMOTRIPSINA':{s:0.8,n:0.9,w:1.2},'CK7':{s:0.3,n:0.3,w:0.4},'CK19':{s:0.2,n:0.4,w:0.4},'CROMOGRANINA':{s:0.3,n:0.5,w:0.4},'SINAPTOFISINA':{s:0.2,n:0.5,w:0.3}}},
 {name:'Carcinoma Ovarico HGSC',prior:0.04,markers:{'PAX8':{s:0.95,n:0.85,w:1.3},'WT1':{s:0.9,n:0.9,w:1.2},'CA125':{s:0.8,n:0.7,w:0.8},'ER':{s:0.7,n:0.5,w:0.5},'P53':{s:0.85,n:0.4,w:0.6}}},
 {name:'Carcinoma Uroteliale',prior:0.05,markers:{'GATA3':{s:0.85,n:0.85,w:1.2},'CK7':{s:0.9,n:0.3,w:0.4},'CK20':{s:0.55,n:0.6,w:0.5},'P63':{s:0.8,n:0.6,w:0.6},'PSA':{s:0.01,n:0.98,w:0.9}}},
-{name:'Carcinoma Prostatico',prior:0.05,markers:{'PSA':{s:0.9,n:0.97,w:1.4},'PSAP':{s:0.85,n:0.95,w:1.2},'NKX3':{s:0.9,n:0.95,w:1.3},'ERG':{s:0.45,n:0.9,w:0.8},'RACEMASI':{s:0.8,n:0.65,w:0.7}}},
+{name:'Carcinoma Prostatico',prior:0.05,markers:{'PSA':{s:0.9,n:0.97,w:1.4},'PSAP':{s:0.85,n:0.95,w:1.2},'NKX3':{s:0.9,n:0.95,w:1.3}}},
 {name:'RCC a cellule chiare',prior:0.03,markers:{'PAX8':{s:0.92,n:0.85,w:1.3},'RCC':{s:0.75,n:0.95,w:1.1},'CAIX':{s:0.85,n:0.9,w:1.2},'VIMENTINA':{s:0.9,n:0.4,w:0.4}}},
 {name:'Ca Tiroideo (PTC)',prior:0.03,markers:{'TTF1':{s:0.95,n:0.8,w:1.0},'THYROGLOB':{s:0.95,n:0.98,w:1.4},'PAX8':{s:0.92,n:0.8,w:1.0},'GALECTINA3':{s:0.8,n:0.8,w:0.9},'CALCITONINA':{s:0.01,n:0.98,w:1.0}}},
 {name:'Ca Midollare Tiroideo',prior:0.01,markers:{'CALCITONINA':{s:0.95,n:0.99,w:1.5},'CROMOGRANINA':{s:0.9,n:0.6,w:0.7},'SINAPTOFISINA':{s:0.85,n:0.6,w:0.6},'CEA_MONO':{s:0.8,n:0.7,w:0.7},'THYROGLOB':{s:0.02,n:0.95,w:1.2}}},
-{name:'Mesotelioma Epitelioide',prior:0.02,markers:{'CALRETININA':{s:0.9,n:0.9,w:1.3},'WT1':{s:0.85,n:0.9,w:1.2},'D240':{s:0.85,n:0.8,w:1.0},'CK56':{s:0.75,n:0.6,w:0.5},'CEA_MONO':{s:0.02,n:0.95,w:1.1},'EPCAM':{s:0.05,n:0.9,w:0.9}}},
+{name:'Mesotelioma Epitelioide',prior:0.02,markers:{'CALRETININA':{s:0.9,n:0.9,w:1.3},'WT1':{s:0.85,n:0.9,w:1.2},'D240':{s:0.85,n:0.8,w:1.0},'CK56':{s:0.75,n:0.6,w:0.5},'EMA':{s:0.85,n:0.5,w:0.6},'BAP1':{s:0.05,n:0.92,w:1.2},'CEA_MONO':{s:0.02,n:0.95,w:1.1},'EPCAM':{s:0.05,n:0.9,w:0.9},'TTF1':{s:0.01,n:0.97,w:0.9},'PAX8':{s:0.02,n:0.95,w:0.8}}},
 {name:'NEN G1-G2 (GI)',prior:0.03,markers:{'CROMOGRANINA':{s:0.9,n:0.85,w:1.2},'SINAPTOFISINA':{s:0.95,n:0.8,w:1.1},'CDX2':{s:0.6,n:0.7,w:0.6}}},
 {name:'NEN Polmonare',prior:0.02,markers:{'CROMOGRANINA':{s:0.85,n:0.8,w:1.1},'SINAPTOFISINA':{s:0.92,n:0.8,w:1.1},'TTF1':{s:0.7,n:0.6,w:0.6},'CD56':{s:0.8,n:0.7,w:0.7}}},
 {name:'Melanoma',prior:0.05,markers:{'S100':{s:0.95,n:0.75,w:1.0},'SOX10':{s:0.93,n:0.92,w:1.3},'MELANA':{s:0.85,n:0.95,w:1.2},'HMB45':{s:0.8,n:0.95,w:1.1},'PRAME':{s:0.75,n:0.9,w:1.0},'CKAE':{s:0.02,n:0.95,w:0.9},'CD45':{s:0.01,n:0.98,w:0.8}}},
@@ -607,14 +641,30 @@ function computeInfoGain() {
     gains.push({id:mid,display:getDisplay(mid),gain:ig,site:getSite(mid)});
   }
   const sorted = gains.sort((a,b)=>b.gain-a.gain);
-  // Tissue sparing (point 5): limit suggestions
+  // Risparmio tessuto (point 5): limit suggestions
   const limit = tissueLimit > 0 ? tissueLimit : 5;
   return sorted.slice(0, limit);
 }
 
 // UI
+function getSiteDot(id) {
+  const s = getSite(id);
+  return s==='fbf'?'<span class="site-dot dot-fbf"></span>':s==='sacco'?'<span class="site-dot dot-sacco"></span>':'<span class="site-dot dot-nd"></span>';
+}
+function getSiteClass(id) {
+  const s = getSite(id);
+  return s==='fbf'?'site-fbf':s==='sacco'?'site-sacco':'site-nd';
+}
+function naturalSort(a,b) {
+  const da=getDisplay(a), db=getDisplay(b);
+  return da.localeCompare(db, undefined, {numeric:true, sensitivity:'base'});
+}
 function getActiveIds() {
-  return Object.keys(markerDB).filter(id=>currentMode==='all'||markerDB[id].site==='fbf').sort((a,b)=>getDisplay(a).localeCompare(getDisplay(b)));
+  return Object.keys(markerDB).filter(id=>{
+    const s=markerDB[id].site;
+    if(currentMode==='fbf') return s==='fbf';
+    return true; // 'all' mode shows fbf + sacco + nd
+  }).sort(naturalSort);
 }
 function onModeChange() { currentMode=document.querySelector('input[name=siteMode]:checked').value; renderAvailableMarkers(); }
 
@@ -623,22 +673,23 @@ function renderAvailableMarkers() {
   const avail=getActiveIds().filter(id=>!positiveMarkers.has(id)&&!negativeMarkers.has(id)&&(search===''||getDisplay(id).toLowerCase().includes(search)||markerDB[id].aliases.some(a=>a.includes(search))));
   const c=document.getElementById('availableMarkers');
   c.innerHTML=avail.map(id=>{
-    const m=markerDB[id]; const st=m.site==='sacco'?'<span class="sacco-tag">SACCO</span>':'';
-    return '<div class="marker-item" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondragend="handleDragEnd(event)"><span style="font-size:.8rem;">'+m.display+'</span>'+st+'</div>';
+    const m=markerDB[id];
+    return '<div class="marker-item '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondragend="handleDragEnd(event)">'+getSiteDot(id)+'<span style="font-size:.8rem;">'+m.display+'</span></div>';
   }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;">Nessun marker</p>';
+  // Legend
+  const legend=document.getElementById('siteLegend');
+  if(legend) legend.style.display=currentMode==='all'?'flex':'none';
   renderSelectedMarkers(); updateCounts();
 }
 
 function renderSelectedMarkers() {
   const pp=document.getElementById('positivePanel');
   const np=document.getElementById('negativePanel');
-  pp.innerHTML=Array.from(positiveMarkers).sort((a,b)=>getDisplay(a).localeCompare(getDisplay(b))).map(id=>{
-    const st=getSite(id)==='sacco'?'<span class="sacco-tag">S</span>':'';
-    return '<div class="marker-item selected-pos" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')"><span>'+getDisplay(id)+'</span>'+st+'<span class="marker-badge">\u2705</span></div>';
+  pp.innerHTML=Array.from(positiveMarkers).sort(naturalSort).map(id=>{
+    return '<div class="marker-item selected-pos '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')">'+getSiteDot(id)+'<span>'+getDisplay(id)+'</span><span class="marker-badge">\u2705</span></div>';
   }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui \u2192</p>';
-  np.innerHTML=Array.from(negativeMarkers).sort((a,b)=>getDisplay(a).localeCompare(getDisplay(b))).map(id=>{
-    const st=getSite(id)==='sacco'?'<span class="sacco-tag">S</span>':'';
-    return '<div class="marker-item selected-neg" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')"><span>'+getDisplay(id)+'</span>'+st+'<span class="marker-badge">\u274c</span></div>';
+  np.innerHTML=Array.from(negativeMarkers).sort(naturalSort).map(id=>{
+    return '<div class="marker-item selected-neg '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')">'+getSiteDot(id)+'<span>'+getDisplay(id)+'</span><span class="marker-badge">\u274c</span></div>';
   }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui \u2192</p>';
 }
 
@@ -675,7 +726,7 @@ function displayResults(results) {
   if(!results.length){ c.innerHTML='<div class="empty-state"><p>Nessuna diagnosi compatibile.</p></div>'; return; }
   // Tumor board: show only top 3
   const shown = tumorBoardMode ? results.slice(0,3) : results;
-  // Confidence class (point 2): delta between top1 and top2
+  // Classe di confidenza (point 2): delta between top1 and top2
   const delta = results.length >= 2 ? results[0].posterior - results[1].posterior : 1;
   const confClass = delta > 0.15 ? 'conf-high' : delta > 0.05 ? 'conf-mid' : 'conf-low';
   const confLabel = delta > 0.15 ? 'Alta' : delta > 0.05 ? 'Intermedia' : 'Incerta (top vicine)';
@@ -704,7 +755,7 @@ function displayResults(results) {
 function displayNextBest(gains) {
   const s=document.getElementById('nextBestSection');
   if(!gains.length){ s.innerHTML=''; return; }
-  s.innerHTML='<div class="next-best"><h3>\ud83c\udfaf Prossimo Miglior Colpo (Information Gain)</h3><p style="font-size:.83rem;color:var(--subtext);margin-bottom:8px;">'+(currentMode==='fbf'?'Solo FBF.':'Inclusi SACCO.')+'</p>'+gains.map((g,i)=>'<div class="suggestion"><span class="gain-score">#'+(i+1)+'</span><strong>'+g.display+'</strong>'+(g.site==='sacco'?'<span class="sacco-tag" style="margin-left:4px;">SACCO</span>':'')+'<span style="margin-left:auto;font-size:.78rem;color:var(--gain);">IG: '+g.gain.toFixed(3)+' bit</span></div>').join('')+'</div>';
+  s.innerHTML='<div class="next-best"><h3>\ud83c\udfaf Prossimo Marker Suggerito (Guadagno Informativo)</h3><p style="font-size:.83rem;color:var(--subtext);margin-bottom:8px;">'+(currentMode==='fbf'?'Solo FBF.':'Inclusi SACCO.')+'</p>'+gains.map((g,i)=>'<div class="suggestion"><span class="gain-score">#'+(i+1)+'</span><strong>'+g.display+'</strong>'+(g.site==='sacco'?'<span class="sacco-tag" style="margin-left:4px;">SACCO</span>':'')+'<span style="margin-left:auto;font-size:.78rem;color:var(--gain);">IG: '+g.gain.toFixed(3)+' bit</span></div>').join('')+'</div>';
 }
 
 function resetLookup() {
@@ -752,51 +803,70 @@ function switchTab(t) {
 (function init(){ renderAvailableMarkers(); nextQuizRound(); })();
 
 // ============================
-// CASCADE WIZARD
+// CASCADE WIZARD (5 steps)
 // ============================
 
 const CASC_MORPHOLOGIES = [
-  { id:'epiteliale', icon:'🔲', label:'Epiteliale', hint:'Coesivo, strutture ghiandolari/squamose, cheratine+' },
-  { id:'linfoide', icon:'🔵', label:'Linfoide', hint:'Piccole cellule rotonde, LCA+, pattern diffuso/nodulare' },
-  { id:'mesenchimale', icon:'🔷', label:'Mesenchimale', hint:'Fusato/pleomorfo, stroma, vimentina+' },
-  { id:'melanocitico', icon:'⬛', label:'Melanocitico', hint:'Pigmento, pattern pagetoide, nesting' },
+  { id:'epiteliale', icon:'🔲', label:'Epiteliale', hint:'Coesivo, ghiandolare/squamoso, cheratine+' },
+  { id:'linfoide', icon:'🔵', label:'Linfoide', hint:'Piccole cellule rotonde, pattern diffuso/nodulare' },
+  { id:'mesenchimale', icon:'🔷', label:'Mesenchimale', hint:'Fusato/pleomorfo, stroma abbondante' },
+  { id:'melanocitico', icon:'⬛', label:'Melanocitico', hint:'Pigmento, pagetoide, nesting' },
   { id:'neuroendocrino', icon:'🟣', label:'Neuroendocrino', hint:'Organoid, salt & pepper, rosette' },
-  { id:'germinale', icon:'🟡', label:'Germinale', hint:'Cellule chiare/embrionali, pattern solido/papillare' },
+  { id:'germinale', icon:'🟡', label:'Germinale', hint:'Cellule chiare/embrionali, solido/papillare' },
+  { id:'indifferenziato', icon:'❓', label:'Indifferenziato', hint:'Non orientabile su EE — serve screening IHC' },
 ];
 
+const SCREENING_PANEL = ['CKAE','VIM','S100','CD45'];
 const BIG_FOUR = ['CK7','CK20','TTF1','CDX2'];
 
-// Panels by morphology + Big Four pattern
+// Screening interpretation: which morphology does the pattern suggest?
+function interpretScreening(screen) {
+  const ck = screen.CKAE || '?';
+  const vim = screen.VIM || '?';
+  const s = screen.S100 || '?';
+  const cd = screen.CD45 || '?';
+  
+  if(cd === '+') return { morph:'linfoide', hint:'CD45+ → Linfoide. Pannello linfomi.' };
+  if(s === '+' && ck === '-') return { morph:'melanocitico', hint:'S100+/CK− → Melanocitico o neurale. Pannello melanoma/MPNST.' };
+  if(ck === '+' && vim === '-') return { morph:'epiteliale', hint:'CK+/Vim− → Epiteliale classico. Procedi con CK secondo livello.' };
+  if(ck === '+' && vim === '+') return { morph:'epiteliale', hint:'CK+/Vim+ → Epiteliale (RCC, endometrio, sarcomatoide, mesotelio, sinoviale). CK secondo livello.' };
+  if(ck === '-' && vim === '+' && s === '-') return { morph:'mesenchimale', hint:'CK−/Vim+/S100− → Mesenchimale. Pannello sarcomi.' };
+  if(ck === '-' && vim === '+' && s === '+') return { morph:'melanocitico', hint:'CK−/Vim+/S100+ → Melanocitico o neurale.' };
+  if(ck === '-' && vim === '-' && cd === '-') return { morph:'germinale', hint:'Tutto negativo → Considera germinale, NEN, o anaplastico.' };
+  return { morph:null, hint:'Pattern non dirimente. Seleziona la categoria più probabile o prosegui.' };
+}
+
 const CASC_PANELS = {
   epiteliale: {
-    // CK7+/CK20- patterns
-    'CK7+/CK20-': { hint:'Polmone, mammella, ovaio, tiroide, pancreas, mesotelio', markers:['TTF1','NAPSINA','ER','PR','GATA3','MAMMOGLOB','PAX8','WT1','THYROGLOB','CALRETININA','CA125','CK19','MUC4','P40','P63','CK56','HER2'] },
-    'CK7+/CK20+': { hint:'Uroteliale, pancreas, gastrico', markers:['GATA3','P63','CK56','MUC4','MUC2','CDX2','SATB2','CLAUDINA18'] },
-    'CK7-/CK20+': { hint:'Colorettale, Merkel', markers:['CDX2','SATB2','MUC2','SINAPTOFISINA','CROMOGRANINA','CD56'] },
-    'CK7-/CK20-': { hint:'HCC, prostata, RCC, SCC, seminoma', markers:['HEPPAR','GLYPICAN3','ARGINASI','AFP','PSA','PSAP','NKX3','ERG','PAX8','CAIX','RCC','P40','P63','CK56','SALL4','PLAP'] },
-    // with TTF1/CDX2
-    'TTF1+': { hint:'Polmone, tiroide, NEN polmonare', markers:['NAPSINA','THYROGLOB','CALCITONINA','CROMOGRANINA','SINAPTOFISINA','P40','CK56'] },
-    'CDX2+': { hint:'Colorettale, GI NEN', markers:['CK20','SATB2','MUC2','CROMOGRANINA','SINAPTOFISINA'] },
+    'CK7+/CK20-': { hint:'Polmone, mammella, ovaio, tiroide, pancreas, mesotelio', markers:['BAP1','TTF1','NAPSINA','ER','PR','GATA3','MAMMOGLOB','PAX8','WT1','THYROGLOB','CALRETININA','D240','CA125','CEA_MONO','EPCAM','SATB2','CLAUDINA18','P40','P63','CK56','HER2'] },
+    'CK7+/CK20+': { hint:'Uroteliale, pancreas, gastrico', markers:['GATA3','P63','CK56','CLAUDINA18','SATB2','CDX2'] },
+    'CK7-/CK20+': { hint:'Colorettale, Merkel', markers:['CDX2','SATB2','SINAPTOFISINA','CROMOGRANINA'] },
+    'CK7-/CK20-': { hint:'HCC, prostata, RCC, SCC, seminoma, acinare pancreas', markers:['HEPPAR','GLYPICAN3','ARGINASI','AFP','PSA','PSAP','NKX3','ERG','PAX8','CAIX','RCC','SATB2','CLAUDINA18','P40','P63','CK56','SALL4','PLAP'] },
+    'TTF1+': { hint:'Polmone, tiroide, NEN polmonare', markers:['NAPSINA','THYROGLOB','CALCITONINA','CROMOGRANINA','SINAPTOFISINA','SATB2','CLAUDINA18','P40','CK56'] },
+    'CDX2+': { hint:'Colorettale, GI NEN', markers:['CK20','SATB2','CROMOGRANINA','SINAPTOFISINA'] },
     '_default': { hint:'Pannello generico epiteliale', markers:['ER','PR','GATA3','TTF1','NAPSINA','CDX2','SATB2','PAX8','PSA','HEPPAR','CALRETININA','P40'] },
   },
   linfoide: {
-    '_default': { hint:'Pannello linfoide base', markers:['CD20','CD3','CD79A','PAX5','CD45','CD30','CD15','CD5','CD7','CD19','CD138','MUM1','TDT','BCL2','BCL6','CD10','KI67','CD4','CD8','CD56','CMYC','CD23','BCL1','SOX11'] },
+    '_default': { hint:'Pannello linfoide', markers:['CD3','CD4','CD5','CD7','CD8','CD15','CD19','CD20','CD23','CD30','CD79A','CD138','PAX5','MUM1','TDT','BCL1','BCL2','BCL6','CMYC','SOX11','KI67'] },
   },
   mesenchimale: {
-    '_default': { hint:'Pannello mesenchimale', markers:['ACTINA_SMA','DESMINA','CALDESMON','ACTINA_HHF35','CD117','DOG1','CD34','STAT6','MDM2','CDK4','S100','SOX10','MIOGENINA','CD99','BCL2','EMA','CKAE'] },
+    '_default': { hint:'Pannello mesenchimale', markers:['ACTINA_SMA','ACTINA_HHF35','DESMINA','CALDESMON','MIOGENINA','CD31','CD34','CD99','CD117','DOG1','ERG','STAT6','MDM2','CDK4','SOX10','BCL2','EMA','CKAE'] },
   },
   melanocitico: {
-    '_default': { hint:'Pannello melanocitico', markers:['S100','SOX10','MELANA','HMB45','PRAME','CKAE','CD45','KI67','P16'] },
+    '_default': { hint:'Pannello melanocitico/neurale', markers:['SOX10','MELANA','HMB45','PRAME','CD34','CD45','CKAE','DESMINA','KI67','P16'] },
   },
   neuroendocrino: {
-    '_default': { hint:'Pannello neuroendocrino', markers:['CROMOGRANINA','SINAPTOFISINA','CD56','TTF1','CDX2','KI67','SALL4','CALCITONINA','NSE'] },
+    '_default': { hint:'Pannello neuroendocrino', markers:['CROMOGRANINA','SINAPTOFISINA','INSM1','TTF1','CDX2','KI67','SALL4','CALCITONINA','NSE','CKAE'] },
   },
   germinale: {
-    '_default': { hint:'Pannello germinale', markers:['SALL4','PLAP','AFP','HCG','CD117','GLYPICAN3','CD30','CKAE','KI67'] },
+    '_default': { hint:'Pannello germinale', markers:['SALL4','PLAP','AFP','HCG','CD30','CD117','GLYPICAN3','CKAE','KI67'] },
+  },
+  indifferenziato: {
+    '_default': { hint:'Pannello ampio — neoplasia indifferenziata', markers:['CKAE','VIM','S100','CD3','CD20','CD34','CD45','CD117','CROMOGRANINA','SINAPTOFISINA','SALL4','MELANA','HMB45','DESMINA','KI67'] },
   },
 };
 
-let cascState = { morph:null, bigFour:{}, panelMarkers:{}, step:1 };
+let cascState = { morph:null, screen:{}, bigFour:{}, panelMarkers:{}, step:1, screenMorph:null };
 
 function cascInit() {
   const c = document.getElementById('morphButtons');
@@ -809,28 +879,86 @@ function cascInit() {
 }
 
 function cascShowStep(n) {
-  for(let i=1;i<=4;i++) {
-    document.getElementById('cascStep'+i).style.display = i===n ? 'block' : 'none';
+  for(let i=1;i<=5;i++) {
+    const el = document.getElementById('cascStep'+i);
+    if(el) el.style.display = i===n ? 'block' : 'none';
     const s = document.getElementById('cStep'+i);
-    s.className = 'casc-step' + (i<n?' done':'') + (i===n?' active':'');
+    if(s) s.className = 'casc-step' + (i<n?' done':'') + (i===n?' active':'');
   }
   cascState.step = n;
 }
 
 function cascSelectMorph(id) {
   cascState.morph = id;
+  cascState.screen = {};
   cascState.bigFour = {};
   cascState.panelMarkers = {};
+  cascState.screenMorph = null;
   document.querySelectorAll('.morph-btn').forEach(b => b.classList.remove('selected'));
-  event.currentTarget.classList.add('selected');
+  if(event && event.currentTarget) event.currentTarget.classList.add('selected');
   
-  if (id === 'epiteliale') {
-    cascShowStep(2);
+  // Always go to screening panel (Step 2)
+  cascShowStep(2);
+  cascRenderScreening();
+}
+
+function cascRenderScreening() {
+  const c = document.getElementById('screenGrid');
+  c.innerHTML = SCREENING_PANEL.map(mid => {
+    const d = getDisplay(mid);
+    return '<div class="bf-card"><div class="bf-name">'+d+'</div><div class="bf-toggles">'+
+      '<button onclick="cascSetScreen(\''+mid+'\',\'+\',this)" id="sc_'+mid+'_pos">+</button>'+
+      '<button onclick="cascSetScreen(\''+mid+'\',\'-\',this)" id="sc_'+mid+'_neg">−</button>'+
+      '<button onclick="cascSetScreen(\''+mid+'\',\'?\',this)" id="sc_'+mid+'_unk" class="sel-unk">?</button>'+
+    '</div></div>';
+  }).join('');
+  document.getElementById('screenHint').textContent = 'Seleziona i risultati dello screening per orientare la diagnosi.';
+}
+
+function cascSetScreen(mid, val, btn) {
+  cascState.screen[mid] = val;
+  ['pos','neg','unk'].forEach(t => {
+    const b = document.getElementById('sc_'+mid+'_'+t);
+    if(b) b.className = (val==='+' && t==='pos') ? 'sel-pos' : (val==='-' && t==='neg') ? 'sel-neg' : (val==='?' && t==='unk') ? 'sel-unk' : '';
+  });
+  // Update hint
+  const interp = interpretScreening(cascState.screen);
+  const hintEl = document.getElementById('screenHint');
+  if(interp.morph) {
+    const morphLabel = CASC_MORPHOLOGIES.find(m=>m.id===interp.morph)?.label || interp.morph;
+    hintEl.innerHTML = '<strong>→ '+morphLabel+'</strong>: '+interp.hint;
+    hintEl.style.background = '#d1fae5';
+    hintEl.style.color = '#065f46';
+  } else {
+    hintEl.innerHTML = interp.hint;
+    hintEl.style.background = '#fef3c7';
+    hintEl.style.color = '#92400e';
+  }
+}
+
+function cascFromScreening() {
+  // Record screening markers
+  for(const [mid, val] of Object.entries(cascState.screen)) {
+    if(val === '+') cascState.panelMarkers[mid] = '+';
+    else if(val === '-') cascState.panelMarkers[mid] = '-';
+  }
+  
+  // Determine morphology from screening if user picked "indifferenziato"
+  const interp = interpretScreening(cascState.screen);
+  if(cascState.morph === 'indifferenziato' && interp.morph) {
+    cascState.screenMorph = interp.morph;
+    cascState.morph = interp.morph;
+  }
+  
+  // Epiteliale → go to Big Four CK (Step 3)
+  if(cascState.morph === 'epiteliale') {
+    cascShowStep(3);
     cascRenderBigFour();
   } else {
-    // Skip Big Four, go to panel
-    cascShowStep(3);
+    // Non-epiteliale → skip Big Four, go to Panel (Step 4)
+    cascShowStep(4);
     cascRenderPanel();
+    document.getElementById('panelBackBtn').setAttribute('onclick','cascBack(2)');
   }
 }
 
@@ -855,109 +983,111 @@ function cascSetBF(mid, val) {
 }
 
 function cascAdvance(toStep) {
-  if (toStep === 3) {
-    // Apply Big Four to state
+  if (toStep === 4) {
+    // Apply Big Four to panelMarkers
     for(const [mid, val] of Object.entries(cascState.bigFour)) {
       if(val === '+') cascState.panelMarkers[mid] = '+';
       else if(val === '-') cascState.panelMarkers[mid] = '-';
     }
-    cascShowStep(3);
-    cascRenderPanel();
-  } else if (toStep === 4) {
     cascShowStep(4);
+    cascRenderPanel();
+    document.getElementById('panelBackBtn').setAttribute('onclick','cascBack(3)');
+  } else if (toStep === 5) {
+    cascShowStep(5);
     cascComputeResults();
   }
 }
 
 function cascBack(toStep) {
   cascShowStep(toStep);
-  if(toStep === 3) cascRenderPanel();
+  if(toStep === 2) cascRenderScreening();
+  if(toStep === 3) cascRenderBigFour();
+  if(toStep === 4) cascRenderPanel();
 }
 
 function cascGetBFPattern() {
   const bf = cascState.bigFour;
-  const ck7 = bf.CK7 || '?';
-  const ck20 = bf.CK20 || '?';
   const ttf1 = bf.TTF1 || '?';
   const cdx2 = bf.CDX2 || '?';
-  
-  // Try specific patterns first
   if(ttf1 === '+') return 'TTF1+';
   if(cdx2 === '+') return 'CDX2+';
-  const key = 'CK7'+(ck7==='+'?'+':'-')+'/CK20'+(ck20==='+'?'+':'-');
-  return key;
+  const ck7 = bf.CK7 || '?';
+  const ck20 = bf.CK20 || '?';
+  return 'CK7'+(ck7==='+'?'+':'-')+'/CK20'+(ck20==='+'?'+':'-');
 }
 
 function cascRenderPanel() {
   const morph = cascState.morph;
-  const panels = CASC_PANELS[morph];
+  const panels = CASC_PANELS[morph] || CASC_PANELS['indifferenziato'];
   let panelKey = '_default';
   let summaryHTML = '';
+  
+  // Summary of screening
+  const scrSummary = SCREENING_PANEL.map(m => {
+    const v = cascState.screen[m] || '?';
+    const cls = v==='+'?'pos':v==='-'?'neg':'';
+    return '<span class="marker-tag '+cls+'">'+getDisplay(m)+' '+v+'</span>';
+  }).join(' ');
+  summaryHTML = '<div style="margin-bottom:8px;font-size:.85rem;">Screening: '+scrSummary+'</div>';
   
   if(morph === 'epiteliale') {
     const pattern = cascGetBFPattern();
     if(panels[pattern]) panelKey = pattern;
-    // Summary of Big Four
     const bfSummary = BIG_FOUR.map(m => {
       const v = cascState.bigFour[m] || '?';
       const cls = v==='+'?'pos':v==='-'?'neg':'';
-      return '<span class="marker-tag '+(cls)+'">'+getDisplay(m)+' '+v+'</span>';
+      return '<span class="marker-tag '+cls+'">'+getDisplay(m)+' '+v+'</span>';
     }).join(' ');
-    summaryHTML = '<div style="margin-bottom:12px;">Big Four: '+bfSummary+'</div>';
+    summaryHTML += '<div style="margin-bottom:8px;font-size:.85rem;">Big Four: '+bfSummary+'</div>';
   }
   
   const panel = panels[panelKey] || panels['_default'];
   document.getElementById('cascPanelHint').textContent = panel.hint;
   document.getElementById('cascPanelSummary').innerHTML = summaryHTML;
   
-  // Filter: only markers available in current mode
-  const available = panel.markers.filter(mid => markerDB[mid] && (currentMode==='all' || getSite(mid)==='fbf'));
+  // Show all markers in panel (fbf, sacco, nd) - semaforo will indicate availability
+  const alreadySet = new Set(Object.keys(cascState.panelMarkers));
+  const available = panel.markers.filter(mid => markerDB[mid] && !alreadySet.has(mid));
   
   const c = document.getElementById('panelGrid');
-  c.innerHTML = available.map(mid => {
+  c.innerHTML = '<div class="site-legend"><span><span class="site-dot dot-fbf"></span>FBF</span><span><span class="site-dot dot-sacco"></span>SACCO</span><span><span class="site-dot dot-nd"></span>Non disp.</span></div>' +
+    available.map(mid => {
     const d = getDisplay(mid);
     const st = cascState.panelMarkers[mid];
     const cls = st==='+'?'pm-pos':st==='-'?'pm-neg':'';
-    return '<div class="panel-marker '+cls+'" onclick="cascTogglePanel(\''+mid+'\',this)">'+d+(st?' '+(st==='+'?'✅':'❌'):'')+'</div>';
+    return '<div class="panel-marker '+cls+' '+getSiteClass(mid)+'" onclick="cascTogglePanel(\''+mid+'\',this)" data-mid="'+mid+'">'+getSiteDot(mid)+d+(st?' '+(st==='+'?'✅':'❌'):'')+'</div>';
   }).join('');
+  
+  if(!available.length) c.innerHTML = '<p style="color:var(--subtext);text-align:center;padding:16px;">Tutti i marker del pannello sono già stati impostati nello screening/CK.</p>';
 }
 
 function cascTogglePanel(mid, el) {
   const cur = cascState.panelMarkers[mid];
-  if(!cur) { cascState.panelMarkers[mid] = '+'; el.className='panel-marker pm-pos'; el.innerHTML=getDisplay(mid)+' ✅'; }
-  else if(cur==='+') { cascState.panelMarkers[mid] = '-'; el.className='panel-marker pm-neg'; el.innerHTML=getDisplay(mid)+' ❌'; }
-  else { delete cascState.panelMarkers[mid]; el.className='panel-marker'; el.innerHTML=getDisplay(mid); }
+  if(!cur) { cascState.panelMarkers[mid] = '+'; el.className='panel-marker pm-pos '+getSiteClass(mid); el.innerHTML=getSiteDot(mid)+getDisplay(mid)+' ✅'; }
+  else if(cur==='+') { cascState.panelMarkers[mid] = '-'; el.className='panel-marker pm-neg '+getSiteClass(mid); el.innerHTML=getSiteDot(mid)+getDisplay(mid)+' ❌'; }
+  else { delete cascState.panelMarkers[mid]; el.className='panel-marker '+getSiteClass(mid); el.innerHTML=getSiteDot(mid)+getDisplay(mid); }
 }
 
 function cascComputeResults() {
-  // Transfer cascade markers to engine
   const savedPos = new Set(positiveMarkers);
   const savedNeg = new Set(negativeMarkers);
   const savedMorph = morphology;
   
   positiveMarkers.clear();
   negativeMarkers.clear();
-  
   for(const [mid, val] of Object.entries(cascState.panelMarkers)) {
     if(val === '+') positiveMarkers.add(mid);
     else if(val === '-') negativeMarkers.add(mid);
   }
-  
-  morphology = cascState.morph === 'epiteliale' ? 'epiteliale' :
-               cascState.morph === 'linfoide' ? 'linfoide' :
-               cascState.morph === 'mesenchimale' ? 'mesenchimale' :
-               cascState.morph === 'melanocitico' ? 'melanocitico' :
-               cascState.morph === 'neuroendocrino' ? 'neuroendocrino' :
-               cascState.morph === 'germinale' ? 'germinale' : 'any';
+  morphology = cascState.morph || 'any';
   
   const results = computeBayes();
   
-  // Display
   const c = document.getElementById('cascResults');
   if(!results.length) {
     c.innerHTML = '<div class="empty-state"><p>Nessuna diagnosi compatibile con questo profilo.</p></div>';
   } else {
-    c.innerHTML = results.slice(0, 6).map((dx,i) => {
+    c.innerHTML = results.slice(0, 8).map((dx,i) => {
       const pct = Math.round(dx.posterior * 100);
       const cls = pct>=25?'high':pct>=10?'medium':'low';
       const rHTML = dx.reasoning.map(r => '<span class="'+r.type+'">'+r.text+'</span>').join('<br>');
@@ -966,39 +1096,35 @@ function cascComputeResults() {
     }).join('');
   }
   
-  // Audit
   const nPos = Object.values(cascState.panelMarkers).filter(v=>v==='+').length;
   const nNeg = Object.values(cascState.panelMarkers).filter(v=>v==='-').length;
   document.getElementById('cascAudit').textContent = BAYES_VERSION+' | Cascade: '+cascState.morph+' | Pos:'+nPos+' Neg:'+nNeg+' | '+new Date().toISOString().slice(0,16);
   
-  // Restore state
   positiveMarkers = savedPos;
   negativeMarkers = savedNeg;
   morphology = savedMorph;
 }
 
 function cascToInverse() {
-  // Transfer cascade markers to Inverse Lookup
   positiveMarkers.clear();
   negativeMarkers.clear();
   for(const [mid, val] of Object.entries(cascState.panelMarkers)) {
     if(val === '+') positiveMarkers.add(mid);
     else if(val === '-') negativeMarkers.add(mid);
   }
-  // Set morphology
   const mSel = document.getElementById('morphSelect');
   if(mSel) mSel.value = cascState.morph || 'any';
   morphology = cascState.morph || 'any';
   renderAvailableMarkers();
   switchTab('inverse');
   document.querySelectorAll('.tab-btn').forEach(b => {
-    b.classList.toggle('active', b.textContent.includes('Inverse'));
+    b.classList.toggle('active', b.textContent.includes('Ricerca'));
   });
   analyzeMarkers();
 }
 
 function cascReset() {
-  cascState = { morph:null, bigFour:{}, panelMarkers:{}, step:1 };
+  cascState = { morph:null, screen:{}, bigFour:{}, panelMarkers:{}, step:1, screenMorph:null };
   cascShowStep(1);
   document.querySelectorAll('.morph-btn').forEach(b => b.classList.remove('selected'));
 }
