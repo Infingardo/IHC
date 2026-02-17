@@ -77,6 +77,28 @@
     .feedback{padding:12px;border-radius:10px;text-align:center;font-weight:600;margin-top:12px;min-height:18px}
     .feedback.correct{background:#d1fae5;color:#065f46}.feedback.incorrect{background:#fee2e2;color:#991b1b}
     .empty-state{text-align:center;padding:35px;color:var(--subtext)}
+    /* Cascade wizard */
+    .casc-step{flex:1;text-align:center;padding:8px;border-radius:8px;font-size:.82rem;font-weight:600;background:#f1f5f9;color:var(--subtext);transition:all .2s}
+    .casc-step.active{background:var(--accent);color:#fff}
+    .casc-step.done{background:#d1fae5;color:#065f46}
+    .casc-panel{padding:24px;background:var(--card);border-radius:14px;box-shadow:0 2px 12px var(--shadow)}
+    .morph-btn{padding:16px;border:2px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;transition:all .2s;background:var(--card)}
+    .morph-btn:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow)}
+    .morph-btn.selected{border-color:var(--accent);background:#eef2ff;font-weight:700}
+    .morph-btn .morph-icon{font-size:1.8rem;margin-bottom:6px}
+    .morph-btn .morph-label{font-weight:700;font-size:.95rem;margin-bottom:3px}
+    .morph-btn .morph-hint{font-size:.78rem;color:var(--subtext)}
+    .bf-card{padding:14px;border:2px solid var(--border);border-radius:10px;background:var(--card)}
+    .bf-card .bf-name{font-weight:700;font-size:.95rem;margin-bottom:8px;text-align:center}
+    .bf-toggles{display:flex;gap:6px;justify-content:center}
+    .bf-toggles button{padding:6px 16px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-weight:700;font-size:.9rem;background:var(--card);transition:all .15s}
+    .bf-toggles button.sel-pos{background:#d1fae5;border-color:var(--pos);color:#065f46}
+    .bf-toggles button.sel-neg{background:#fee2e2;border-color:var(--neg);color:#991b1b}
+    .bf-toggles button.sel-unk{background:#fef3c7;border-color:var(--warn);color:#92400e}
+    .panel-marker{padding:8px 12px;border:2px solid var(--border);border-radius:8px;cursor:pointer;text-align:center;font-size:.85rem;font-weight:600;transition:all .15s;background:var(--card)}
+    .panel-marker:hover{border-color:var(--accent)}
+    .panel-marker.pm-pos{background:#d1fae5;border-color:var(--pos);color:#065f46}
+    .panel-marker.pm-neg{background:#fee2e2;border-color:var(--neg);color:#991b1b}
     @media print{body{padding:0;background:#fff;font-size:10pt}.tabs-wrapper,.controls,.mode-toggle,.info-box,#availableMarkersWrap,.empty-state,.next-best{display:none!important}.tab-content{display:block!important}.diagnosis-result{break-inside:avoid;box-shadow:none;border:1px solid #ccc}.audit-stamp{display:block!important}}
     @media(max-width:768px){.lookup-container{grid-template-columns:1fr}.marker-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}h1{font-size:1.8rem}}
 
@@ -120,6 +142,7 @@
   <div class="tabs-wrapper">
     <button class="tab-btn active" onclick="switchTab('inverse')">🔍 Inverse Lookup</button>
     <button class="tab-btn" onclick="switchTab('quiz')">🎮 Quiz Mode</button>
+    <button class="tab-btn" onclick="switchTab('cascade')">📊 IHC Cascade</button>
   </div>
 
   <!-- INVERSE -->
@@ -177,6 +200,61 @@
       <div id="quizFeedback" class="feedback"></div>
       <button class="btn btn-analyze" onclick="nextQuizRound()" style="margin-top:12px;">⏭️ PROSSIMA</button>
     </div></div>
+  </div>
+
+  <!-- CASCADE GUIDATA -->
+  <div id="cascade-tab" class="tab-content">
+    <div style="max-width:800px;margin:0 auto;">
+      <!-- PROGRESS BAR -->
+      <div id="cascadeProgress" style="display:flex;gap:4px;margin-bottom:18px;">
+        <div class="casc-step active" id="cStep1">1. Morfologia</div>
+        <div class="casc-step" id="cStep2">2. Big Four</div>
+        <div class="casc-step" id="cStep3">3. Pannello</div>
+        <div class="casc-step" id="cStep4">4. Diagnosi</div>
+      </div>
+
+      <!-- STEP 1: MORFOLOGIA -->
+      <div id="cascStep1" class="casc-panel">
+        <h2 style="margin-bottom:6px;">🔬 Step 1 — Impressione Morfologica</h2>
+        <p style="color:var(--subtext);margin-bottom:16px;font-size:.9rem;">Cosa vedi all'EE? Seleziona il pattern predominante.</p>
+        <div id="morphButtons" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;"></div>
+      </div>
+
+      <!-- STEP 2: BIG FOUR (solo epiteliale) -->
+      <div id="cascStep2" class="casc-panel" style="display:none;">
+        <h2 style="margin-bottom:6px;">🧪 Step 2 — Big Four</h2>
+        <p style="color:var(--subtext);margin-bottom:16px;font-size:.9rem;">Risultati dei 4 marker di primo livello. Seleziona +, − o ? (non testato).</p>
+        <div id="bigFourGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;"></div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;">
+          <button class="btn btn-reset" onclick="cascBack(1)">← Indietro</button>
+          <button class="btn btn-analyze" onclick="cascAdvance(3)">Avanti →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: PANNELLO SPECIFICO -->
+      <div id="cascStep3" class="casc-panel" style="display:none;">
+        <h2 style="margin-bottom:6px;">🎯 Step 3 — Pannello Mirato</h2>
+        <p style="color:var(--subtext);margin-bottom:4px;font-size:.9rem;" id="cascPanelHint"></p>
+        <div id="cascPanelSummary" style="margin-bottom:14px;"></div>
+        <div id="panelGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;"></div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;">
+          <button class="btn btn-reset" onclick="cascBack(2)">← Indietro</button>
+          <button class="btn btn-analyze" onclick="cascAdvance(4)">🔍 Calcola Diagnosi</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: RISULTATI -->
+      <div id="cascStep4" class="casc-panel" style="display:none;">
+        <h2 style="margin-bottom:6px;">📊 Step 4 — Diagnosi Differenziale</h2>
+        <div id="cascAudit" style="font-size:.8rem;color:var(--subtext);margin-bottom:12px;"></div>
+        <div id="cascResults"></div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;">
+          <button class="btn btn-reset" onclick="cascBack(3)">← Modifica Pannello</button>
+          <button class="btn btn-analyze" onclick="cascReset()">🔄 Ricomincia</button>
+          <button class="btn btn-analyze" onclick="cascToInverse()" style="background:var(--gain);">↗ Apri in Inverse Lookup</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -672,6 +750,260 @@ function switchTab(t) {
 }
 
 (function init(){ renderAvailableMarkers(); nextQuizRound(); })();
+
+// ============================
+// CASCADE WIZARD
+// ============================
+
+const CASC_MORPHOLOGIES = [
+  { id:'epiteliale', icon:'🔲', label:'Epiteliale', hint:'Coesivo, strutture ghiandolari/squamose, cheratine+' },
+  { id:'linfoide', icon:'🔵', label:'Linfoide', hint:'Piccole cellule rotonde, LCA+, pattern diffuso/nodulare' },
+  { id:'mesenchimale', icon:'🔷', label:'Mesenchimale', hint:'Fusato/pleomorfo, stroma, vimentina+' },
+  { id:'melanocitico', icon:'⬛', label:'Melanocitico', hint:'Pigmento, pattern pagetoide, nesting' },
+  { id:'neuroendocrino', icon:'🟣', label:'Neuroendocrino', hint:'Organoid, salt & pepper, rosette' },
+  { id:'germinale', icon:'🟡', label:'Germinale', hint:'Cellule chiare/embrionali, pattern solido/papillare' },
+];
+
+const BIG_FOUR = ['CK7','CK20','TTF1','CDX2'];
+
+// Panels by morphology + Big Four pattern
+const CASC_PANELS = {
+  epiteliale: {
+    // CK7+/CK20- patterns
+    'CK7+/CK20-': { hint:'Polmone, mammella, ovaio, tiroide, pancreas, mesotelio', markers:['TTF1','NAPSINA','ER','PR','GATA3','MAMMOGLOB','PAX8','WT1','THYROGLOB','CALRETININA','CA125','CK19','MUC4','P40','P63','CK56','HER2'] },
+    'CK7+/CK20+': { hint:'Uroteliale, pancreas, gastrico', markers:['GATA3','P63','CK56','MUC4','MUC2','CDX2','SATB2','CLAUDINA18'] },
+    'CK7-/CK20+': { hint:'Colorettale, Merkel', markers:['CDX2','SATB2','MUC2','SINAPTOFISINA','CROMOGRANINA','CD56'] },
+    'CK7-/CK20-': { hint:'HCC, prostata, RCC, SCC, seminoma', markers:['HEPPAR','GLYPICAN3','ARGINASI','AFP','PSA','PSAP','NKX3','ERG','PAX8','CAIX','RCC','P40','P63','CK56','SALL4','PLAP'] },
+    // with TTF1/CDX2
+    'TTF1+': { hint:'Polmone, tiroide, NEN polmonare', markers:['NAPSINA','THYROGLOB','CALCITONINA','CROMOGRANINA','SINAPTOFISINA','P40','CK56'] },
+    'CDX2+': { hint:'Colorettale, GI NEN', markers:['CK20','SATB2','MUC2','CROMOGRANINA','SINAPTOFISINA'] },
+    '_default': { hint:'Pannello generico epiteliale', markers:['ER','PR','GATA3','TTF1','NAPSINA','CDX2','SATB2','PAX8','PSA','HEPPAR','CALRETININA','P40'] },
+  },
+  linfoide: {
+    '_default': { hint:'Pannello linfoide base', markers:['CD20','CD3','CD79A','PAX5','CD45','CD30','CD15','CD5','CD7','CD19','CD138','MUM1','TDT','BCL2','BCL6','CD10','KI67','CD4','CD8','CD56','CMYC','CD23','BCL1','SOX11'] },
+  },
+  mesenchimale: {
+    '_default': { hint:'Pannello mesenchimale', markers:['ACTINA_SMA','DESMINA','CALDESMON','ACTINA_HHF35','CD117','DOG1','CD34','STAT6','MDM2','CDK4','S100','SOX10','MIOGENINA','CD99','BCL2','EMA','CKAE'] },
+  },
+  melanocitico: {
+    '_default': { hint:'Pannello melanocitico', markers:['S100','SOX10','MELANA','HMB45','PRAME','CKAE','CD45','KI67','P16'] },
+  },
+  neuroendocrino: {
+    '_default': { hint:'Pannello neuroendocrino', markers:['CROMOGRANINA','SINAPTOFISINA','CD56','TTF1','CDX2','KI67','SALL4','CALCITONINA','NSE'] },
+  },
+  germinale: {
+    '_default': { hint:'Pannello germinale', markers:['SALL4','PLAP','AFP','HCG','CD117','GLYPICAN3','CD30','CKAE','KI67'] },
+  },
+};
+
+let cascState = { morph:null, bigFour:{}, panelMarkers:{}, step:1 };
+
+function cascInit() {
+  const c = document.getElementById('morphButtons');
+  c.innerHTML = CASC_MORPHOLOGIES.map(m =>
+    '<div class="morph-btn" onclick="cascSelectMorph(\''+m.id+'\')">'+
+    '<div class="morph-icon">'+m.icon+'</div>'+
+    '<div class="morph-label">'+m.label+'</div>'+
+    '<div class="morph-hint">'+m.hint+'</div></div>'
+  ).join('');
+}
+
+function cascShowStep(n) {
+  for(let i=1;i<=4;i++) {
+    document.getElementById('cascStep'+i).style.display = i===n ? 'block' : 'none';
+    const s = document.getElementById('cStep'+i);
+    s.className = 'casc-step' + (i<n?' done':'') + (i===n?' active':'');
+  }
+  cascState.step = n;
+}
+
+function cascSelectMorph(id) {
+  cascState.morph = id;
+  cascState.bigFour = {};
+  cascState.panelMarkers = {};
+  document.querySelectorAll('.morph-btn').forEach(b => b.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  
+  if (id === 'epiteliale') {
+    cascShowStep(2);
+    cascRenderBigFour();
+  } else {
+    // Skip Big Four, go to panel
+    cascShowStep(3);
+    cascRenderPanel();
+  }
+}
+
+function cascRenderBigFour() {
+  const c = document.getElementById('bigFourGrid');
+  c.innerHTML = BIG_FOUR.map(mid => {
+    const d = getDisplay(mid);
+    return '<div class="bf-card"><div class="bf-name">'+d+'</div><div class="bf-toggles">'+
+      '<button onclick="cascSetBF(\''+mid+'\',\'+\')" id="bf_'+mid+'_pos">+</button>'+
+      '<button onclick="cascSetBF(\''+mid+'\',\'-\')" id="bf_'+mid+'_neg">−</button>'+
+      '<button onclick="cascSetBF(\''+mid+'\',\'?\')" id="bf_'+mid+'_unk" class="sel-unk">?</button>'+
+    '</div></div>';
+  }).join('');
+}
+
+function cascSetBF(mid, val) {
+  cascState.bigFour[mid] = val;
+  ['pos','neg','unk'].forEach(t => {
+    const b = document.getElementById('bf_'+mid+'_'+t);
+    if(b) b.className = (val==='+' && t==='pos') ? 'sel-pos' : (val==='-' && t==='neg') ? 'sel-neg' : (val==='?' && t==='unk') ? 'sel-unk' : '';
+  });
+}
+
+function cascAdvance(toStep) {
+  if (toStep === 3) {
+    // Apply Big Four to state
+    for(const [mid, val] of Object.entries(cascState.bigFour)) {
+      if(val === '+') cascState.panelMarkers[mid] = '+';
+      else if(val === '-') cascState.panelMarkers[mid] = '-';
+    }
+    cascShowStep(3);
+    cascRenderPanel();
+  } else if (toStep === 4) {
+    cascShowStep(4);
+    cascComputeResults();
+  }
+}
+
+function cascBack(toStep) {
+  cascShowStep(toStep);
+  if(toStep === 3) cascRenderPanel();
+}
+
+function cascGetBFPattern() {
+  const bf = cascState.bigFour;
+  const ck7 = bf.CK7 || '?';
+  const ck20 = bf.CK20 || '?';
+  const ttf1 = bf.TTF1 || '?';
+  const cdx2 = bf.CDX2 || '?';
+  
+  // Try specific patterns first
+  if(ttf1 === '+') return 'TTF1+';
+  if(cdx2 === '+') return 'CDX2+';
+  const key = 'CK7'+(ck7==='+'?'+':'-')+'/CK20'+(ck20==='+'?'+':'-');
+  return key;
+}
+
+function cascRenderPanel() {
+  const morph = cascState.morph;
+  const panels = CASC_PANELS[morph];
+  let panelKey = '_default';
+  let summaryHTML = '';
+  
+  if(morph === 'epiteliale') {
+    const pattern = cascGetBFPattern();
+    if(panels[pattern]) panelKey = pattern;
+    // Summary of Big Four
+    const bfSummary = BIG_FOUR.map(m => {
+      const v = cascState.bigFour[m] || '?';
+      const cls = v==='+'?'pos':v==='-'?'neg':'';
+      return '<span class="marker-tag '+(cls)+'">'+getDisplay(m)+' '+v+'</span>';
+    }).join(' ');
+    summaryHTML = '<div style="margin-bottom:12px;">Big Four: '+bfSummary+'</div>';
+  }
+  
+  const panel = panels[panelKey] || panels['_default'];
+  document.getElementById('cascPanelHint').textContent = panel.hint;
+  document.getElementById('cascPanelSummary').innerHTML = summaryHTML;
+  
+  // Filter: only markers available in current mode
+  const available = panel.markers.filter(mid => markerDB[mid] && (currentMode==='all' || getSite(mid)==='fbf'));
+  
+  const c = document.getElementById('panelGrid');
+  c.innerHTML = available.map(mid => {
+    const d = getDisplay(mid);
+    const st = cascState.panelMarkers[mid];
+    const cls = st==='+'?'pm-pos':st==='-'?'pm-neg':'';
+    return '<div class="panel-marker '+cls+'" onclick="cascTogglePanel(\''+mid+'\',this)">'+d+(st?' '+(st==='+'?'✅':'❌'):'')+'</div>';
+  }).join('');
+}
+
+function cascTogglePanel(mid, el) {
+  const cur = cascState.panelMarkers[mid];
+  if(!cur) { cascState.panelMarkers[mid] = '+'; el.className='panel-marker pm-pos'; el.innerHTML=getDisplay(mid)+' ✅'; }
+  else if(cur==='+') { cascState.panelMarkers[mid] = '-'; el.className='panel-marker pm-neg'; el.innerHTML=getDisplay(mid)+' ❌'; }
+  else { delete cascState.panelMarkers[mid]; el.className='panel-marker'; el.innerHTML=getDisplay(mid); }
+}
+
+function cascComputeResults() {
+  // Transfer cascade markers to engine
+  const savedPos = new Set(positiveMarkers);
+  const savedNeg = new Set(negativeMarkers);
+  const savedMorph = morphology;
+  
+  positiveMarkers.clear();
+  negativeMarkers.clear();
+  
+  for(const [mid, val] of Object.entries(cascState.panelMarkers)) {
+    if(val === '+') positiveMarkers.add(mid);
+    else if(val === '-') negativeMarkers.add(mid);
+  }
+  
+  morphology = cascState.morph === 'epiteliale' ? 'epiteliale' :
+               cascState.morph === 'linfoide' ? 'linfoide' :
+               cascState.morph === 'mesenchimale' ? 'mesenchimale' :
+               cascState.morph === 'melanocitico' ? 'melanocitico' :
+               cascState.morph === 'neuroendocrino' ? 'neuroendocrino' :
+               cascState.morph === 'germinale' ? 'germinale' : 'any';
+  
+  const results = computeBayes();
+  
+  // Display
+  const c = document.getElementById('cascResults');
+  if(!results.length) {
+    c.innerHTML = '<div class="empty-state"><p>Nessuna diagnosi compatibile con questo profilo.</p></div>';
+  } else {
+    c.innerHTML = results.slice(0, 6).map((dx,i) => {
+      const pct = Math.round(dx.posterior * 100);
+      const cls = pct>=25?'high':pct>=10?'medium':'low';
+      const rHTML = dx.reasoning.map(r => '<span class="'+r.type+'">'+r.text+'</span>').join('<br>');
+      const fHTML = dx.flags.length ? '<div style="margin-top:4px;padding:4px 8px;background:#fef2f2;border-radius:6px;font-size:.8rem;"><strong style="color:var(--flag);">🚩</strong> '+dx.flags.join(' | ')+'</div>' : '';
+      return '<div class="diagnosis-result '+cls+'"><div class="dx-header"><div class="dx-name">'+(i+1)+'. '+dx.name+'</div><div class="dx-score '+cls+'">'+pct+'%</div></div><div class="dx-reasoning">'+rHTML+'</div>'+fHTML+'</div>';
+    }).join('');
+  }
+  
+  // Audit
+  const nPos = Object.values(cascState.panelMarkers).filter(v=>v==='+').length;
+  const nNeg = Object.values(cascState.panelMarkers).filter(v=>v==='-').length;
+  document.getElementById('cascAudit').textContent = BAYES_VERSION+' | Cascade: '+cascState.morph+' | Pos:'+nPos+' Neg:'+nNeg+' | '+new Date().toISOString().slice(0,16);
+  
+  // Restore state
+  positiveMarkers = savedPos;
+  negativeMarkers = savedNeg;
+  morphology = savedMorph;
+}
+
+function cascToInverse() {
+  // Transfer cascade markers to Inverse Lookup
+  positiveMarkers.clear();
+  negativeMarkers.clear();
+  for(const [mid, val] of Object.entries(cascState.panelMarkers)) {
+    if(val === '+') positiveMarkers.add(mid);
+    else if(val === '-') negativeMarkers.add(mid);
+  }
+  // Set morphology
+  const mSel = document.getElementById('morphSelect');
+  if(mSel) mSel.value = cascState.morph || 'any';
+  morphology = cascState.morph || 'any';
+  renderAvailableMarkers();
+  switchTab('inverse');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.includes('Inverse'));
+  });
+  analyzeMarkers();
+}
+
+function cascReset() {
+  cascState = { morph:null, bigFour:{}, panelMarkers:{}, step:1 };
+  cascShowStep(1);
+  document.querySelectorAll('.morph-btn').forEach(b => b.classList.remove('selected'));
+}
+
+cascInit();
 
 </script>
 </body>
