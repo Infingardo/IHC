@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IHC Hub v3.0 — True Bayesian Engine</title>
+  <title>IHC Hub v3.3 — True Bayesian Engine</title>
   <style>
     :root{--bg:#f8fafc;--card:#fff;--text:#1e293b;--subtext:#64748b;--accent:#4f46e5;--pos:#059669;--neg:#dc2626;--warn:#d97706;--border:#e2e8f0;--shadow:rgba(0,0,0,.1);--fbf:#3b82f6;--sacco:#a855f7;--flag:#ef4444;--gain:#0891b2}
     *{margin:0;padding:0;box-sizing:border-box}
@@ -130,18 +130,32 @@
     .tb-toggle input{cursor:pointer}
     /* Audit stamp */
     .audit-stamp{font-size:.72rem;color:var(--subtext);text-align:right;margin-top:6px;font-family:monospace}
-  </style>
+  
+  .whatif-btn {
+    margin-left: 6px;
+    padding: 1px 5px;
+    font-size: .72rem;
+    border-radius: 4px;
+    border: 1px solid #666;
+    background: #2a2a3e;
+    color: #ffb74d;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity .15s;
+  }
+  .whatif-btn:hover { opacity: 1; background: #3a3a5e; }
+</style>
 </head>
 <body>
 <div class="container">
   <header>
-    <h1>🧬 IHC Hub v3.1</h1>
+    <h1>🧬 IHC Hub v3.3</h1>
     <p class="version">Motore Bayesiano · Filtro Morfologico · Classi di Confidenza · Risparmio Tessuto · Tumor Board</p>
     <div class="header-badges">
-      <span class="badge fbf">143 FBF</span>
-      <span class="badge sacco">+29 SACCO</span>
+      <span class="badge fbf" id="badgeFBF">143 FBF</span>
+      <span class="badge sacco" id="badgeSACCO">+29 SACCO</span>
       <span class="badge engine">Motore Bayesiano</span>
-      <span class="badge version">v3.1</span>
+      <span class="badge version">v3.3</span>
     </div>
   </header>
 
@@ -156,9 +170,9 @@
     <div class="mode-toggle">
       <span style="font-size:.88rem;">🏥</span>
       <input type="radio" name="siteMode" id="modeFBF" value="fbf" checked onchange="onModeChange()">
-      <label for="modeFBF" class="lbl-fbf">Solo FBF (143)</label>
+      <label for="modeFBF" class="lbl-fbf" id="labelFBF">Solo FBF (143)</label>
       <input type="radio" name="siteMode" id="modeAll" value="all" onchange="onModeChange()">
-      <label for="modeAll" class="lbl-all">FBF + SACCO (172)</label>
+      <label for="modeAll" class="lbl-all" id="labelALL">FBF + SACCO (172)</label>
       <span class="tb-toggle"><input type="checkbox" id="tbMode" onchange="onTBToggle()"> Tumor Board</span>
     </div>
     <div class="morph-selector">
@@ -180,7 +194,7 @@
         <option value="3">Max 3 marker</option>
       </select>
     </div>
-    <div class="info-box"><span>💡</span><div><strong>v3.1:</strong> Bayes LR · Morfologia modula priore · Classe di confidenza (Δ top1-top2) · Punteggio criticità · IG pesato su posteriore · Risparmio tessuto · Modalità Tumor Board. Trascina → POS/NEG → ANALIZZA.</div></div>
+    <div class="info-box"><span>💡</span><div><strong>v3.3:</strong> Bayes LR · Morfologia modula priore · Classe di confidenza (Δ top1-top2) · Punteggio criticità · IG pesato su posteriore · Risparmio tessuto · Modalità Tumor Board. Trascina → POS/NEG → ANALIZZA.</div></div>
     <div class="lookup-container">
       <div class="marker-panel positive"><h2>✅ Positivi <span class="marker-count" id="posCount">0</span></h2><div class="marker-grid" id="positivePanel" ondrop="handleDrop(event,'positive')" ondragover="handleDragOver(event,'positive')" ondragleave="handleDragLeave(event,'positive')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui →</p></div></div>
       <div class="marker-panel negative"><h2>❌ Negativi <span class="marker-count" id="negCount" style="background:var(--neg);">0</span></h2><div class="marker-grid" id="negativePanel" ondrop="handleDrop(event,'negative')" ondragover="handleDragOver(event,'negative')" ondragleave="handleDragLeave(event,'negative')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui →</p></div></div>
@@ -220,7 +234,7 @@
       <div id="cascadeProgress" style="display:flex;gap:4px;margin-bottom:18px;">
         <div class="casc-step active" id="cStep1">1. Morfologia</div>
         <div class="casc-step" id="cStep2">2. Screening IHC</div>
-        <div class="casc-step" id="cStep3">3. CK secondo livello</div>
+        <div class="casc-step" id="cStep3">3. Marker orientativi</div>
         <div class="casc-step" id="cStep4">4. Pannello mirato</div>
         <div class="casc-step" id="cStep5">5. Diagnosi</div>
       </div>
@@ -246,7 +260,7 @@
 
       <!-- PASSO 3: CK SECONDO LIVELLO (solo epiteliale) -->
       <div id="cascStep3" class="casc-panel" style="display:none;">
-        <h2 style="margin-bottom:6px;">🧪 Passo 3 — CK di Secondo Livello</h2>
+        <h2 style="margin-bottom:6px;">🧪 Passo 3 — Marker Orientativi (CK7/CK20/TTF1/CDX2)</h2>
         <p style="color:var(--subtext);margin-bottom:16px;font-size:.9rem;">Pannello CK di secondo livello per carcinomi. Seleziona +, − o ?.</p>
         <div id="bigFourGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;"></div>
         <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;">
@@ -285,29 +299,29 @@
 <script>
 
 const markerDB = {
+// ===================== FBF + SACCO =====================
 'ACTINA_HHF35':{display:'Actina HHF35',aliases:['actina hhf35','hhf35'],site:'fbf'},
 'ACTINA_SMA':{display:'Actina m.l. (SMA)',aliases:['actina ml','sma','smooth muscle actin'],site:'fbf'},
-'AFP':{display:'AFP',aliases:['alfa-fetoproteina','alpha-fetoprotein'],site:'fbf'},
-'ALK_D5F3':{display:'Alk D5F3',aliases:['alk d5f3','alk'],site:'fbf'},
+'AFP':{display:'AFP',aliases:['alfa-fetoproteina','alpha-fetoprotein','alf'],site:'fbf'},
+'ALK_D5F3':{display:'ALK (D5F3)',aliases:['alk d5f3','alk'],site:'fbf'},
 'ANDROGENI':{display:'Androgeni',aliases:['androgen','ar'],site:'fbf'},
 'ANNEXIN_A1':{display:'Annexin A1',aliases:['annexin a1'],site:'fbf'},
-'ARGINASI':{display:'Arginasi',aliases:['arginase'],site:'fbf'},
+'ARGINASI':{display:'Arginasi-1',aliases:['arginase','arginasi'],site:'fbf'},
 'ATRX':{display:'ATRX',aliases:['atrx'],site:'fbf'},
-'BCL1':{display:'BCL-1',aliases:['bcl-1','bcl1','cyclina d1','cyclin d1'],site:'fbf'},
+'BCL1':{display:'BCL-1 (Ciclina D1)',aliases:['bcl-1','bcl1','ciclina d1','cyclin d1'],site:'fbf'},
 'BCL10':{display:'BCL-10',aliases:['bcl-10','bcl10'],site:'fbf'},
 'BCL2':{display:'BCL-2',aliases:['bcl-2','bcl2'],site:'fbf'},
 'BCL6':{display:'BCL-6',aliases:['bcl-6','bcl6'],site:'fbf'},
-'BETA_CATENIN':{display:'\u03b2-Catenina',aliases:['beta-catenina','beta-catenin'],site:'fbf'},
-'BRG1':{display:'BRG-1/SMARCA4',aliases:['brg1','smarca4','brg-1','brgl'],site:'fbf'},
+'BETA_CATENIN':{display:'β-Catenina',aliases:['beta-catenina','beta-catenin','betacatenina'],site:'fbf'},
 'CA125':{display:'CA-125',aliases:['ca-125','ca125'],site:'fbf'},
-'CAIX':{display:'CA-IX',aliases:['ca-ix','ca9','caix'],site:'fbf'},
+'CAIX':{display:'Anidrasi Carbonica (CA-IX)',aliases:['ca-ix','ca9','caix','anidrasi carbonica'],site:'fbf'},
 'CALCITONINA':{display:'Calcitonina',aliases:['calcitonina','calcitonin'],site:'fbf'},
-'CALDESMON':{display:'Caldesmon',aliases:['caldesmon','caldesmone','h-caldesmon'],site:'fbf'},
+'CALDESMON':{display:'Caldesmone',aliases:['caldesmon','caldesmone','h-caldesmon'],site:'fbf'},
 'CALPONINA':{display:'Calponina',aliases:['calponina','calponin'],site:'fbf'},
 'CALRETININA':{display:'Calretinina',aliases:['calretinina','calretinin'],site:'fbf'},
 'CD1':{display:'CD-1a',aliases:['cd-1','cd1','cd1a'],site:'fbf'},
 'CD10':{display:'CD-10',aliases:['cd-10','cd10','calla'],site:'fbf'},
-'CD117':{display:'CD-117',aliases:['cd-117','cd117','c-kit','kit'],site:'fbf'},
+'CD117':{display:'CD-117/cKIT',aliases:['cd-117','cd117','c-kit','kit'],site:'fbf'},
 'CD138':{display:'CD-138',aliases:['cd-138','cd138','syndecan-1'],site:'fbf'},
 'CD14':{display:'CD-14',aliases:['cd-14','cd14'],site:'fbf'},
 'CD15':{display:'CD-15',aliases:['cd-15','cd15','leu-m1'],site:'fbf'},
@@ -324,7 +338,7 @@ const markerDB = {
 'CD38':{display:'CD-38',aliases:['cd-38','cd38'],site:'fbf'},
 'CD4':{display:'CD-4',aliases:['cd-4','cd4'],site:'fbf'},
 'CD44':{display:'CD-44',aliases:['cd-44','cd44'],site:'fbf'},
-'CD45':{display:'CD-45',aliases:['cd-45','cd45','lca'],site:'fbf'},
+'CD45':{display:'CD-45 (LCA)',aliases:['cd-45','cd45','lca'],site:'fbf'},
 'CD5':{display:'CD-5',aliases:['cd-5','cd5'],site:'fbf'},
 'CD56':{display:'CD-56',aliases:['cd-56','cd56','ncam'],site:'fbf'},
 'CD61':{display:'CD-61',aliases:['cd-61','cd61'],site:'fbf'},
@@ -336,26 +350,30 @@ const markerDB = {
 'CD99':{display:'CD-99',aliases:['cd-99','cd99','mic2'],site:'fbf'},
 'CDK4':{display:'CDK4',aliases:['cdk4'],site:'fbf'},
 'CDX2':{display:'CDX-2',aliases:['cdx-2','cdx2'],site:'fbf'},
-'CEA_MONO':{display:'CEA Mono',aliases:['cea mono','cea monoclonale'],site:'fbf'},
+'CEA_MONO':{display:'CEA Monoclonale',aliases:['cea mono','cea monoclonale'],site:'fbf'},
 'CK19':{display:'CK 19',aliases:['ck 19','ck19'],site:'fbf'},
 'CK20':{display:'CK 20',aliases:['ck 20','ck20'],site:'fbf'},
-'CK34BE12':{display:'CK 34\u03b2E12',aliases:['ck 34be12','34be12'],site:'fbf'},
+'CK34BE12':{display:'CK 34βE12',aliases:['ck 34be12','34be12','ck34betae12'],site:'fbf'},
 'CK56':{display:'CK 5/6',aliases:['ck 5/6','ck5/6','ck5'],site:'fbf'},
 'CK7':{display:'CK 7',aliases:['ck 7','ck7'],site:'fbf'},
 'CKAE':{display:'CK AE1/AE3',aliases:['ck ae1/ae3','ae1/ae3','ck pan','panck'],site:'fbf'},
-'CKCAM52':{display:'CK CAM 5.2',aliases:['ck cam 5.2','cam 5.2'],site:'fbf'},
+'CKCAM52':{display:'CK CAM 5.2',aliases:['ck cam 5.2','cam 5.2','ck cam5.2'],site:'fbf'},
 'CLAUDINA18':{display:'Claudina-18',aliases:['claudina-18','claudin-18','cldn18'],site:'fbf'},
+'CLAUDINA18_RXDX':{display:'Claudina-18 Rx Dx Assay',aliases:['claudina 18 rx dx','cldn18 rxdx'],site:'fbf'},
 'CMV':{display:'CMV',aliases:['cmv','citomegalovirus'],site:'fbf'},
-'CMYC':{display:'C-myc',aliases:['c-myc','cmyc','myc'],site:'fbf'},
+'CMYC':{display:'C-MYC',aliases:['c-myc','cmyc','myc'],site:'fbf'},
 'CROMOGRANINA':{display:'Cromogranina',aliases:['cromogranina','chromogranin','cga'],site:'fbf'},
-'D240':{display:'D2-40',aliases:['d2-40','d240','podoplanina'],site:'fbf'},
+'CTRL_NEG':{display:'CTRL Mon NEG (FOLR1/CLND18)',aliases:['ctrl neg','controllo negativo'],site:'fbf'},
+'D240':{display:'D2-40 (podoplanina)',aliases:['d2-40','d240','podoplanina'],site:'fbf'},
 'DESMINA':{display:'Desmina',aliases:['desmina','desmin'],site:'fbf'},
 'DOG1':{display:'DOG1',aliases:['dog1','dog-1'],site:'fbf'},
 'ECAD':{display:'E-Caderina',aliases:['e-caderina','e-cadherin','e-cad'],site:'fbf'},
 'EMA':{display:'EMA',aliases:['ema','epithelial membrane antigen'],site:'fbf'},
-'EPCAM':{display:'EP-CAM',aliases:['ep-cam','epcam','berep4','ber-ep4'],site:'fbf'},
-'ER':{display:'ER',aliases:['er','estrogen receptor'],site:'fbf'},
+'EPCAM':{display:'BER-EP4',aliases:['ep-cam','epcam','berep4','ber-ep4'],site:'fbf'},
+'EP700Y':{display:'EP700Y',aliases:['ep700y'],site:'fbf'},
+'ER':{display:'Estrogeni (ER)',aliases:['er','estrogen receptor','estrogeni'],site:'fbf'},
 'ERG':{display:'ERG',aliases:['erg'],site:'fbf'},
+'EBVLMP1':{display:'EBV-LMP1',aliases:['ebv-lmp1','lmp1','ebv lmp1'],site:'fbf'},
 'FH':{display:'Fumarato Idratasi',aliases:['fumarato idratasi','fumarate hydratase','fh'],site:'fbf'},
 'FVIII':{display:'Fattore VIII',aliases:['fattore viii','factor viii','von willebrand'],site:'fbf'},
 'FXIII':{display:'Fattore XIIIa',aliases:['fattore xiiia','fattore xiii','factor xiiia'],site:'fbf'},
@@ -363,36 +381,33 @@ const markerDB = {
 'GATA3':{display:'GATA3',aliases:['gata3','gata-3'],site:'fbf'},
 'GFAP':{display:'GFAP',aliases:['gfap'],site:'fbf'},
 'GLICOFORINA':{display:'Glicoforina',aliases:['glicoforina','glycophorin'],site:'fbf'},
-'GLUT1':{display:'Glut-1',aliases:['glut-1','glut1'],site:'fbf'},
-'GLUTSYN':{display:'Glut Sintetasi',aliases:['glut sintetasi','glutamine synthetase','gs-6'],site:'fbf'},
+'GLUTSYN':{display:'Glutamina Sintetasi',aliases:['glutamina sintetasi','glutamine synthetase','gs-6'],site:'fbf'},
 'GLYPICAN3':{display:'Glypican-3',aliases:['glypican-3','glypican 3','gpc3'],site:'fbf'},
-'HCG':{display:'HCG',aliases:['hcg','beta-hcg'],site:'fbf'},
-'HEPPAR':{display:'Hep-Par-1 (HSA)',aliases:['hep-par-1','heppar','hsa','hepatocyte','hepar1'],site:'fbf'},
+'HCG':{display:'hCG',aliases:['hcg','beta-hcg'],site:'fbf'},
+'HEPPAR':{display:'Hepatocyte/HSA',aliases:['hep-par-1','heppar','hsa','hepatocyte','hepar1'],site:'fbf'},
 'HER2':{display:'HER-2',aliases:['her-2','her2','c-erbb2','cerbb2'],site:'fbf'},
 'HGAL':{display:'HGAL',aliases:['hgal'],site:'fbf'},
 'HHV8':{display:'HHV8',aliases:['hhv8','hhv-8','orf73'],site:'fbf'},
 'HMB45':{display:'HMB45',aliases:['hmb45','hmb-45'],site:'fbf'},
 'HPV':{display:'HPV',aliases:['hpv'],site:'fbf'},
+'HU_HUD':{display:'HU/HUD',aliases:['hu/hud','hu','hud'],site:'fbf'},
 'IDH1':{display:'IDH1',aliases:['idh1','idh-1'],site:'fbf'},
 'IGG':{display:'IgG',aliases:['igg'],site:'fbf'},
 'IGG4':{display:'IgG4',aliases:['igg4'],site:'fbf'},
-'INIBINA_A':{display:'Inibina-\u03b1',aliases:['inibina','inhibin alpha','inibina alfa'],site:'fbf'},
-'KAPPA':{display:'\u03ba',aliases:['kappa','catena kappa'],site:'fbf'},
+'INIBINA_A':{display:'Inibina-α',aliases:['inibina','inhibin alpha','inibina alfa'],site:'fbf'},
+'KAPPA':{display:'κ',aliases:['kappa','catena kappa'],site:'fbf'},
 'KI67':{display:'Ki-67',aliases:['ki-67','ki67','mib-1','mib1'],site:'fbf'},
-'LAMBDA':{display:'\u03bb',aliases:['lambda','catena lambda'],site:'fbf'},
+'LAMBDA':{display:'λ',aliases:['lambda','catena lambda'],site:'fbf'},
 'MAMMOGLOB':{display:'Mammoglobina',aliases:['mammoglobina','mammaglobin'],site:'fbf'},
 'MDM2':{display:'MDM2',aliases:['mdm2'],site:'fbf'},
-'MELANA':{display:'Melan-A',aliases:['melan-a','melana','mart-1','mart1'],site:'fbf'},
+'MELANA':{display:'Melan-A (MART-1)',aliases:['melan-a','melana','mart-1','mart1'],site:'fbf'},
 'MIOGENINA':{display:'Miogenina',aliases:['miogenina','myogenin'],site:'fbf'},
 'MLH1':{display:'MLH1',aliases:['mlh1'],site:'fbf'},
 'MPO':{display:'Mieloperossidasi',aliases:['mieloperossidasi','myeloperoxidase','mpo'],site:'fbf'},
 'MSH2':{display:'MSH2',aliases:['msh2'],site:'fbf'},
 'MSH6':{display:'MSH6',aliases:['msh6'],site:'fbf'},
-'MUC2':{display:'MUC-2',aliases:['muc-2','muc2'],site:'fbf'},
-'MUC4':{display:'MUC-4',aliases:['muc-4','muc4'],site:'fbf'},
-'MUC6':{display:'MUC-6',aliases:['muc-6','muc6'],site:'fbf'},
 'MUM1':{display:'MUM-1',aliases:['mum-1','mum1','irf4'],site:'fbf'},
-'NAPSINA':{display:'Napsina',aliases:['napsina','napsin a'],site:'fbf'},
+'NAPSINA':{display:'Napsin A',aliases:['napsina','napsin a'],site:'fbf'},
 'NF':{display:'Neurofilamenti',aliases:['neurofilamenti','neurofilament'],site:'fbf'},
 'NKX3':{display:'NKX3.1',aliases:['nkx3','nkx3.1'],site:'fbf'},
 'NSE':{display:'NSE',aliases:['nse'],site:'fbf'},
@@ -402,72 +417,131 @@ const markerDB = {
 'P53':{display:'p53',aliases:['p53','tp53'],site:'fbf'},
 'P57':{display:'p57',aliases:['p57'],site:'fbf'},
 'P63':{display:'p63',aliases:['p63','tp63'],site:'fbf'},
+'PAN_TRK':{display:'Pan-TRK',aliases:['pan-trk','pantrk'],site:'fbf'},
 'PAX5':{display:'PAX-5',aliases:['pax-5','pax5'],site:'fbf'},
 'PAX8':{display:'PAX-8',aliases:['pax-8','pax8'],site:'fbf'},
 'PDL1_142':{display:'PDL1 (SP142)',aliases:['pdl1 sp142','pd-l1 sp142'],site:'fbf'},
 'PDL1_263':{display:'PDL1 (SP263)',aliases:['pdl1 sp263','pd-l1 sp263'],site:'fbf'},
-'PHH3':{display:'PHH3',aliases:['phh3'],site:'fbf'},
+'PHH3':{display:'PHH3 (Fosfoistone-H3)',aliases:['phh3','fosfoistone-h3','fosfoistone h3','phosphohistone h3'],site:'fbf'},
 'PLAP':{display:'PLAP',aliases:['plap'],site:'fbf'},
 'PMS2':{display:'PMS2',aliases:['pms2'],site:'fbf'},
-'PR':{display:'PR',aliases:['pr','pgr','progesterone receptor'],site:'fbf'},
+'PR':{display:'Progesterone (PR)',aliases:['pr','pgr','progesterone receptor'],site:'fbf'},
 'PRAME':{display:'PRAME',aliases:['prame'],site:'fbf'},
 'PSA':{display:'PSA',aliases:['psa'],site:'fbf'},
 'PSAP':{display:'PSAP',aliases:['psap'],site:'fbf'},
 'PTEN':{display:'PTEN',aliases:['pten'],site:'fbf'},
-'RACEMASI':{display:'Racemasi',aliases:['racemasi','amacr','p504s'],site:'fbf'},
+'RACEMASI':{display:'Racemasi (P504S/AMACR)',aliases:['racemasi','amacr','p504s'],site:'fbf'},
 'RCC':{display:'RCC',aliases:['rcc'],site:'fbf'},
 'S100':{display:'S100',aliases:['s100','s-100'],site:'fbf'},
-'SALL4':{display:'SALL4',aliases:['sall4'],site:'fbf'},
 'SATB2':{display:'SATB2',aliases:['satb2'],site:'fbf'},
-'SINAPTOFISINA':{display:'Sinaptofsina',aliases:['sinaptofsina','sinaptofisina','synaptophysin'],site:'fbf'},
+'SINAPTOFISINA':{display:'Sinaptofisina',aliases:['sinaptofisina','sinaptofsina','synaptophysin'],site:'fbf'},
 'SOX10':{display:'SOX-10',aliases:['sox-10','sox10'],site:'fbf'},
 'SOX11':{display:'SOX-11',aliases:['sox-11','sox11'],site:'fbf'},
 'STAT6':{display:'STAT6',aliases:['stat6'],site:'fbf'},
 'TDT':{display:'TdT',aliases:['tdt'],site:'fbf'},
-'THYROGLOB':{display:'Thyroglobulina',aliases:['thyroglobulin','thyroglobulina','tg'],site:'fbf'},
+'THYROGLOB':{display:'Tiroglobulina',aliases:['thyroglobulin','thyroglobulina','tiroglobulina','tg'],site:'fbf'},
 'TTF1':{display:'TTF-1',aliases:['ttf-1','ttf1','nkx2-1'],site:'fbf'},
 'VIMENTINA':{display:'Vimentina',aliases:['vimentina','vimentin'],site:'fbf'},
 'WT1':{display:'WT1',aliases:['wt1','wt-1'],site:'fbf'},
-'ALK1_S':{display:'Alk-1',aliases:['alk-1','alk1'],site:'sacco'},
+
+// ===================== SOLO SACCO =====================
+'ALK1_S':{display:'ALK-1',aliases:['alk-1','alk1'],site:'sacco'},
 'AMILOIDE_A':{display:'Amiloide A',aliases:['amiloide a'],site:'sacco'},
 'AMILOIDE_P':{display:'Amiloide P',aliases:['amiloide p'],site:'sacco'},
-'ARID1A_S':{display:'ARID1A (Sacco)',aliases:['arid1a sacco'],site:'sacco'},
-'CD11':{display:'CD-11',aliases:['cd-11','cd11'],site:'sacco'},
-'CD146':{display:'CD-146',aliases:['cd-146','cd146','mcam'],site:'sacco'},
+'ANTIBRAF':{display:'Anti-BRAF',aliases:['anti-braf','antibraf'],site:'sacco'},
+'ARID1A_S':{display:'ARID1A',aliases:['arid1a'],site:'sacco'},
+'ASPERGILLUS':{display:'Aspergillus',aliases:['aspergillus'],site:'sacco'},
+'BAP1':{display:'BAP1 (C-4)',aliases:['bap1','bap-1','brca1 associated protein'],site:'sacco'},
+'BRAF_V600E':{display:'BRAF V600E',aliases:['braf v600e','braf'],site:'sacco'},
+'BRG1':{display:'BRG1/SMARCA4',aliases:['brg1','smarca4','brg-1'],site:'sacco'},
+'CALBINDIN':{display:'Calbindin',aliases:['calbindin'],site:'sacco'},
+'CANDIDA':{display:'Candida Albicans',aliases:['candida albicans','candida'],site:'sacco'},
+'CD11C':{display:'CD-11c',aliases:['cd-11c','cd11c','cd11'],site:'sacco'},
+'CD16':{display:'CD-16',aliases:['cd-16','cd16'],site:'sacco'},
 'CD43':{display:'CD-43',aliases:['cd-43','cd43'],site:'sacco'},
 'CD57':{display:'CD-57',aliases:['cd-57','cd57','leu-7'],site:'sacco'},
-'CEA_POLI':{display:'CEA Poli',aliases:['cea poli','cea policlonale'],site:'sacco'},
+'CD123':{display:'CD-123',aliases:['cd-123','cd123'],site:'sacco'},
+'CD146':{display:'CD-146',aliases:['cd-146','cd146','mcam'],site:'sacco'},
+'CEA_POLI':{display:'CEA Policlonale',aliases:['cea poli','cea policlonale'],site:'sacco'},
+'CHIMOTRIPSINA':{display:'Chimotripsina',aliases:['chimotripsina','chymotrypsin','antichimotripsina'],site:'sacco'},
+'CLAUDINA4':{display:'Claudina-4',aliases:['claudina-4','claudina4','cldn4'],site:'sacco'},
+'CMITA1':{display:'CMITA1',aliases:['cmita1'],site:'sacco'},
+'CK_MNF116':{display:'CK MNF116',aliases:['ck mnf116','mnf116'],site:'sacco'},
 'COLLAGENE4':{display:'Collagene IV',aliases:['collagene iv','collagen iv'],site:'sacco'},
+'DNAJB9':{display:'DNAJB9',aliases:['dnajb9'],site:'sacco'},
 'EBVEBER':{display:'EBV/EBER',aliases:['ebv/eber','eber','ebv eber'],site:'sacco'},
+'FOLR1':{display:'FOLR1 Rx Dx Assay',aliases:['folr1','folr1 rx dx'],site:'sacco'},
+'FOSB':{display:'FOSB',aliases:['fosb'],site:'sacco'},
+'CFOS':{display:'c-FOS',aliases:['c-fos','cfos'],site:'sacco'},
+'FOXL2':{display:'FOXL2',aliases:['foxl2'],site:'sacco'},
 'GASTRINA_S':{display:'Gastrina',aliases:['gastrina','gastrin'],site:'sacco'},
 'GCDFP15':{display:'GCDFP-15',aliases:['gcdfp 15','gcdfp-15','gcdfp15'],site:'sacco'},
-'HPL_S':{display:'HPL',aliases:['hpl'],site:'sacco'},
+'GLUT1':{display:'Glut-1',aliases:['glut-1','glut1'],site:'sacco'},
+'GRANZYMEB':{display:'Granzyme B',aliases:['granzyme b','granzymeb'],site:'sacco'},
+'HBME1':{display:'HBME-1',aliases:['hbme1','hbme-1','hbme 1'],site:'sacco'},
+'HCL_DBA44':{display:'HCL DBA44',aliases:['hcl dba44','dba44'],site:'sacco'},
+'HPL_S':{display:'hPL',aliases:['hpl'],site:'sacco'},
 'HSV1':{display:'HSV-1',aliases:['hsv 1','hsv-1','hsv1'],site:'sacco'},
 'HSV2':{display:'HSV-2',aliases:['hsv 2','hsv-2','hsv2'],site:'sacco'},
+'HIV_P24':{display:'HIV p24',aliases:['hiv p24','hiv'],site:'sacco'},
+'IGA':{display:'IgA',aliases:['iga','ig a'],site:'sacco'},
 'IGD':{display:'IgD',aliases:['igd','ig d'],site:'sacco'},
-'INIBINA1':{display:'Inibina-1',aliases:['inibina-1'],site:'sacco'},
-'MUC1_S':{display:'MUC-1',aliases:['muc-1 sacco'],site:'sacco'},
+'IGM':{display:'IgM',aliases:['igm','ig m'],site:'sacco'},
+'INI1':{display:'INI-1',aliases:['ini-1','ini1','smarcb1'],site:'sacco'},
+'IRTA1':{display:'IRTA1/FCRL4',aliases:['irta1','fcrl4','irta1/fcrl4'],site:'sacco'},
+'LEF1':{display:'LEF1',aliases:['lef1','lef-1'],site:'sacco'},
+'MUC1_S':{display:'MUC-1',aliases:['muc-1','muc1'],site:'sacco'},
+'MUC2':{display:'MUC-2',aliases:['muc-2','muc2'],site:'sacco'},
+'MUC4':{display:'MUC-4',aliases:['muc-4','muc4'],site:'sacco'},
+'MUC6':{display:'MUC-6',aliases:['muc-6','muc6'],site:'sacco'},
 'MYOD1':{display:'MyoD1',aliases:['myod1','myo-d1'],site:'sacco'},
-'OCT2_S':{display:'OCT-2',aliases:['oct-2 sacco'],site:'sacco'},
+'NEUN':{display:'NeuN',aliases:['neun','neu-n'],site:'sacco'},
+'NRAS':{display:'NRAS',aliases:['nras'],site:'sacco'},
 'OCT34':{display:'OCT 3/4',aliases:['oct 3/4','oct-3/4','pou5f1'],site:'sacco'},
+'OCT2_S':{display:'OCT-2',aliases:['oct-2','oct2'],site:'sacco'},
 'PARVO':{display:'Parvovirus B19',aliases:['parvovirus b19'],site:'sacco'},
 'PERFORINA':{display:'Perforina',aliases:['perforina','perforin'],site:'sacco'},
+'PLA2R1':{display:'PLA2R1',aliases:['pla2r1','pla2r'],site:'sacco'},
+'PNEUMOCYSTIS':{display:'Pneumocystis Carinii',aliases:['pneumocystis carinii','pneumocistis'],site:'sacco'},
+'POLE':{display:'POLE',aliases:['pole'],site:'sacco'},
 'PTH_S':{display:'PTH',aliases:['pth','paratormone'],site:'sacco'},
+'RB1':{display:'RB1 (SP384)',aliases:['rb1','retinoblastoma'],site:'sacco'},
+'ROS1':{display:'ROS1 (SP384)',aliases:['ros1'],site:'sacco'},
+'SALL4':{display:'SALL4',aliases:['sall4'],site:'sacco'},
+'SARCOV2':{display:'SAR-CoV2',aliases:['sar cov2','sars-cov-2','covid'],site:'sacco'},
+'SDHB':{display:'SDHB',aliases:['sdhb'],site:'sacco'},
 'SF1_S':{display:'SF1',aliases:['sf1','nr5a1'],site:'sacco'},
 'SOX2':{display:'SOX-2',aliases:['sox-2','sox2'],site:'sacco'},
 'SV40':{display:'SV40',aliases:['sv40'],site:'sacco'},
-'TIA1':{display:'Tia-1',aliases:['tia-1','tia1','t1a1'],site:'sacco'},
-// === NON DISPONIBILI (importanti ma assenti da FBF e SACCO) ===
-'BAP1':{display:'BAP-1',aliases:['bap-1','bap1','brca1 associated protein'],site:'nd'},
-'MTAP':{display:'MTAP',aliases:['mtap','p16 proxy','cdkn2a proxy'],site:'nd'},
-'CLAUDINA4':{display:'Claudina-4',aliases:['claudina-4','claudina4','cldn4'],site:'nd'},
-'MOC31':{display:'MOC-31',aliases:['moc-31','moc31','epcam moc31'],site:'nd'},
-'TRIPSINA':{display:'Tripsina',aliases:['tripsina','trypsin'],site:'nd'},
-'CHIMOTRIPSINA':{display:'Chimotripsina',aliases:['chimotripsina','chymotrypsin'],site:'nd'},
-'FLI1':{display:'FLI-1',aliases:['fli-1','fli1'],site:'nd'},
-'INSM1':{display:'INSM1',aliases:['insm1','insm-1'],site:'nd'}
-};
+'SURFACTANTE':{display:'Surfactante SPB',aliases:['surfactante spb','surfactant spb','sp-b'],site:'sacco'},
+'TB':{display:'TB',aliases:['tb','mycobacterium tuberculosis'],site:'sacco'},
+'TFEB':{display:'TFEB',aliases:['tfeb'],site:'sacco'},
+'TIA1':{display:'TIA-1',aliases:['tia-1','tia1'],site:'sacco'},
+'TOXOPLASMA':{display:'Toxoplasma Gondii',aliases:['toxoplasma gondii','toxoplasma'],site:'sacco'},
+'TREPONEMA':{display:'Treponema Spirochete',aliases:['treponema spirochete','treponema'],site:'sacco'},
+'TRIMETIL_H3':{display:'Tri-Methyl-Histone H3',aliases:['tri-methyl-histone h3','trimethyl histone h3'],site:'sacco'},
+'WT49':{display:'WT49',aliases:['wt49'],site:'sacco'},
+'ZAP70':{display:'ZAP70',aliases:['zap70','zap-70'],site:'sacco'},
 
+// ===================== NON DISPONIBILI =====================
+'MTAP':{display:'MTAP',aliases:['mtap','p16 proxy','cdkn2a proxy'],site:'nd'},
+'MOC31':{display:'MOC-31',aliases:['moc-31','moc31'],site:'nd'},
+'TRIPSINA':{display:'Tripsina',aliases:['tripsina','trypsin'],site:'nd'},
+'FLI1':{display:'FLI-1',aliases:['fli-1','fli1'],site:'nd'},
+'INSM1':{display:'INSM1',aliases:['insm1','insm-1'],site:'nd'},
+// === OUTSOURCING CONSIGLIATO ===
+'SMAD4':{display:'SMAD4',aliases:['smad4','dpc4'],site:'nd'},
+'NKX22':{display:'NKX2.2',aliases:['nkx2.2','nkx22','nkx2-2'],site:'nd'},
+'H3K27M':{display:'H3K27M',aliases:['h3k27m','h3 k27m','h3f3a'],site:'nd'},
+'TLE1':{display:'TLE1',aliases:['tle1','tle-1'],site:'nd'},
+'CD200':{display:'CD200',aliases:['cd200','cd-200','ox2'],site:'nd'},
+'TCL1':{display:'TCL1',aliases:['tcl1','tcl-1'],site:'nd'},
+'H3K27ME3':{display:'H3K27me3',aliases:['h3k27me3','h3 k27me3','trimethyl h3k27'],site:'nd'},
+'TFE3':{display:'TFE3',aliases:['tfe3','tfe-3'],site:'nd'},
+'ISL1':{display:'ISL1',aliases:['isl1','isl-1'],site:'nd'},
+'TRPS1':{display:'TRPS1',aliases:['trps1','trps-1'],site:'nd'},
+'NUT':{display:'NUT (NUTM1)',aliases:['nut','nutm1','nut carcinoma'],site:'nd'}
+};
 // Alias index
 const aliasIndex = {};
 for (const [id, m] of Object.entries(markerDB)) {
@@ -478,6 +552,7 @@ for (const [id, m] of Object.entries(markerDB)) {
 function getDisplay(id) { return markerDB[id]?.display || id; }
 function getSite(id) { return markerDB[id]?.site || 'fbf'; }
 
+
 // BAYESIAN DATABASE
 const bayesDB = [
 {name:'Adenocarcinoma Polmonare',prior:0.08,markers:{'TTF1':{s:0.85,n:0.92,w:1.2},'NAPSINA':{s:0.75,n:0.95,w:1.1},'CK7':{s:0.95,n:0.4,w:0.6},'CK20':{s:0.05,n:0.9,w:0.8},'CDX2':{s:0.03,n:0.95,w:0.9},'P40':{s:0.02,n:0.95,w:1.0}}},
@@ -485,8 +560,8 @@ const bayesDB = [
 {name:'Carcinoma Mammario (NST)',prior:0.09,markers:{'ER':{s:0.8,n:0.9,w:1.2},'PR':{s:0.65,n:0.9,w:1.0},'GATA3':{s:0.9,n:0.88,w:1.2},'MAMMOGLOB':{s:0.6,n:0.95,w:1.0},'CK7':{s:0.92,n:0.3,w:0.4},'CK20':{s:0.03,n:0.9,w:0.7},'TTF1':{s:0.02,n:0.85,w:0.6}}},
 {name:'Adenocarcinoma Colorettale',prior:0.08,markers:{'CK20':{s:0.85,n:0.88,w:1.2},'CDX2':{s:0.93,n:0.9,w:1.3},'SATB2':{s:0.85,n:0.92,w:1.2},'CK7':{s:0.15,n:0.7,w:0.6},'TTF1':{s:0.01,n:0.95,w:0.7}}},
 {name:'HCC',prior:0.04,markers:{'HEPPAR':{s:0.85,n:0.95,w:1.3},'GLYPICAN3':{s:0.75,n:0.95,w:1.2},'ARGINASI':{s:0.85,n:0.95,w:1.2},'AFP':{s:0.3,n:0.95,w:0.9}}},
-{name:'Adenocarcinoma Pancreatico',prior:0.04,markers:{'CK7':{s:0.95,n:0.3,w:0.5},'CK19':{s:0.9,n:0.4,w:0.5},'MUC4':{s:0.75,n:0.85,w:1.0},'P53':{s:0.6,n:0.5,w:0.5},'TTF1':{s:0.01,n:0.95,w:0.6}}},
-{name:'Ca Acinare Pancreatico',prior:0.005,markers:{'BCL10':{s:0.9,n:0.95,w:1.5},'TRIPSINA':{s:0.9,n:0.95,w:1.4},'CHIMOTRIPSINA':{s:0.8,n:0.9,w:1.2},'CK7':{s:0.3,n:0.3,w:0.4},'CK19':{s:0.2,n:0.4,w:0.4},'CROMOGRANINA':{s:0.3,n:0.5,w:0.4},'SINAPTOFISINA':{s:0.2,n:0.5,w:0.3}}},
+{name:'Adenocarcinoma Pancreatico',prior:0.04,markers:{'CK7':{s:0.95,n:0.3,w:0.5},'CK19':{s:0.9,n:0.4,w:0.5},'MUC4':{s:0.75,n:0.85,w:1.0},'P53':{s:0.6,n:0.5,w:0.5},'SMAD4':{s:0.45,n:0.95,w:1.4},'TTF1':{s:0.01,n:0.95,w:0.6}}},
+{name:'Ca Acinare Pancreatico',prior:0.005,markers:{'BCL10':{s:0.9,n:0.95,w:1.5},'TRIPSINA':{s:0.9,n:0.95,w:1.4},'CHIMOTRIPSINA':{s:0.8,n:0.9,w:1.2},'SMAD4':{s:0.98,n:0.45,w:1.3},'CK7':{s:0.3,n:0.3,w:0.4},'CK19':{s:0.2,n:0.4,w:0.4},'CROMOGRANINA':{s:0.3,n:0.5,w:0.4},'SINAPTOFISINA':{s:0.2,n:0.5,w:0.3}}},
 {name:'Carcinoma Ovarico HGSC',prior:0.04,markers:{'PAX8':{s:0.95,n:0.85,w:1.3},'WT1':{s:0.9,n:0.9,w:1.2},'CA125':{s:0.8,n:0.7,w:0.8},'ER':{s:0.7,n:0.5,w:0.5},'P53':{s:0.85,n:0.4,w:0.6}}},
 {name:'Carcinoma Uroteliale',prior:0.05,markers:{'GATA3':{s:0.85,n:0.85,w:1.2},'CK7':{s:0.9,n:0.3,w:0.4},'CK20':{s:0.55,n:0.6,w:0.5},'P63':{s:0.8,n:0.6,w:0.6},'PSA':{s:0.01,n:0.98,w:0.9}}},
 {name:'Carcinoma Prostatico',prior:0.05,markers:{'PSA':{s:0.9,n:0.97,w:1.4},'PSAP':{s:0.85,n:0.95,w:1.2},'NKX3':{s:0.9,n:0.95,w:1.3}}},
@@ -494,21 +569,21 @@ const bayesDB = [
 {name:'Ca Tiroideo (PTC)',prior:0.03,markers:{'TTF1':{s:0.95,n:0.8,w:1.0},'THYROGLOB':{s:0.95,n:0.98,w:1.4},'PAX8':{s:0.92,n:0.8,w:1.0},'GALECTINA3':{s:0.8,n:0.8,w:0.9},'CALCITONINA':{s:0.01,n:0.98,w:1.0}}},
 {name:'Ca Midollare Tiroideo',prior:0.01,markers:{'CALCITONINA':{s:0.95,n:0.99,w:1.5},'CROMOGRANINA':{s:0.9,n:0.6,w:0.7},'SINAPTOFISINA':{s:0.85,n:0.6,w:0.6},'CEA_MONO':{s:0.8,n:0.7,w:0.7},'THYROGLOB':{s:0.02,n:0.95,w:1.2}}},
 {name:'Mesotelioma Epitelioide',prior:0.02,markers:{'CALRETININA':{s:0.9,n:0.9,w:1.3},'WT1':{s:0.85,n:0.9,w:1.2},'D240':{s:0.85,n:0.8,w:1.0},'CK56':{s:0.75,n:0.6,w:0.5},'EMA':{s:0.85,n:0.5,w:0.6},'BAP1':{s:0.05,n:0.92,w:1.2},'CEA_MONO':{s:0.02,n:0.95,w:1.1},'EPCAM':{s:0.05,n:0.9,w:0.9},'TTF1':{s:0.01,n:0.97,w:0.9},'PAX8':{s:0.02,n:0.95,w:0.8}}},
-{name:'NEN G1-G2 (GI)',prior:0.03,markers:{'CROMOGRANINA':{s:0.9,n:0.85,w:1.2},'SINAPTOFISINA':{s:0.95,n:0.8,w:1.1},'CDX2':{s:0.6,n:0.7,w:0.6}}},
-{name:'NEN Polmonare',prior:0.02,markers:{'CROMOGRANINA':{s:0.85,n:0.8,w:1.1},'SINAPTOFISINA':{s:0.92,n:0.8,w:1.1},'TTF1':{s:0.7,n:0.6,w:0.6},'CD56':{s:0.8,n:0.7,w:0.7}}},
+{name:'NEN G1-G2 (GI)',prior:0.03,markers:{'CROMOGRANINA':{s:0.9,n:0.85,w:1.2},'SINAPTOFISINA':{s:0.95,n:0.8,w:1.1},'INSM1':{s:0.93,n:0.95,w:1.3},'CDX2':{s:0.6,n:0.7,w:0.6}}},
+{name:'NEN Polmonare',prior:0.02,markers:{'CROMOGRANINA':{s:0.85,n:0.8,w:1.1},'SINAPTOFISINA':{s:0.92,n:0.8,w:1.1},'INSM1':{s:0.93,n:0.95,w:1.3},'TTF1':{s:0.7,n:0.6,w:0.6},'CD56':{s:0.8,n:0.7,w:0.7}}},
 {name:'Melanoma',prior:0.05,markers:{'S100':{s:0.95,n:0.75,w:1.0},'SOX10':{s:0.93,n:0.92,w:1.3},'MELANA':{s:0.85,n:0.95,w:1.2},'HMB45':{s:0.8,n:0.95,w:1.1},'PRAME':{s:0.75,n:0.9,w:1.0},'CKAE':{s:0.02,n:0.95,w:0.9},'CD45':{s:0.01,n:0.98,w:0.8}}},
-{name:'MPNST',prior:0.01,markers:{'S100':{s:0.5,n:0.7,w:0.8},'SOX10':{s:0.6,n:0.8,w:0.9},'MELANA':{s:0.01,n:0.98,w:1.0},'HMB45':{s:0.01,n:0.98,w:1.0},'DESMINA':{s:0.05,n:0.8,w:0.6}}},
+{name:'MPNST',prior:0.01,markers:{'S100':{s:0.5,n:0.7,w:0.8},'SOX10':{s:0.6,n:0.8,w:0.9},'H3K27ME3':{s:0.05,n:0.92,w:1.3},'MELANA':{s:0.01,n:0.98,w:1.0},'HMB45':{s:0.01,n:0.98,w:1.0},'DESMINA':{s:0.05,n:0.8,w:0.6}}},
 {name:'GIST',prior:0.03,markers:{'CD117':{s:0.95,n:0.95,w:1.4},'DOG1':{s:0.95,n:0.97,w:1.5},'CD34':{s:0.7,n:0.8,w:0.7},'DESMINA':{s:0.02,n:0.9,w:0.8},'S100':{s:0.05,n:0.85,w:0.6}}},
 {name:'Leiomiosarcoma',prior:0.02,markers:{'ACTINA_SMA':{s:0.9,n:0.8,w:1.1},'DESMINA':{s:0.8,n:0.8,w:1.0},'CALDESMON':{s:0.85,n:0.92,w:1.2},'CD117':{s:0.02,n:0.9,w:0.7}}},
 {name:'Rabdomiosarcoma',prior:0.01,markers:{'DESMINA':{s:0.95,n:0.7,w:1.0},'MIOGENINA':{s:0.9,n:0.98,w:1.5}}},
 {name:'Sarcoma Sinoviale',prior:0.01,markers:{'CKAE':{s:0.7,n:0.5,w:0.6},'EMA':{s:0.75,n:0.6,w:0.6},'BCL2':{s:0.85,n:0.4,w:0.4},'CD99':{s:0.6,n:0.5,w:0.4}}},
-{name:'Sarcoma di Ewing',prior:0.01,markers:{'CD99':{s:0.95,n:0.7,w:1.2},'VIMENTINA':{s:0.9,n:0.2,w:0.2},'DESMINA':{s:0.05,n:0.85,w:0.7}}},
+{name:'Sarcoma di Ewing',prior:0.01,markers:{'CD99':{s:0.95,n:0.7,w:1.2},'NKX22':{s:0.93,n:0.97,w:1.5},'VIMENTINA':{s:0.9,n:0.2,w:0.2},'DESMINA':{s:0.05,n:0.85,w:0.7}}},
 {name:'Tumore Fibroso Solitario',prior:0.01,markers:{'STAT6':{s:0.95,n:0.99,w:1.6},'CD34':{s:0.9,n:0.7,w:0.8},'BCL2':{s:0.8,n:0.4,w:0.3}}},
 {name:'Liposarcoma Dediff.',prior:0.01,markers:{'MDM2':{s:0.9,n:0.97,w:1.5},'CDK4':{s:0.85,n:0.95,w:1.3}}},
-{name:'DLBCL',prior:0.05,markers:{'CD20':{s:0.95,n:0.8,w:1.2},'CD79A':{s:0.85,n:0.85,w:1.0},'PAX5':{s:0.92,n:0.88,w:1.1},'BCL6':{s:0.7,n:0.65,w:0.5},'MUM1':{s:0.5,n:0.55,w:0.3},'CD3':{s:0.01,n:0.98,w:0.9},'TDT':{s:0.01,n:0.99,w:0.8}}},
+{name:'DLBCL',prior:0.05,markers:{'CD20':{s:0.95,n:0.8,w:1.2},'CD79A':{s:0.85,n:0.85,w:1.0},'PAX5':{s:0.92,n:0.88,w:1.1},'BCL6':{s:0.7,n:0.65,w:0.5},'MUM1':{s:0.5,n:0.55,w:0.3},'CD200':{s:0.1,n:0.9,w:0.9},'CD3':{s:0.01,n:0.98,w:0.9},'TDT':{s:0.01,n:0.99,w:0.8}}},
 {name:'Linfoma T Periferico',prior:0.02,markers:{'CD3':{s:0.9,n:0.85,w:1.2},'CD5':{s:0.75,n:0.7,w:0.7},'CD7':{s:0.6,n:0.6,w:0.5},'CD20':{s:0.02,n:0.95,w:0.9},'PAX5':{s:0.01,n:0.97,w:0.8}}},
 {name:'Linfoma di Hodgkin',prior:0.03,markers:{'CD30':{s:0.95,n:0.8,w:1.2},'CD15':{s:0.8,n:0.9,w:1.1},'PAX5':{s:0.9,n:0.6,w:0.4},'CD45':{s:0.05,n:0.85,w:0.8},'CD3':{s:0.02,n:0.9,w:0.7}}},
-{name:'Linfoma Linfoblastico',prior:0.01,markers:{'TDT':{s:0.95,n:0.99,w:1.5},'CD19':{s:0.8,n:0.7,w:0.7},'CD99':{s:0.8,n:0.5,w:0.4}}},
+{name:'Linfoma Linfoblastico',prior:0.01,markers:{'TDT':{s:0.95,n:0.99,w:1.5},'CD19':{s:0.8,n:0.7,w:0.7},'CD99':{s:0.8,n:0.5,w:0.4},'TCL1':{s:0.6,n:0.8,w:0.8}}},
 {name:'Mieloma/Plasmacitoma',prior:0.02,markers:{'CD138':{s:0.95,n:0.92,w:1.4},'MUM1':{s:0.9,n:0.7,w:1.0},'CD20':{s:0.05,n:0.85,w:0.7},'PAX5':{s:0.05,n:0.85,w:0.7},'CD3':{s:0.01,n:0.95,w:0.6}}},
 {name:'Seminoma',prior:0.02,markers:{'SALL4':{s:0.9,n:0.9,w:1.3},'PLAP':{s:0.85,n:0.92,w:1.2},'CD117':{s:0.85,n:0.7,w:0.7},'AFP':{s:0.01,n:0.98,w:1.0}}},
 {name:'Yolk Sac Tumor',prior:0.01,markers:{'AFP':{s:0.9,n:0.95,w:1.4},'SALL4':{s:0.85,n:0.85,w:1.1},'GLYPICAN3':{s:0.8,n:0.85,w:1.0},'CD30':{s:0.01,n:0.9,w:0.7}}},
@@ -550,25 +625,63 @@ function adjustPrior(dx) {
   return p;
 }
 
-// Correlated marker weight reduction (point 8)
+// Correlated marker groups — penalizzazione ridondanza informativa
+// Struttura: { members:[], penalty:[p1, p2] }
+// penalty[0] = fattore se 1 altro membro già testato; penalty[1] = fattore se >=2
+// penalty differenziata POS/NEG: in positivo la ridondanza è più pesante
+
 const correlatedGroups = [
-  ['CD20','PAX5','CD79A'],  // B-cell
-  ['CD3','CD5','CD7'],       // T-cell
-  ['SOX10','MELANA','HMB45'],// Melanocytic
-  ['CROMOGRANINA','SINAPTOFISINA','CD56'], // NE
-  ['ACTINA_SMA','ACTINA_HHF35','CALDESMON'], // Smooth muscle
-  ['MLH1','MSH2','MSH6','PMS2'], // MMR
-  ['PSA','PSAP','NKX3'],    // Prostate
+  // B-cell: CD20/PAX5/CD79A quasi sovrapponibili in sensitività
+  { members:['CD20','PAX5','CD79A'], penaltyPos:[0.65,0.45], penaltyNeg:[0.80,0.60] },
+  // T-cell
+  { members:['CD3','CD5','CD7'], penaltyPos:[0.65,0.45], penaltyNeg:[0.80,0.60] },
+  // Melanocitico: SOX10 ha info > HMB45 > MELANA in melanoma desmoplastico
+  { members:['SOX10','MELANA','HMB45'], penaltyPos:[0.70,0.50], penaltyNeg:[0.85,0.65] },
+  // Neuroendocrino: CgA+Synapto quasi sempre concordanti
+  { members:['CROMOGRANINA','SINAPTOFISINA','CD56'], penaltyPos:[0.60,0.40], penaltyNeg:[0.80,0.60] },
+  // Muscolo liscio
+  { members:['ACTINA_SMA','ACTINA_HHF35','CALDESMON'], penaltyPos:[0.70,0.50], penaltyNeg:[0.85,0.65] },
+  // MMR: loss concordante (Lynch) — se perdi MLH1 perdi PMS2, info cumulativa bassa
+  { members:['MLH1','MSH2','MSH6','PMS2'], penaltyPos:[0.75,0.55], penaltyNeg:[0.55,0.35] },
+  // Prostata
+  { members:['PSA','PSAP','NKX3'], penaltyPos:[0.65,0.45], penaltyNeg:[0.80,0.60] },
+  // CK epiteliali generici — AE1/AE3 + CK MNF116 ridondanti
+  { members:['CK_PAN','CK_MNF116','CK8_18'], penaltyPos:[0.70,0.50], penaltyNeg:[0.85,0.65] },
+  // ER/PR: correlati ma non identici (PR perde prima in Ca dediffer.)
+  { members:['ER','PR'], penaltyPos:[0.75,0.75], penaltyNeg:[0.85,0.85] },
+  // Mammella luminale: GATA3/GCDFP correlati nella mammella
+  { members:['GATA3','GCDFP15','MAMMAGLOBINA'], penaltyPos:[0.70,0.50], penaltyNeg:[0.85,0.65] },
+  // Epatico: HepPar1/Arg1 correlati in HCC
+  { members:['HEPPAR1','ARG1','GPC3'], penaltyPos:[0.70,0.50], penaltyNeg:[0.80,0.60] },
+  // Tiroideo: TTF1/TG correlati in Ca papillare/follicolare
+  { members:['TTF1','TIREOGLOBULINA'], penaltyPos:[0.75,0.75], penaltyNeg:[0.85,0.85] },
+  // ALK/ROS1: pathway simili ma NON si escludono (entrambi positivi rari ma possibili)
+  { members:['ALK','ROS1'], penaltyPos:[0.80,0.80], penaltyNeg:[0.90,0.90] },
+  // CD30/CD15 in Hodgkin: sempre insieme
+  { members:['CD30','CD15'], penaltyPos:[0.65,0.65], penaltyNeg:[0.80,0.80] },
+  // Mesotelio: Calretinina/WT1/D2-40 correlati
+  { members:['CALRETININA','WT1','D2_40'], penaltyPos:[0.65,0.45], penaltyNeg:[0.80,0.60] },
+  // Carcinoma cellule renali chiare: RCC/CD10/PAX8 correlati
+  { members:['RCC','CD10','PAX8'], penaltyPos:[0.70,0.50], penaltyNeg:[0.80,0.60] },
+  // SCLC/NEC: marker NE + CK7 bassa specificità singola
+  { members:['TTF1','CK7'], penaltyPos:[0.80,0.80], penaltyNeg:[0.90,0.90] },
 ];
 
-function getCorrelationPenalty(mid) {
+function getCorrelationPenalty(mid, isPositive) {
+  let minPenalty = 1.0;
   for (const group of correlatedGroups) {
-    if (!group.includes(mid)) continue;
-    const othersPos = group.filter(g => g !== mid && positiveMarkers.has(g)).length;
-    if (othersPos >= 2) return 0.5;
-    if (othersPos >= 1) return 0.7;
+    if (!group.members.includes(mid)) continue;
+    const othersTestedSameDir = group.members.filter(g => {
+      if (g === mid) return false;
+      return isPositive ? positiveMarkers.has(g) : negativeMarkers.has(g);
+    }).length;
+    const pArr = isPositive ? group.penaltyPos : group.penaltyNeg;
+    let penalty = 1.0;
+    if (othersTestedSameDir >= 2) penalty = pArr[1];
+    else if (othersTestedSameDir >= 1) penalty = pArr[0];
+    minPenalty = Math.min(minPenalty, penalty);
   }
-  return 1.0;
+  return minPenalty;
 }
 
 // UI handlers
@@ -599,14 +712,14 @@ function computeBayes() {
       if (isPos) {
         // LR+ = sensitivity / (1 - specificity)
         const lr = p.s / Math.max(1 - p.n, 0.001);
-        const corrW = p.w * getCorrelationPenalty(mid);
+        const corrW = p.w * getCorrelationPenalty(mid, true);
         logP += corrW * Math.log(Math.max(lr, 0.001));
         if (p.s >= 0.6) reasoning.push({type:'support',text:'\u2705 '+d+' (+) LR+ '+lr.toFixed(1)});
         else { flags.push('\u26a0\ufe0f '+d+' POS inatteso (sens '+Math.round(p.s*100)+'%)'); reasoning.push({type:'flag',text:'\u26a0\ufe0f '+d+' (+) inatteso — sens '+Math.round(p.s*100)+'%'}); }
       } else {
         // LR- = (1 - sensitivity) / specificity
         const lr = (1 - p.s) / Math.max(p.n, 0.001);
-        const corrW = p.w * getCorrelationPenalty(mid);
+        const corrW = p.w * getCorrelationPenalty(mid, false);
         logP += corrW * Math.log(Math.max(lr, 0.001));
         if (p.s >= 0.7) { flags.push('\ud83d\udeab '+d+' NEG (atteso pos, sens '+Math.round(p.s*100)+'%)'); reasoning.push({type:'flag',text:'\ud83d\udeab '+d+' (-) atteso pos (sens '+Math.round(p.s*100)+'%)'}); }
         else if (p.s <= 0.10) reasoning.push({type:'exclude',text:'\u274c '+d+' (-) confermato neg — LR- '+lr.toFixed(2)});
@@ -686,11 +799,68 @@ function renderSelectedMarkers() {
   const pp=document.getElementById('positivePanel');
   const np=document.getElementById('negativePanel');
   pp.innerHTML=Array.from(positiveMarkers).sort(naturalSort).map(id=>{
-    return '<div class="marker-item selected-pos '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')">'+getSiteDot(id)+'<span>'+getDisplay(id)+'</span><span class="marker-badge">\u2705</span></div>';
+    return '<div class="marker-item selected-pos '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')">'+getSiteDot(id)+'<span>'+getDisplay(id)+'</span><span class="marker-badge">\u2705</span><button class="whatif-btn" title="What If negativo?" onclick="event.stopPropagation();whatIfMarker(\''+id+'\',\'pos\')">+/-?</button></div>';
   }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui \u2192</p>';
   np.innerHTML=Array.from(negativeMarkers).sort(naturalSort).map(id=>{
-    return '<div class="marker-item selected-neg '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')">'+getSiteDot(id)+'<span>'+getDisplay(id)+'</span><span class="marker-badge">\u274c</span></div>';
+    return '<div class="marker-item selected-neg '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')">'+getSiteDot(id)+'<span>'+getDisplay(id)+'</span><span class="marker-badge">\u274c</span><button class="whatif-btn" title="What If positivo?" onclick="event.stopPropagation();whatIfMarker(\''+id+'\',\'neg\')">+/-?</button></div>';
   }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui \u2192</p>';
+}
+
+
+function whatIfMarker(id, currentDir) {
+  if (lastResults.length === 0) { alert('Esegui prima l\'analisi.'); return; }
+  const dName = getDisplay(id);
+  const flipLabel = currentDir === 'pos' ? 'NEGATIVO' : 'POSITIVO';
+  const wasPos = positiveMarkers.has(id);
+  const wasNeg = negativeMarkers.has(id);
+  positiveMarkers.delete(id); negativeMarkers.delete(id);
+  if (currentDir === 'pos') negativeMarkers.add(id);
+  else positiveMarkers.add(id);
+  const flippedResults = computeBayes();
+  positiveMarkers.delete(id); negativeMarkers.delete(id);
+  if (wasPos) positiveMarkers.add(id);
+  if (wasNeg) negativeMarkers.add(id);
+  const baseTop5 = lastResults.slice(0,5);
+  const flipTop5 = flippedResults.slice(0,5);
+  const allNames = [...new Set([...baseTop5.map(r=>r.name), ...flipTop5.map(r=>r.name)])];
+  const rows = allNames.map(name => {
+    const base = baseTop5.find(r=>r.name===name);
+    const flip = flipTop5.find(r=>r.name===name);
+    const basePct = base ? Math.round(base.posterior*100) : 0;
+    const flipPct = flip ? Math.round(flip.posterior*100) : 0;
+    const diff = flipPct - basePct;
+    const diffStr = diff > 0 ? '+'+diff+'%' : diff+'%';
+    const color = diff > 0 ? '#81c784' : diff < 0 ? '#ef9a9a' : '#888';
+    const bold = Math.abs(diff) >= 5 ? ' style="font-weight:600;"' : '';
+    return '<tr'+bold+'><td style="padding:5px 8px;">'+name+'</td>'
+      +'<td style="text-align:center;padding:5px 8px;">'+basePct+'%</td>'
+      +'<td style="text-align:center;padding:5px 8px;">'+flipPct+'%</td>'
+      +'<td style="text-align:center;padding:5px 8px;color:'+color+';">'+(diff===0?'=':diffStr)+'</td></tr>';
+  }).join('');
+  const oldOverlay = document.getElementById('whatifOverlay');
+  if (oldOverlay) oldOverlay.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'whatifOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex;align-items:center;justify-content:center;';
+  overlay.onclick = e => { if (e.target===overlay) overlay.remove(); };
+  overlay.innerHTML =
+    '<div style="background:#1e1e2e;border:1px solid #555;border-radius:12px;padding:24px;max-width:580px;width:92%;box-shadow:0 8px 40px rgba(0,0,0,.6);">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
+    +'<h3 style="margin:0;font-size:.95rem;color:#e0e0e0;">What If &mdash; <strong>'+dName+'</strong> fosse <em style="color:#ffb74d;">'+flipLabel+'</em>?</h3>'
+    +'<button onclick="var o=document.getElementById(\'whatifOverlay\');if(o)o.remove();" style="background:none;border:none;color:#aaa;font-size:1.4rem;cursor:pointer;">&times;</button>'
+    +'</div>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:.86rem;color:#e0e0e0;">'
+    +'<thead><tr style="color:#aaa;border-bottom:1px solid #444;">'
+    +'<th style="text-align:left;padding:5px 8px;">Diagnosi</th>'
+    +'<th style="text-align:center;padding:5px 8px;">Attuale</th>'
+    +'<th style="text-align:center;padding:5px 8px;">Se '+flipLabel.toLowerCase()+'</th>'
+    +'<th style="text-align:center;padding:5px 8px;">Delta</th>'
+    +'</tr></thead>'
+    +'<tbody>'+rows+'</tbody>'
+    +'</table>'
+    +'<p style="font-size:.73rem;color:#777;margin-top:12px;margin-bottom:0;">Simulazione — stato corrente non modificato. Clicca fuori o x per chiudere.</p>'
+    +'</div>';
+  document.body.appendChild(overlay);
 }
 
 function updateCounts() {
@@ -816,13 +986,13 @@ const CASC_MORPHOLOGIES = [
   { id:'indifferenziato', icon:'❓', label:'Indifferenziato', hint:'Non orientabile su EE — serve screening IHC' },
 ];
 
-const SCREENING_PANEL = ['CKAE','VIM','S100','CD45'];
+const SCREENING_PANEL = ['CKAE','VIMENTINA','S100','CD45'];
 const BIG_FOUR = ['CK7','CK20','TTF1','CDX2'];
 
 // Screening interpretation: which morphology does the pattern suggest?
 function interpretScreening(screen) {
   const ck = screen.CKAE || '?';
-  const vim = screen.VIM || '?';
+  const vim = screen.VIMENTINA || '?';
   const s = screen.S100 || '?';
   const cd = screen.CD45 || '?';
   
@@ -838,31 +1008,31 @@ function interpretScreening(screen) {
 
 const CASC_PANELS = {
   epiteliale: {
-    'CK7+/CK20-': { hint:'Polmone, mammella, ovaio, tiroide, pancreas, mesotelio', markers:['BAP1','TTF1','NAPSINA','ER','PR','GATA3','MAMMOGLOB','PAX8','WT1','THYROGLOB','CALRETININA','D240','CA125','CEA_MONO','EPCAM','SATB2','CLAUDINA18','P40','P63','CK56','HER2'] },
+    'CK7+/CK20-': { hint:'Polmone, mammella, ovaio, tiroide, pancreas, mesotelio', markers:['BAP1','TTF1','NAPSINA','ER','PR','GATA3','MAMMOGLOB','PAX8','WT1','THYROGLOB','CALRETININA','D240','CA125','CEA_MONO','EPCAM','SATB2','CLAUDINA18','P40','P63','CK56','HER2','SMAD4','TRPS1'] },
     'CK7+/CK20+': { hint:'Uroteliale, pancreas, gastrico', markers:['GATA3','P63','CK56','CLAUDINA18','SATB2','CDX2'] },
     'CK7-/CK20+': { hint:'Colorettale, Merkel', markers:['CDX2','SATB2','SINAPTOFISINA','CROMOGRANINA'] },
-    'CK7-/CK20-': { hint:'HCC, prostata, RCC, SCC, seminoma, acinare pancreas', markers:['HEPPAR','GLYPICAN3','ARGINASI','AFP','PSA','PSAP','NKX3','ERG','PAX8','CAIX','RCC','SATB2','CLAUDINA18','P40','P63','CK56','SALL4','PLAP'] },
+    'CK7-/CK20-': { hint:'HCC, prostata, RCC, SCC, seminoma, acinare pancreas', markers:['HEPPAR','GLYPICAN3','ARGINASI','AFP','PSA','PSAP','NKX3','ERG','PAX8','CAIX','RCC','SATB2','CLAUDINA18','P40','P63','CK56','SALL4','PLAP','SMAD4'] },
     'TTF1+': { hint:'Polmone, tiroide, NEN polmonare', markers:['NAPSINA','THYROGLOB','CALCITONINA','CROMOGRANINA','SINAPTOFISINA','SATB2','CLAUDINA18','P40','CK56'] },
     'CDX2+': { hint:'Colorettale, GI NEN', markers:['CK20','SATB2','CROMOGRANINA','SINAPTOFISINA'] },
     '_default': { hint:'Pannello generico epiteliale', markers:['ER','PR','GATA3','TTF1','NAPSINA','CDX2','SATB2','PAX8','PSA','HEPPAR','CALRETININA','P40'] },
   },
   linfoide: {
-    '_default': { hint:'Pannello linfoide', markers:['CD3','CD4','CD5','CD7','CD8','CD15','CD19','CD20','CD23','CD30','CD79A','CD138','PAX5','MUM1','TDT','BCL1','BCL2','BCL6','CMYC','SOX11','KI67'] },
+    '_default': { hint:'Pannello linfoide', markers:['CD3','CD4','CD5','CD7','CD8','CD15','CD19','CD20','CD23','CD30','CD79A','CD138','PAX5','MUM1','TDT','BCL1','BCL2','BCL6','CMYC','SOX11','KI67','CD200','TCL1'] },
   },
   mesenchimale: {
-    '_default': { hint:'Pannello mesenchimale', markers:['ACTINA_SMA','ACTINA_HHF35','DESMINA','CALDESMON','MIOGENINA','CD31','CD34','CD99','CD117','DOG1','ERG','STAT6','MDM2','CDK4','SOX10','BCL2','EMA','CKAE'] },
+    '_default': { hint:'Pannello mesenchimale', markers:['ACTINA_SMA','ACTINA_HHF35','DESMINA','CALDESMON','MIOGENINA','CD31','CD34','CD99','CD117','DOG1','ERG','STAT6','MDM2','CDK4','SOX10','BCL2','EMA','CKAE','TLE1','NKX22','H3K27ME3'] },
   },
   melanocitico: {
     '_default': { hint:'Pannello melanocitico/neurale', markers:['SOX10','MELANA','HMB45','PRAME','CD34','CD45','CKAE','DESMINA','KI67','P16'] },
   },
   neuroendocrino: {
-    '_default': { hint:'Pannello neuroendocrino', markers:['CROMOGRANINA','SINAPTOFISINA','INSM1','TTF1','CDX2','KI67','SALL4','CALCITONINA','NSE','CKAE'] },
+    '_default': { hint:'Pannello neuroendocrino', markers:['CROMOGRANINA','SINAPTOFISINA','INSM1','TTF1','CDX2','KI67','SALL4','CALCITONINA','NSE','CKAE','ISL1'] },
   },
   germinale: {
     '_default': { hint:'Pannello germinale', markers:['SALL4','PLAP','AFP','HCG','CD30','CD117','GLYPICAN3','CKAE','KI67'] },
   },
   indifferenziato: {
-    '_default': { hint:'Pannello ampio — neoplasia indifferenziata', markers:['CKAE','VIM','S100','CD3','CD20','CD34','CD45','CD117','CROMOGRANINA','SINAPTOFISINA','SALL4','MELANA','HMB45','DESMINA','KI67'] },
+    '_default': { hint:'Pannello ampio — neoplasia indifferenziata', markers:['CKAE','VIMENTINA','S100','CD3','CD20','CD34','CD45','CD117','CROMOGRANINA','SINAPTOFISINA','SALL4','MELANA','HMB45','DESMINA','KI67'] },
   },
 };
 
@@ -1130,6 +1300,21 @@ function cascReset() {
 }
 
 cascInit();
+
+// FIX: aggiorno badge con conteggi reali dal markerDB
+(function updateBadges() {
+  const nFBF = Object.values(markerDB).filter(m=>m.site==='fbf').length;
+  const nSACCO = Object.values(markerDB).filter(m=>m.site==='sacco').length;
+  const el1 = document.getElementById('badgeFBF');
+  const el2 = document.getElementById('badgeSACCO');
+  const lFBF = document.getElementById('labelFBF');
+  const lALL = document.getElementById('labelALL');
+  if(el1) el1.textContent = nFBF + ' FBF';
+  if(el2) el2.textContent = '+' + nSACCO + ' SACCO';
+  if(lFBF) lFBF.textContent = 'Solo FBF (' + nFBF + ')';
+  if(lALL) lALL.textContent = 'FBF + SACCO (' + (nFBF + nSACCO) + ')';
+})();
+
 
 </script>
 </body>
