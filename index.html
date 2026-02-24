@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IHC Hub v3.3 — True Bayesian Engine</title>
+  <title>IHC Hub v3.4 — True Bayesian Engine</title>
   <style>
     :root{--bg:#f8fafc;--card:#fff;--text:#1e293b;--subtext:#64748b;--accent:#4f46e5;--pos:#059669;--neg:#dc2626;--warn:#d97706;--border:#e2e8f0;--shadow:rgba(0,0,0,.1);--fbf:#3b82f6;--sacco:#a855f7;--flag:#ef4444;--gain:#0891b2}
     *{margin:0;padding:0;box-sizing:border-box}
@@ -149,13 +149,13 @@
 <body>
 <div class="container">
   <header>
-    <h1>🧬 IHC Hub v3.3</h1>
+    <h1>🧬 IHC Hub v3.4</h1>
     <p class="version">Motore Bayesiano · Filtro Morfologico · Classi di Confidenza · Risparmio Tessuto · Tumor Board</p>
     <div class="header-badges">
       <span class="badge fbf" id="badgeFBF">143 FBF</span>
       <span class="badge sacco" id="badgeSACCO">+29 SACCO</span>
       <span class="badge engine">Motore Bayesiano</span>
-      <span class="badge version">v3.3</span>
+      <span class="badge version">v3.4</span>
     </div>
   </header>
 
@@ -194,7 +194,7 @@
         <option value="3">Max 3 marker</option>
       </select>
     </div>
-    <div class="info-box"><span>💡</span><div><strong>v3.3:</strong> Bayes LR · Morfologia modula priore · Classe di confidenza (Δ top1-top2) · Punteggio criticità · IG pesato su posteriore · Risparmio tessuto · Modalità Tumor Board. Trascina → POS/NEG → ANALIZZA.</div></div>
+    <div class="info-box"><span>💡</span><div><strong>v3.4:</strong> Bayes LR · Morfologia modula priore · Classe di confidenza (Δ top1-top2) · Punteggio criticità · IG pesato su posteriore · Risparmio tessuto · Modalità Tumor Board. Trascina → POS/NEG → ANALIZZA.</div></div>
     <div class="lookup-container">
       <div class="marker-panel positive"><h2>✅ Positivi <span class="marker-count" id="posCount">0</span></h2><div class="marker-grid" id="positivePanel" ondrop="handleDrop(event,'positive')" ondragover="handleDragOver(event,'positive')" ondragleave="handleDragLeave(event,'positive')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui →</p></div></div>
       <div class="marker-panel negative"><h2>❌ Negativi <span class="marker-count" id="negCount" style="background:var(--neg);">0</span></h2><div class="marker-grid" id="negativePanel" ondrop="handleDrop(event,'negative')" ondragover="handleDragOver(event,'negative')" ondragleave="handleDragLeave(event,'negative')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui →</p></div></div>
@@ -600,7 +600,7 @@ let lastResults = [];
 let morphology = 'any';
 let tissueLimit = 0;
 let tumorBoardMode = false;
-const BAYES_VERSION = 'FBF v3.1 \u2013 Feb 2026';
+const BAYES_VERSION = 'FBF v3.4 \u2013 Feb 2026';
 
 // Morphology prior adjustment (point 1)
 function adjustPrior(dx) {
