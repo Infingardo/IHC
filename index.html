@@ -922,10 +922,36 @@ function displayResults(results) {
   '<div class="audit-stamp">'+BAYES_VERSION+' | Morfologia: '+(morphology==='any'?'n.s.':morphology)+' | Marker testati: '+(positiveMarkers.size+negativeMarkers.size)+' | '+new Date().toISOString().slice(0,16)+'</div>';
 }
 
+function igLabel(ig) {
+  if (ig >= 0.5)  return { text: 'Alto', color: '#81c784', tip: 'Questo marker risolve circa il '+Math.round(ig*100)+'% dell\'incertezza residua — aggiungilo subito.' };
+  if (ig >= 0.2)  return { text: 'Medio', color: '#ffb74d', tip: 'Informazione rilevante ('+ig.toFixed(3)+' bit): riduce sensibilmente l\'ambiguita diagnostica.' };
+  if (ig >= 0.05) return { text: 'Basso', color: '#90a4ae', tip: 'Contributo marginale ('+ig.toFixed(3)+' bit): utile solo se i top marker sono gia stati eseguiti.' };
+  return { text: 'Trascurabile', color: '#616161', tip: 'IG < 0.05 bit: questo marker non sposta il ranking nelle condizioni attuali. Non prioritario.' };
+}
+
 function displayNextBest(gains) {
   const s=document.getElementById('nextBestSection');
   if(!gains.length){ s.innerHTML=''; return; }
-  s.innerHTML='<div class="next-best"><h3>\ud83c\udfaf Prossimo Marker Suggerito (Guadagno Informativo)</h3><p style="font-size:.83rem;color:var(--subtext);margin-bottom:8px;">'+(currentMode==='fbf'?'Solo FBF.':'Inclusi SACCO.')+'</p>'+gains.map((g,i)=>'<div class="suggestion"><span class="gain-score">#'+(i+1)+'</span><strong>'+g.display+'</strong>'+(g.site==='sacco'?'<span class="sacco-tag" style="margin-left:4px;">SACCO</span>':'')+'<span style="margin-left:auto;font-size:.78rem;color:var(--gain);">IG: '+g.gain.toFixed(3)+' bit</span></div>').join('')+'</div>';
+  s.innerHTML='<div class="next-best">'
+    +'<h3>\ud83c\udfaf Prossimo Marker Suggerito (Guadagno Informativo)</h3>'
+    +'<p style="font-size:.83rem;color:var(--subtext);margin-bottom:8px;">'
+    +(currentMode==='fbf'?'Solo FBF.':'Inclusi SACCO.')
+    +' <span style="cursor:help;border-bottom:1px dashed #666;" title="Il Guadagno Informativo (IG, in bit) misura quanto un marker ridurrebbe l\'incertezza diagnostica se eseguito ora. 1 bit = dimezza l\'incertezza. Valori > 0.5 bit sono altamente discriminanti; < 0.05 bit sono praticamente irrilevanti nel contesto attuale.">Cosa significa IG? \u2139\ufe0f</span>'
+    +'</p>'
+    +gains.map((g,i)=>{
+      const lbl = igLabel(g.gain);
+      return '<div class="suggestion">'
+        +'<span class="gain-score">#'+(i+1)+'</span>'
+        +'<strong>'+g.display+'</strong>'
+        +(g.site==='sacco'?'<span class="sacco-tag" style="margin-left:4px;">SACCO</span>':'')
+        +(g.site==='nd'?'<span style="margin-left:4px;font-size:.72rem;color:#ef9a9a;border:1px solid #ef9a9a;border-radius:3px;padding:0 3px;">outsourcing</span>':'')
+        +'<span style="margin-left:auto;display:flex;align-items:center;gap:6px;">'
+        +'<span class="ig-badge" style="font-size:.72rem;padding:1px 6px;border-radius:4px;background:'+lbl.color+'22;color:'+lbl.color+';border:1px solid '+lbl.color+'55;cursor:help;" title="'+lbl.tip+'">'+lbl.text+'</span>'
+        +'<span style="font-size:.78rem;color:var(--gain);">'+g.gain.toFixed(3)+' bit</span>'
+        +'</span>'
+        +'</div>';
+    }).join('')
+    +'</div>';
 }
 
 function resetLookup() {
