@@ -106,7 +106,84 @@
     .site-legend{display:flex;gap:14px;justify-content:center;font-size:.78rem;color:var(--subtext);margin-bottom:10px;flex-wrap:wrap}
     .site-legend span{display:flex;align-items:center;gap:4px}
     @media print{body{padding:0;background:#fff;font-size:10pt}.tabs-wrapper,.controls,.mode-toggle,.info-box,#availableMarkersWrap,.empty-state,.next-best{display:none!important}.tab-content{display:block!important}.diagnosis-result{break-inside:avoid;box-shadow:none;border:1px solid #ccc}.audit-stamp{display:block!important}}
-    @media(max-width:768px){.lookup-container{grid-template-columns:1fr}.marker-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}h1{font-size:1.8rem}}
+    @media(max-width:768px){
+      /* Layout generale */
+      body{padding:8px}
+      h1{font-size:1.5rem}
+      .version{font-size:.78rem}
+      .header-badges{gap:5px}
+      .badge{font-size:.7rem;padding:2px 7px}
+
+      /* Tabs */
+      .tabs-wrapper{gap:5px}
+      .tab-btn{padding:7px 11px;font-size:.82rem}
+
+      /* Mode toggle */
+      .mode-toggle{flex-wrap:wrap;gap:5px;font-size:.82rem}
+      .mode-toggle label{padding:4px 8px;font-size:.82rem}
+      .tb-toggle{margin-left:0;width:100%;justify-content:center}
+
+      /* Morph selector */
+      .morph-selector{flex-direction:column;gap:5px;align-items:flex-start}
+      .morph-selector select{width:100%}
+      .morph-selector .ts-label{margin-left:0}
+      .morph-selector select.ts-select{width:100%}
+
+      /* Pannelli marker */
+      .lookup-container{grid-template-columns:1fr;gap:8px}
+      .marker-grid{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:4px}
+      .marker-item{font-size:.75rem;padding:6px 7px;min-height:36px}
+      .whatif-btn{padding:2px 5px;font-size:.68rem}
+
+      /* Marker disponibili: altezza ridotta su mobile */
+      #availableMarkers{max-height:220px}
+
+      /* Pulsanti analisi */
+      .controls{gap:7px}
+      .btn{padding:9px 16px;font-size:.88rem}
+
+      /* Risultati */
+      .dx-header{flex-direction:column;align-items:flex-start;gap:4px}
+      .dx-score{font-size:.92rem}
+      .dx-name{font-size:.92rem}
+      .conf-badge{font-size:.68rem}
+      .flag-score{font-size:.68rem}
+
+      /* Next best suggestion */
+      .suggestion{flex-wrap:wrap;gap:4px}
+      .suggestion .gain-score{min-width:28px}
+
+      /* Cascade wizard */
+      #cascadeProgress{flex-wrap:nowrap;overflow-x:auto;gap:3px;padding-bottom:4px}
+      .casc-step{font-size:.7rem;padding:5px 4px;white-space:nowrap;flex:none;min-width:60px}
+      .casc-panel{padding:14px}
+      #morphButtons{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+      #screenGrid{grid-template-columns:1fr 1fr}
+      #bigFourGrid{grid-template-columns:1fr 1fr}
+      #panelGrid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+      .morph-btn{padding:10px}
+      .morph-btn .morph-icon{font-size:1.4rem}
+      .morph-btn .morph-label{font-size:.85rem}
+      .morph-btn .morph-hint{font-size:.72rem}
+      .bf-card{padding:10px}
+      .bf-toggles button{padding:5px 10px;font-size:.82rem}
+
+      /* Quiz */
+      .quiz-card{padding:16px}
+      .stats{grid-template-columns:repeat(2,1fr)}
+      .dx-option{padding:9px;font-size:.88rem}
+
+      /* What If overlay */
+      #whatifOverlay > div{padding:16px;max-width:98vw}
+    }
+
+    /* Touch: marker item più grande per dito */
+    @media(hover:none) and (pointer:coarse){
+      .marker-item{min-height:40px;padding:7px 9px}
+      .btn{min-height:44px}
+      .tab-btn{min-height:40px}
+      .whatif-btn{min-height:28px;padding:3px 7px}
+    }
 
     /* Morphology selector */
     .morph-selector{display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:12px;padding:8px;background:var(--card);border-radius:10px;border:1px solid var(--border);flex-wrap:wrap}
@@ -787,7 +864,8 @@ function renderAvailableMarkers() {
   const c=document.getElementById('availableMarkers');
   c.innerHTML=avail.map(id=>{
     const m=markerDB[id];
-    return '<div class="marker-item '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondragend="handleDragEnd(event)">'+getSiteDot(id)+'<span style="font-size:.8rem;">'+m.display+'</span></div>';
+    const touchAttr = 'ontouchstart="event.preventDefault();handleTap(\''+id+'\')" ';
+    return '<div class="marker-item '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondragend="handleDragEnd(event)" '+touchAttr+'>'+getSiteDot(id)+'<span style="font-size:.8rem;">'+m.display+'</span></div>';
   }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;">Nessun marker</p>';
   // Legend
   const legend=document.getElementById('siteLegend');
@@ -875,6 +953,38 @@ function handleDragStart(e,id){ draggedMarker=id; e.dataTransfer.effectAllowed='
 function handleDragEnd(e){ e.target.closest('.marker-item')?.classList.remove('dragging'); document.querySelectorAll('.marker-grid').forEach(g=>g.classList.remove('drag-over-pos','drag-over-neg')); }
 function handleDragOver(e,t){ e.preventDefault(); e.dataTransfer.dropEffect='move'; e.currentTarget.classList.add(t==='positive'?'drag-over-pos':'drag-over-neg'); }
 function handleDragLeave(e,t){ e.currentTarget.classList.remove(t==='positive'?'drag-over-pos':'drag-over-neg'); }
+
+// ============================================================
+// TOUCH SUPPORT — tap-to-toggle per mobile (no drag&drop)
+// ============================================================
+let lastTap = {}; // per double-tap detection
+
+function handleTap(id) {
+  const now = Date.now();
+  const last = lastTap[id] || 0;
+  if (now - last < 400) {
+    // Double tap: rimuovi marker
+    removeMarker(id);
+    delete lastTap[id];
+    return;
+  }
+  lastTap[id] = now;
+  // Single tap: toggle POS → NEG → rimosso
+  if (positiveMarkers.has(id)) {
+    positiveMarkers.delete(id);
+    negativeMarkers.add(id);
+  } else if (negativeMarkers.has(id)) {
+    negativeMarkers.delete(id);
+  } else {
+    positiveMarkers.add(id);
+  }
+  renderAvailableMarkers();
+}
+
+function isTouchDevice() {
+  return window.matchMedia('(hover:none) and (pointer:coarse)').matches;
+}
+
 function handleDrop(e,t){ e.preventDefault(); const id=draggedMarker||e.dataTransfer.getData('text/plain'); positiveMarkers.delete(id); negativeMarkers.delete(id); if(t==='positive')positiveMarkers.add(id);else negativeMarkers.add(id); renderAvailableMarkers(); e.currentTarget.classList.remove('drag-over-pos','drag-over-neg'); }
 
 function analyzeMarkers() {
@@ -1341,6 +1451,19 @@ cascInit();
   if(lALL) lALL.textContent = 'FBF + SACCO (' + (nFBF + nSACCO) + ')';
 })();
 
+
+
+// Touch delegate per pannelli POS/NEG su mobile
+document.addEventListener('touchend', function(e) {
+  const item = e.target.closest('.selected-pos, .selected-neg');
+  if (!item) return;
+  if (e.target.closest('.whatif-btn')) return;
+  e.preventDefault();
+  // Estrai id dal draggable data — lo cerco nell'ondragstart
+  const drag = item.getAttribute('ondragstart') || '';
+  const m = drag.match(/handleDragStart\(event,'([^']+)'\)/);
+  if (m) handleTap(m[1]);
+}, { passive: false });
 
 </script>
 </body>
