@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IHC Hub v3.4.3 — True Bayesian Engine</title>
+  <title>IHC Hub v3.9.1 — Pattern marker bug fixes (analyzeMarkers, IG, confidence, counts)</title>
   <style>
     :root{--bg:#f8fafc;--card:#fff;--text:#1e293b;--subtext:#64748b;--accent:#4f46e5;--pos:#059669;--neg:#dc2626;--warn:#d97706;--border:#e2e8f0;--shadow:rgba(0,0,0,.1);--fbf:#3b82f6;--sacco:#a855f7;--flag:#ef4444;--gain:#0891b2}
     *{margin:0;padding:0;box-sizing:border-box}
@@ -24,11 +24,41 @@
     .mode-toggle input[type=radio]{display:none}
     .mode-toggle input:checked+label.lbl-fbf{background:#dbeafe;color:#1d4ed8}
     .mode-toggle input:checked+label.lbl-all{background:#f3e8ff;color:#7c3aed}
+    .mode-toggle input:checked+label.lbl-full{background:#fee2e2;color:#991b1b}
     .info-box{display:flex;gap:10px;padding:14px;background:#eff6ff;border-radius:10px;border-left:4px solid var(--fbf);margin-bottom:18px;font-size:.88rem}
     .lookup-container{display:grid;grid-template-columns:1fr 1fr;gap:14px}
     .marker-panel{padding:14px;background:var(--card);border-radius:12px;border:2px solid var(--border)}
     .marker-panel.positive{border-color:var(--pos)}.marker-panel.negative{border-color:var(--neg)}
     .marker-panel h2{font-size:1.05rem;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+    /* v3.8: Loss-marker UI dedicata */
+    .lossm-wrap{padding:14px;background:#fffbeb;border:2px solid #fde68a;border-radius:12px;margin-top:10px}
+    .lossm-wrap h3{margin-bottom:10px;color:#92400e;display:flex;align-items:center;gap:6px;font-size:1rem}
+    .lossm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+    .lossm-card{padding:8px 10px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;display:flex;flex-direction:column;gap:6px}
+    .lossm-card.lossm-state-retained{border-color:#16a34a;background:#f0fdf4}
+    .lossm-card.lossm-state-lost{border-color:#dc2626;background:#fef2f2}
+    .lossm-card.lossm-state-ni{border-color:#94a3b8;background:#f1f5f9}
+    .lossm-name{font-weight:600;font-size:.85rem;display:flex;align-items:center;gap:4px}
+    .lossm-name .lossm-tag{font-size:.62rem;padding:1px 4px;border-radius:3px;background:#fef3c7;color:#92400e;font-weight:600;margin-left:auto}
+    .lossm-buttons{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px}
+    .lossm-buttons button{padding:5px 4px;border:1px solid #d1d5db;background:#fff;border-radius:5px;cursor:pointer;font-size:.72rem;font-weight:600;color:#475569;transition:all .15s}
+    .lossm-buttons button:hover{background:#f8fafc}
+    .lossm-buttons button.active-retained{background:#16a34a;color:#fff;border-color:#16a34a}
+    .lossm-buttons button.active-lost{background:#dc2626;color:#fff;border-color:#dc2626}
+    .lossm-buttons button.active-ni{background:#64748b;color:#fff;border-color:#64748b}
+    .lossm-ctrl{font-size:.66rem;color:#065f46;font-style:italic}
+    /* v3.9.0: pattern-marker UI (riuso lossm-* con sfumatura viola) */
+    .pattm-wrap{padding:14px;background:#faf5ff;border:2px solid #e9d5ff;border-radius:12px;margin-top:10px}
+    .pattm-wrap h3{margin-bottom:10px;color:#6b21a8;display:flex;align-items:center;gap:6px;font-size:1rem}
+    .pattm-card{padding:8px 10px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;display:flex;flex-direction:column;gap:6px}
+    .pattm-card.pattm-state-membranous{border-color:#16a34a;background:#f0fdf4}
+    .pattm-card.pattm-state-nuclear{border-color:#7c3aed;background:#faf5ff}
+    .pattm-card.pattm-state-cytoplasmic{border-color:#ea580c;background:#fff7ed}
+    .pattm-card.pattm-state-ni{border-color:#94a3b8;background:#f1f5f9}
+    .pattm-name .pattm-tag{font-size:.62rem;padding:1px 4px;border-radius:3px;background:#ede9fe;color:#6b21a8;font-weight:600;margin-left:auto}
+    .pattm-buttons button.active-membranous{background:#16a34a;color:#fff;border-color:#16a34a}
+    .pattm-buttons button.active-nuclear{background:#7c3aed;color:#fff;border-color:#7c3aed}
+    .pattm-buttons button.active-cytoplasmic{background:#ea580c;color:#fff;border-color:#ea580c}
     .marker-count{background:var(--accent);color:#fff;padding:2px 8px;border-radius:20px;font-size:.78rem}
     .marker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:5px;min-height:70px;padding:8px}
     .marker-item{padding:5px 8px;border-radius:7px;font-size:.8rem;cursor:grab;transition:all .15s;border:1px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:space-between;gap:3px;user-select:none}
@@ -99,6 +129,7 @@
     .panel-marker:hover{border-color:var(--accent)}
     .panel-marker.pm-pos{background:#d1fae5;border-color:var(--pos);color:#065f46}
     .panel-marker.pm-neg{background:#fee2e2;border-color:var(--neg);color:#991b1b}
+    .panel-marker.pm-ni{background:#f1f5f9;border-color:#94a3b8;color:#475569}
     /* Semaforo disponibilità */
     .site-fbf{border-left:4px solid #22c55e}.site-sacco{border-left:4px solid #f59e0b}.site-nd{border-left:4px solid #ef4444;opacity:.85}
     .site-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
@@ -226,13 +257,13 @@
 <body>
 <div class="container">
   <header>
-    <h1>🧬 IHC Hub v3.4.3</h1>
+    <h1>🧬 IHC Hub v3.9.1</h1>
     <p class="version">Motore Bayesiano · Filtro Morfologico · Classi di Confidenza · Risparmio Tessuto · Tumor Board</p>
     <div class="header-badges">
       <span class="badge fbf" id="badgeFBF">143 FBF</span>
       <span class="badge sacco" id="badgeSACCO">+29 SACCO</span>
       <span class="badge engine">Motore Bayesiano</span>
-      <span class="badge version">v3.4.3</span>
+      <span class="badge version">v3.9.1</span>
     </div>
   </header>
 
@@ -247,12 +278,30 @@
     <div class="mode-toggle">
       <span style="font-size:.88rem;">🏥</span>
       <input type="radio" name="siteMode" id="modeFBF" value="fbf" checked onchange="onModeChange()">
-      <label for="modeFBF" class="lbl-fbf" id="labelFBF">Solo FBF (143)</label>
+      <label for="modeFBF" class="lbl-fbf" id="labelFBF">Solo FBF</label>
       <input type="radio" name="siteMode" id="modeAll" value="all" onchange="onModeChange()">
-      <label for="modeAll" class="lbl-all" id="labelALL">FBF + SACCO (172)</label>
+      <label for="modeAll" class="lbl-all" id="labelALL">FBF + SACCO</label>
+      <input type="radio" name="siteMode" id="modeFull" value="full" onchange="onModeChange()">
+      <label for="modeFull" class="lbl-full" id="labelFULL">+ Outsourcing (ND)</label>
       <span class="tb-toggle"><input type="checkbox" id="tbMode" onchange="onTBToggle()"> Tumor Board</span>
     </div>
     <div class="morph-selector">
+      <span style="font-size:.88rem;">📍 Sede:</span>
+      <select id="siteSelect" onchange="onSiteChange()" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);font-size:.85rem;">
+        <option value="non_specificata">— Non specificata —</option>
+        <option value="cute">Cute</option>
+        <option value="linfonodo">Linfonodo</option>
+        <option value="polmone_pleura">Polmone / pleura</option>
+        <option value="mammella">Mammella</option>
+        <option value="tubo_digerente">Tubo digerente</option>
+        <option value="epatobiliare_pancreas">Pancreas / fegato / vie biliari</option>
+        <option value="ginecologico">Ginecologico (utero / ovaio)</option>
+        <option value="urologico">Urologico (prostata / RCC / urotelio)</option>
+        <option value="tessuti_molli">Tessuti molli</option>
+        <option value="osso">Osso</option>
+        <option value="snc">SNC</option>
+        <option value="mts_cup">Mts da primitivo ignoto (CUP)</option>
+      </select>
       <span style="font-size:.88rem;">🔬 Morfologia:</span>
       <select id="morphSelect" onchange="onMorphChange()">
         <option value="any">— Non specificata —</option>
@@ -271,7 +320,7 @@
         <option value="3">Max 3 marker</option>
       </select>
     </div>
-    <div class="info-box"><span>💡</span><div><strong>v3.4.3:</strong> Bayes LR · Morfologia modula priore · Classe di confidenza (Δ top1-top2) · Punteggio criticità · IG pesato su posteriore · Risparmio tessuto · Modalità Tumor Board. Trascina → POS/NEG → ANALIZZA.</div></div>
+    <div class="info-box"><span>💡</span><div><strong>v3.9.1:</strong> Bug fix architettura pattern marker — <code>analyzeMarkers</code> accetta β-cat da sola · <code>computeBayes</code> protetto: pattern marker mai trattato come binario · <code>computeInfoGain</code> esclude pattern (IG multi-stato in v3.10) · <code>computeConfidence</code> e <code>updateCounts</code> includono pattern marker · messaggi generalizzati ("Marker non interpretabili") · β-cat sinoviale ricalibrata (w 1.2→0.7, probs 0.30/0.70→0.45/0.55) · Cascade non supporta pattern marker in questa release (esclusi dal pannello mirato). Architettura type-system pronta per p53/Ki-67/MMR.</div></div>
     <div class="lookup-container">
       <div class="marker-panel positive"><h2>✅ Positivi <span class="marker-count" id="posCount">0</span></h2><div class="marker-grid" id="positivePanel" ondrop="handleDrop(event,'positive')" ondragover="handleDragOver(event,'positive')" ondragleave="handleDragLeave(event,'positive')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui →</p></div></div>
       <div class="marker-panel negative"><h2>❌ Negativi <span class="marker-count" id="negCount" style="background:var(--neg);">0</span></h2><div class="marker-grid" id="negativePanel" ondrop="handleDrop(event,'negative')" ondragover="handleDragOver(event,'negative')" ondragleave="handleDragLeave(event,'negative')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui →</p></div></div>
@@ -279,6 +328,16 @@
         <h3 style="margin-bottom:8px;color:var(--fbf);display:flex;align-items:center;gap:6px;">📋 Disponibili <span class="marker-count" id="availCount">0</span><input type="text" id="markerSearch" placeholder="Cerca..." oninput="renderAvailableMarkers()" style="margin-left:auto;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-size:.83rem;width:160px;"></h3>
         <div id="siteLegend" class="site-legend" style="display:none;"><span><span class="site-dot dot-fbf"></span>FBF</span><span><span class="site-dot dot-sacco"></span>SACCO</span><span class="nd-leg-item" style="display:none;"><span class="site-dot dot-nd"></span>Non disponibile</span></div>
         <div class="marker-grid" id="availableMarkers" style="max-height:320px;overflow-y:auto;border:2px dashed var(--fbf);padding:8px;"></div>
+      </div>
+      <!-- v3.8: Loss-marker UI dedicata -->
+      <div id="lossMarkersWrap" class="lossm-wrap" style="grid-column:1/-1;">
+        <h3>🧬 Loss-marker (oncosoppressori) <span style="margin-left:auto;font-size:.74rem;color:#78716c;font-weight:400;font-style:italic;">retained = mantenuto · lost = perso (con ctrl int. positivo) · n.i. = non interpretabile</span></h3>
+        <div id="lossMarkersGrid" class="lossm-grid"></div>
+      </div>
+      <!-- v3.9.0: Marker pattern UI dedicata (β-catenina, futuro p53/Ki-67/MMR) -->
+      <div id="patternMarkersWrap" class="pattm-wrap" style="grid-column:1/-1;">
+        <h3>🎨 Marker pattern <span style="margin-left:auto;font-size:.74rem;color:#78716c;font-weight:400;font-style:italic;">marker la cui interpretazione dipende dal pattern subcellulare/quantitativo</span></h3>
+        <div id="patternMarkersGrid" class="lossm-grid"></div>
       </div>
       <div class="controls"><button class="btn btn-analyze" onclick="analyzeMarkers()">🔍 ANALIZZA (Bayes)</button><button class="btn btn-reset" onclick="resetLookup()">🔄 RESET</button></div>
     </div>
@@ -315,6 +374,29 @@
         <div class="casc-step" id="cStep3">3. Marker orientativi</div>
         <div class="casc-step" id="cStep4">4. Pannello mirato</div>
         <div class="casc-step" id="cStep5">5. Diagnosi</div>
+      </div>
+
+      <!-- STEP 0: SEDE / CONTESTO (v3.7.1) -->
+      <div id="cascStep0Site" class="casc-panel" style="margin-bottom:14px;background:#f0f9ff;border-left:4px solid var(--accent);padding:14px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span style="font-weight:700;font-size:.95rem;">📍 Passo 0 — Sede:</span>
+          <select id="cascSiteSelect" onchange="cascSetSite(this.value)" style="flex:1;min-width:220px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:.9rem;">
+            <option value="non_specificata">— Non specificata —</option>
+            <option value="cute">Cute</option>
+            <option value="linfonodo">Linfonodo</option>
+            <option value="polmone_pleura">Polmone / pleura</option>
+            <option value="mammella">Mammella</option>
+            <option value="tubo_digerente">Tubo digerente</option>
+            <option value="epatobiliare_pancreas">Pancreas / fegato / vie biliari</option>
+            <option value="ginecologico">Ginecologico</option>
+            <option value="urologico">Urologico</option>
+            <option value="tessuti_molli">Tessuti molli</option>
+            <option value="osso">Osso</option>
+            <option value="snc">SNC</option>
+            <option value="mts_cup">Metastasi da primitivo ignoto</option>
+          </select>
+          <span style="font-size:.78rem;color:var(--subtext);font-style:italic;">La sede orienta, non vincola: l'IHC può sempre ribaltare la diagnosi.</span>
+        </div>
       </div>
 
       <!-- STEP 1: MORFOLOGIA -->
@@ -386,12 +468,12 @@ const markerDB = {
 'ANDROGENI':{display:'Androgeni',aliases:['androgen','ar'],site:'fbf'},
 'ANNEXIN_A1':{display:'Annexin A1',aliases:['annexin a1'],site:'fbf'},
 'ARGINASI':{display:'Arginasi-1',aliases:['arginase','arginasi'],site:'fbf'},
-'ATRX':{display:'ATRX',aliases:['atrx'],site:'fbf'},
+'ATRX':{display:'ATRX',aliases:['atrx'],site:'fbf',loss:true},
 'BCL1':{display:'BCL-1 (Ciclina D1)',aliases:['bcl-1','bcl1','ciclina d1','cyclin d1'],site:'fbf'},
 'BCL10':{display:'BCL-10',aliases:['bcl-10','bcl10'],site:'fbf'},
 'BCL2':{display:'BCL-2',aliases:['bcl-2','bcl2'],site:'fbf'},
 'BCL6':{display:'BCL-6',aliases:['bcl-6','bcl6'],site:'fbf'},
-'BETA_CATENIN':{display:'β-Catenina',aliases:['beta-catenina','beta-catenin','betacatenina'],site:'fbf'},
+'BETA_CATENIN':{display:'β-Catenina',aliases:['beta-catenina','beta-catenin','betacatenina'],site:'fbf',type:'pattern',patterns:['membranous','nuclear']},
 'CA125':{display:'CA-125',aliases:['ca-125','ca125'],site:'fbf'},
 'CAIX':{display:'Anidrasi Carbonica (CA-IX)',aliases:['ca-ix','ca9','caix','anidrasi carbonica'],site:'fbf'},
 'CALCITONINA':{display:'Calcitonina',aliases:['calcitonina','calcitonin'],site:'fbf'},
@@ -446,14 +528,14 @@ const markerDB = {
 'D240':{display:'D2-40 (podoplanina)',aliases:['d2-40','d240','podoplanina'],site:'fbf'},
 'DESMINA':{display:'Desmina',aliases:['desmina','desmin'],site:'fbf'},
 'DOG1':{display:'DOG1',aliases:['dog1','dog-1'],site:'fbf'},
-'ECAD':{display:'E-Caderina',aliases:['e-caderina','e-cadherin','e-cad'],site:'fbf'},
+'ECAD':{display:'E-Caderina',aliases:['e-caderina','e-cadherin','e-cad'],site:'fbf',loss:true},
 'EMA':{display:'EMA',aliases:['ema','epithelial membrane antigen'],site:'fbf'},
 'EPCAM':{display:'BER-EP4',aliases:['ep-cam','epcam','berep4','ber-ep4'],site:'fbf'},
 'EP700Y':{display:'EP700Y',aliases:['ep700y'],site:'fbf'},
 'ER':{display:'Estrogeni (ER)',aliases:['er','estrogen receptor','estrogeni'],site:'fbf'},
 'ERG':{display:'ERG',aliases:['erg'],site:'fbf'},
 'EBVLMP1':{display:'EBV-LMP1',aliases:['ebv-lmp1','lmp1','ebv lmp1'],site:'fbf'},
-'FH':{display:'Fumarato Idratasi',aliases:['fumarato idratasi','fumarate hydratase','fh'],site:'fbf'},
+'FH':{display:'Fumarato Idratasi',aliases:['fumarato idratasi','fumarate hydratase','fh'],site:'fbf',loss:true},
 'FVIII':{display:'Fattore VIII',aliases:['fattore viii','factor viii','von willebrand'],site:'fbf'},
 'FXIII':{display:'Fattore XIIIa',aliases:['fattore xiiia','fattore xiii','factor xiiia'],site:'fbf'},
 'GALECTINA3':{display:'Galectina 3',aliases:['galectina 3','galectin-3','gal-3'],site:'fbf'},
@@ -481,10 +563,10 @@ const markerDB = {
 'MDM2':{display:'MDM2',aliases:['mdm2'],site:'fbf'},
 'MELANA':{display:'Melan-A (MART-1)',aliases:['melan-a','melana','mart-1','mart1'],site:'fbf'},
 'MIOGENINA':{display:'Miogenina',aliases:['miogenina','myogenin'],site:'fbf'},
-'MLH1':{display:'MLH1',aliases:['mlh1'],site:'fbf'},
+'MLH1':{display:'MLH1',aliases:['mlh1'],site:'fbf',loss:true},
 'MPO':{display:'Mieloperossidasi',aliases:['mieloperossidasi','myeloperoxidase','mpo'],site:'fbf'},
-'MSH2':{display:'MSH2',aliases:['msh2'],site:'fbf'},
-'MSH6':{display:'MSH6',aliases:['msh6'],site:'fbf'},
+'MSH2':{display:'MSH2',aliases:['msh2'],site:'fbf',loss:true},
+'MSH6':{display:'MSH6',aliases:['msh6'],site:'fbf',loss:true},
 'MUM1':{display:'MUM-1',aliases:['mum-1','mum1','irf4'],site:'fbf'},
 'NAPSINA':{display:'Napsin A',aliases:['napsina','napsin a'],site:'fbf'},
 'NF':{display:'Neurofilamenti',aliases:['neurofilamenti','neurofilament'],site:'fbf'},
@@ -503,12 +585,12 @@ const markerDB = {
 'PDL1_263':{display:'PDL1 (SP263)',aliases:['pdl1 sp263','pd-l1 sp263'],site:'fbf'},
 'PHH3':{display:'PHH3 (Fosfoistone-H3)',aliases:['phh3','fosfoistone-h3','fosfoistone h3','phosphohistone h3'],site:'fbf'},
 'PLAP':{display:'PLAP',aliases:['plap'],site:'fbf'},
-'PMS2':{display:'PMS2',aliases:['pms2'],site:'fbf'},
+'PMS2':{display:'PMS2',aliases:['pms2'],site:'fbf',loss:true},
 'PR':{display:'Progesterone (PR)',aliases:['pr','pgr','progesterone receptor'],site:'fbf'},
 'PRAME':{display:'PRAME',aliases:['prame'],site:'fbf'},
 'PSA':{display:'PSA',aliases:['psa'],site:'fbf'},
 'PSAP':{display:'PSAP',aliases:['psap'],site:'fbf'},
-'PTEN':{display:'PTEN',aliases:['pten'],site:'fbf'},
+'PTEN':{display:'PTEN',aliases:['pten'],site:'fbf',loss:true},
 'RACEMASI':{display:'Racemasi (P504S/AMACR)',aliases:['racemasi','amacr','p504s'],site:'fbf'},
 'RCC':{display:'RCC',aliases:['rcc'],site:'fbf'},
 'S100':{display:'S100',aliases:['s100','s-100'],site:'fbf'},
@@ -530,9 +612,9 @@ const markerDB = {
 'ANTIBRAF':{display:'Anti-BRAF',aliases:['anti-braf','antibraf'],site:'sacco'},
 'ARID1A_S':{display:'ARID1A',aliases:['arid1a'],site:'sacco'},
 'ASPERGILLUS':{display:'Aspergillus',aliases:['aspergillus'],site:'sacco'},
-'BAP1':{display:'BAP1 (C-4)',aliases:['bap1','bap-1','brca1 associated protein'],site:'sacco'},
+'BAP1':{display:'BAP1 (C-4)',aliases:['bap1','bap-1','brca1 associated protein'],site:'sacco',loss:true},
 'BRAF_V600E':{display:'BRAF V600E',aliases:['braf v600e','braf'],site:'sacco'},
-'BRG1':{display:'BRG1/SMARCA4',aliases:['brg1','smarca4','brg-1'],site:'sacco'},
+'BRG1':{display:'BRG1/SMARCA4',aliases:['brg1','smarca4','brg-1'],site:'sacco',loss:true},
 'CALBINDIN':{display:'Calbindin',aliases:['calbindin'],site:'sacco'},
 'CANDIDA':{display:'Candida Albicans',aliases:['candida albicans','candida'],site:'sacco'},
 'CD11C':{display:'CD-11c',aliases:['cd-11c','cd11c','cd11'],site:'sacco'},
@@ -566,7 +648,7 @@ const markerDB = {
 'IGA':{display:'IgA',aliases:['iga','ig a'],site:'sacco'},
 'IGD':{display:'IgD',aliases:['igd','ig d'],site:'sacco'},
 'IGM':{display:'IgM',aliases:['igm','ig m'],site:'sacco'},
-'INI1':{display:'INI-1',aliases:['ini-1','ini1','smarcb1'],site:'sacco'},
+'INI1':{display:'INI-1',aliases:['ini-1','ini1','smarcb1'],site:'sacco',loss:true},
 'IRTA1':{display:'IRTA1/FCRL4',aliases:['irta1','fcrl4','irta1/fcrl4'],site:'sacco'},
 'LEF1':{display:'LEF1',aliases:['lef1','lef-1'],site:'sacco'},
 'MUC1_S':{display:'MUC-1',aliases:['muc-1','muc1'],site:'sacco'},
@@ -584,11 +666,11 @@ const markerDB = {
 'PNEUMOCYSTIS':{display:'Pneumocystis Carinii',aliases:['pneumocystis carinii','pneumocistis'],site:'sacco'},
 'POLE':{display:'POLE',aliases:['pole'],site:'sacco'},
 'PTH_S':{display:'PTH',aliases:['pth','paratormone'],site:'sacco'},
-'RB1':{display:'RB1 (SP384)',aliases:['rb1','retinoblastoma'],site:'sacco'},
+'RB1':{display:'RB1 (SP384)',aliases:['rb1','retinoblastoma'],site:'sacco',loss:true},
 'ROS1':{display:'ROS1 (SP384)',aliases:['ros1'],site:'sacco'},
 'SALL4':{display:'SALL4',aliases:['sall4'],site:'sacco'},
 'SARCOV2':{display:'SAR-CoV2',aliases:['sar cov2','sars-cov-2','covid'],site:'sacco'},
-'SDHB':{display:'SDHB',aliases:['sdhb'],site:'sacco'},
+'SDHB':{display:'SDHB',aliases:['sdhb'],site:'sacco',loss:true},
 'SF1_S':{display:'SF1',aliases:['sf1','nr5a1'],site:'sacco'},
 'SOX2':{display:'SOX-2',aliases:['sox-2','sox2'],site:'sacco'},
 'SV40':{display:'SV40',aliases:['sv40'],site:'sacco'},
@@ -603,19 +685,19 @@ const markerDB = {
 'ZAP70':{display:'ZAP70',aliases:['zap70','zap-70'],site:'sacco'},
 
 // ===================== NON DISPONIBILI =====================
-'MTAP':{display:'MTAP',aliases:['mtap','p16 proxy','cdkn2a proxy'],site:'nd'},
+'MTAP':{display:'MTAP',aliases:['mtap','p16 proxy','cdkn2a proxy'],site:'nd',loss:true},
 'MOC31':{display:'MOC-31',aliases:['moc-31','moc31'],site:'nd'},
 'TRIPSINA':{display:'Tripsina',aliases:['tripsina','trypsin'],site:'nd'},
 'FLI1':{display:'FLI-1',aliases:['fli-1','fli1'],site:'nd'},
 'INSM1':{display:'INSM1',aliases:['insm1','insm-1'],site:'nd'},
 // === OUTSOURCING CONSIGLIATO ===
-'SMAD4':{display:'SMAD4',aliases:['smad4','dpc4'],site:'nd'},
+'SMAD4':{display:'SMAD4',aliases:['smad4','dpc4'],site:'nd',loss:true},
 'NKX22':{display:'NKX2.2',aliases:['nkx2.2','nkx22','nkx2-2'],site:'nd'},
 'H3K27M':{display:'H3K27M',aliases:['h3k27m','h3 k27m','h3f3a'],site:'nd'},
 'TLE1':{display:'TLE1',aliases:['tle1','tle-1'],site:'nd'},
 'CD200':{display:'CD200',aliases:['cd200','cd-200','ox2'],site:'nd'},
 'TCL1':{display:'TCL1',aliases:['tcl1','tcl-1'],site:'nd'},
-'H3K27ME3':{display:'H3K27me3',aliases:['h3k27me3','h3 k27me3','trimethyl h3k27'],site:'nd'},
+'H3K27ME3':{display:'H3K27me3',aliases:['h3k27me3','h3 k27me3','trimethyl h3k27'],site:'nd',loss:true},
 'TFE3':{display:'TFE3',aliases:['tfe3','tfe-3'],site:'nd'},
 'ISL1':{display:'ISL1',aliases:['isl1','isl-1'],site:'nd'},
 'TRPS1':{display:'TRPS1',aliases:['trps1','trps-1'],site:'nd'},
@@ -641,25 +723,26 @@ const bayesDB = [
 {name:'Adenocarcinoma Polmonare',prior:0.08,markers:{'TTF1':{s:0.85,n:0.92,w:1.2},'NAPSINA':{s:0.75,n:0.95,w:1.1},'CK7':{s:0.95,n:0.4,w:0.6},'CK20':{s:0.05,n:0.9,w:0.8},'CDX2':{s:0.03,n:0.95,w:0.9},'P40':{s:0.02,n:0.95,w:1.0}}},
 {name:'Carcinoma Squamoso (SCC)',prior:0.07,markers:{'P40':{s:0.95,n:0.92,w:1.3},'P63':{s:0.9,n:0.85,w:1.0},'CK56':{s:0.9,n:0.8,w:1.0},'CK7':{s:0.3,n:0.6,w:0.5},'TTF1':{s:0.05,n:0.9,w:0.9}}},
 {name:'Carcinoma Mammario (NST)',prior:0.09,markers:{'ER':{s:0.8,n:0.9,w:1.2},'PR':{s:0.65,n:0.9,w:1.0},'GATA3':{s:0.9,n:0.88,w:1.2},'MAMMOGLOB':{s:0.6,n:0.95,w:1.0},'CK7':{s:0.92,n:0.3,w:0.4},'CK20':{s:0.03,n:0.9,w:0.7},'TTF1':{s:0.02,n:0.85,w:0.6}}},
-{name:'Adenocarcinoma Colorettale',prior:0.08,markers:{'CK20':{s:0.85,n:0.88,w:1.2},'CDX2':{s:0.93,n:0.9,w:1.3},'SATB2':{s:0.85,n:0.92,w:1.2},'CK7':{s:0.15,n:0.7,w:0.6},'TTF1':{s:0.01,n:0.95,w:0.7}}},
-{name:'HCC',prior:0.04,markers:{'HEPPAR':{s:0.85,n:0.95,w:1.3},'GLYPICAN3':{s:0.75,n:0.95,w:1.2},'ARGINASI':{s:0.85,n:0.95,w:1.2},'AFP':{s:0.3,n:0.95,w:0.9}}},
-{name:'Adenocarcinoma Pancreatico',prior:0.04,markers:{'CK7':{s:0.95,n:0.3,w:0.5},'CK19':{s:0.9,n:0.4,w:0.5},'MUC4':{s:0.75,n:0.85,w:1.0},'P53':{s:0.6,n:0.5,w:0.5},'SMAD4':{s:0.45,n:0.95,w:1.4},'TTF1':{s:0.01,n:0.95,w:0.6}}},
-{name:'Ca Acinare Pancreatico',prior:0.005,markers:{'BCL10':{s:0.9,n:0.95,w:1.5},'TRIPSINA':{s:0.9,n:0.95,w:1.4},'CHIMOTRIPSINA':{s:0.8,n:0.9,w:1.2},'SMAD4':{s:0.98,n:0.45,w:1.3},'CK7':{s:0.3,n:0.3,w:0.4},'CK19':{s:0.2,n:0.4,w:0.4},'CROMOGRANINA':{s:0.3,n:0.5,w:0.4},'SINAPTOFISINA':{s:0.2,n:0.5,w:0.3}}},
+{name:'Adenocarcinoma Colorettale',prior:0.08,markers:{'CK20':{s:0.85,n:0.88,w:1.2},'CDX2':{s:0.93,n:0.9,w:1.3},'SATB2':{s:0.85,n:0.92,w:1.2},'CK7':{s:0.15,n:0.7,w:0.6},'TTF1':{s:0.01,n:0.95,w:0.7},'MLH1':{s:0.10,n:0.95,w:0.5},'MSH2':{s:0.05,n:0.97,w:0.5},'MSH6':{s:0.05,n:0.97,w:0.5},'PMS2':{s:0.10,n:0.95,w:0.5},'BETA_CATENIN':{type:'pattern',patternProbs:{'membranous':0.55,'nuclear':0.45},w:1.0}}},
+{name:'Ca Endometrioide Endometriale',prior:0.025,markers:{'PAX8':{s:0.95,n:0.7,w:1.1},'ER':{s:0.85,n:0.5,w:0.7},'PR':{s:0.80,n:0.6,w:0.7},'CK7':{s:0.95,n:0.3,w:0.4},'WT1':{s:0.05,n:0.85,w:0.9},'P53':{s:0.20,n:0.7,w:0.4},'MLH1':{s:0.25,n:0.90,w:0.6},'MSH2':{s:0.05,n:0.97,w:0.6},'MSH6':{s:0.10,n:0.95,w:0.6},'PMS2':{s:0.25,n:0.90,w:0.6},'BETA_CATENIN':{type:'pattern',patternProbs:{'membranous':0.65,'nuclear':0.35},w:1.0}}},
+{name:'HCC',prior:0.04,markers:{'HEPPAR':{s:0.85,n:0.95,w:1.3},'GLYPICAN3':{s:0.75,n:0.95,w:1.2},'ARGINASI':{s:0.85,n:0.95,w:1.2},'AFP':{s:0.3,n:0.95,w:0.9},'BETA_CATENIN':{type:'pattern',patternProbs:{'membranous':0.70,'nuclear':0.30},w:1.0}}},
+{name:'Adenocarcinoma Pancreatico',prior:0.04,markers:{'CK7':{s:0.95,n:0.3,w:0.5},'CK19':{s:0.9,n:0.4,w:0.5},'MUC4':{s:0.75,n:0.85,w:1.0},'P53':{s:0.6,n:0.5,w:0.5},'SMAD4':{s:0.55,n:0.95,w:1.4},'TTF1':{s:0.01,n:0.95,w:0.6},'BETA_CATENIN':{type:'pattern',patternProbs:{'membranous':0.92,'nuclear':0.08},w:1.0}}},
+{name:'Ca Acinare Pancreatico',prior:0.005,markers:{'BCL10':{s:0.9,n:0.95,w:1.5},'TRIPSINA':{s:0.9,n:0.95,w:1.4},'CHIMOTRIPSINA':{s:0.8,n:0.9,w:1.2},'SMAD4':{s:0.05,n:0.55,w:1.0},'CK7':{s:0.3,n:0.3,w:0.4},'CK19':{s:0.2,n:0.4,w:0.4},'CROMOGRANINA':{s:0.3,n:0.5,w:0.4},'SINAPTOFISINA':{s:0.2,n:0.5,w:0.3}}},
 {name:'Carcinoma Ovarico HGSC',prior:0.04,markers:{'PAX8':{s:0.95,n:0.85,w:1.3},'WT1':{s:0.9,n:0.9,w:1.2},'CA125':{s:0.8,n:0.7,w:0.8},'ER':{s:0.7,n:0.5,w:0.5},'P53':{s:0.85,n:0.4,w:0.6}}},
 {name:'Carcinoma Uroteliale',prior:0.05,markers:{'GATA3':{s:0.85,n:0.85,w:1.2},'CK7':{s:0.9,n:0.3,w:0.4},'CK20':{s:0.55,n:0.6,w:0.5},'P63':{s:0.8,n:0.6,w:0.6},'PSA':{s:0.01,n:0.98,w:0.9}}},
 {name:'Carcinoma Prostatico',prior:0.05,markers:{'PSA':{s:0.9,n:0.97,w:1.4},'PSAP':{s:0.85,n:0.95,w:1.2},'NKX3':{s:0.9,n:0.95,w:1.3}}},
 {name:'RCC a cellule chiare',prior:0.03,markers:{'PAX8':{s:0.92,n:0.85,w:1.3},'RCC':{s:0.75,n:0.95,w:1.1},'CAIX':{s:0.85,n:0.9,w:1.2},'VIMENTINA':{s:0.9,n:0.4,w:0.4}}},
 {name:'Ca Tiroideo (PTC)',prior:0.03,markers:{'TTF1':{s:0.95,n:0.8,w:1.0},'THYROGLOB':{s:0.95,n:0.98,w:1.4},'PAX8':{s:0.92,n:0.8,w:1.0},'GALECTINA3':{s:0.8,n:0.8,w:0.9},'CALCITONINA':{s:0.01,n:0.98,w:1.0}}},
 {name:'Ca Midollare Tiroideo',prior:0.01,markers:{'CALCITONINA':{s:0.95,n:0.99,w:1.5},'CROMOGRANINA':{s:0.9,n:0.6,w:0.7},'SINAPTOFISINA':{s:0.85,n:0.6,w:0.6},'CEA_MONO':{s:0.8,n:0.7,w:0.7},'THYROGLOB':{s:0.02,n:0.95,w:1.2}}},
-{name:'Mesotelioma Epitelioide',prior:0.02,markers:{'CALRETININA':{s:0.9,n:0.9,w:1.3},'WT1':{s:0.85,n:0.9,w:1.2},'D240':{s:0.85,n:0.8,w:1.0},'CK56':{s:0.75,n:0.6,w:0.5},'EMA':{s:0.85,n:0.5,w:0.6},'BAP1':{s:0.05,n:0.92,w:1.2},'CEA_MONO':{s:0.02,n:0.95,w:1.1},'EPCAM':{s:0.05,n:0.9,w:0.9},'TTF1':{s:0.01,n:0.97,w:0.9},'PAX8':{s:0.02,n:0.95,w:0.8}}},
+{name:'Mesotelioma Epitelioide',prior:0.02,markers:{'CALRETININA':{s:0.9,n:0.9,w:1.3},'WT1':{s:0.85,n:0.9,w:1.2},'D240':{s:0.85,n:0.8,w:1.0},'CK56':{s:0.75,n:0.6,w:0.5},'EMA':{s:0.85,n:0.5,w:0.6},'BAP1':{s:0.65,n:0.92,w:1.4},'MTAP':{s:0.55,n:0.95,w:1.4},'CEA_MONO':{s:0.02,n:0.95,w:1.1},'EPCAM':{s:0.05,n:0.9,w:0.9},'TTF1':{s:0.01,n:0.97,w:0.9},'PAX8':{s:0.02,n:0.95,w:0.8},'BETA_CATENIN':{type:'pattern',patternProbs:{'membranous':0.95,'nuclear':0.05},w:1.0}}},
 {name:'NEN G1-G2 (GI)',prior:0.03,markers:{'CROMOGRANINA':{s:0.9,n:0.85,w:1.2},'SINAPTOFISINA':{s:0.95,n:0.8,w:1.1},'INSM1':{s:0.93,n:0.95,w:1.3},'CDX2':{s:0.6,n:0.7,w:0.6}}},
 {name:'NEN Polmonare',prior:0.02,markers:{'CROMOGRANINA':{s:0.85,n:0.8,w:1.1},'SINAPTOFISINA':{s:0.92,n:0.8,w:1.1},'INSM1':{s:0.93,n:0.95,w:1.3},'TTF1':{s:0.7,n:0.6,w:0.6},'CD56':{s:0.8,n:0.7,w:0.7}}},
 {name:'Melanoma',prior:0.05,markers:{'S100':{s:0.95,n:0.75,w:1.0},'SOX10':{s:0.93,n:0.92,w:1.3},'MELANA':{s:0.85,n:0.95,w:1.2},'HMB45':{s:0.8,n:0.95,w:1.1},'PRAME':{s:0.75,n:0.9,w:1.0},'CKAE':{s:0.02,n:0.95,w:0.9},'CD45':{s:0.01,n:0.98,w:0.8}}},
-{name:'MPNST',prior:0.01,markers:{'S100':{s:0.5,n:0.7,w:0.8},'SOX10':{s:0.6,n:0.8,w:0.9},'H3K27ME3':{s:0.05,n:0.92,w:1.3},'MELANA':{s:0.01,n:0.98,w:1.0},'HMB45':{s:0.01,n:0.98,w:1.0},'DESMINA':{s:0.05,n:0.8,w:0.6}}},
+{name:'MPNST',prior:0.01,markers:{'S100':{s:0.5,n:0.7,w:0.8},'SOX10':{s:0.6,n:0.8,w:0.9},'H3K27ME3':{s:0.85,n:0.92,w:1.5},'MELANA':{s:0.01,n:0.98,w:1.0},'HMB45':{s:0.01,n:0.98,w:1.0},'DESMINA':{s:0.05,n:0.8,w:0.6}}},
 {name:'GIST',prior:0.03,markers:{'CD117':{s:0.95,n:0.95,w:1.4},'DOG1':{s:0.95,n:0.97,w:1.5},'CD34':{s:0.7,n:0.8,w:0.7},'DESMINA':{s:0.02,n:0.9,w:0.8},'S100':{s:0.05,n:0.85,w:0.6}}},
 {name:'Leiomiosarcoma',prior:0.02,markers:{'ACTINA_SMA':{s:0.9,n:0.8,w:1.1},'DESMINA':{s:0.8,n:0.8,w:1.0},'CALDESMON':{s:0.85,n:0.92,w:1.2},'CD117':{s:0.02,n:0.9,w:0.7}}},
 {name:'Rabdomiosarcoma',prior:0.01,markers:{'DESMINA':{s:0.95,n:0.7,w:1.0},'MIOGENINA':{s:0.9,n:0.98,w:1.5}}},
-{name:'Sarcoma Sinoviale',prior:0.01,markers:{'CKAE':{s:0.7,n:0.5,w:0.6},'EMA':{s:0.75,n:0.6,w:0.6},'BCL2':{s:0.85,n:0.4,w:0.4},'CD99':{s:0.6,n:0.5,w:0.4}}},
+{name:'Sarcoma Sinoviale',prior:0.01,markers:{'CKAE':{s:0.7,n:0.5,w:0.6},'EMA':{s:0.75,n:0.6,w:0.6},'BCL2':{s:0.85,n:0.4,w:0.4},'CD99':{s:0.6,n:0.5,w:0.4},'BETA_CATENIN':{type:'pattern',patternProbs:{'membranous':0.45,'nuclear':0.55},w:0.7}}},
 {name:'Sarcoma di Ewing',prior:0.01,markers:{'CD99':{s:0.95,n:0.7,w:1.2},'NKX22':{s:0.93,n:0.97,w:1.5},'VIMENTINA':{s:0.9,n:0.2,w:0.2},'DESMINA':{s:0.05,n:0.85,w:0.7}}},
 {name:'Tumore Fibroso Solitario',prior:0.01,markers:{'STAT6':{s:0.95,n:0.99,w:1.6},'CD34':{s:0.9,n:0.7,w:0.8},'BCL2':{s:0.8,n:0.4,w:0.3}}},
 {name:'Liposarcoma Dediff.',prior:0.01,markers:{'MDM2':{s:0.9,n:0.97,w:1.5},'CDK4':{s:0.85,n:0.95,w:1.3}}},
@@ -683,11 +766,233 @@ let lastResults = [];
 let morphology = 'any';
 let tissueLimit = 0;
 let tumorBoardMode = false;
-const BAYES_VERSION = 'FBF v3.4.3 \u2013 Mar 2026';
+let topographicSite = 'non_specificata'; // v3.7.0
+const BAYES_VERSION = 'FBF v3.9.1-final \u2013 Mag 2026 (pattern marker architecture fixed)';
+
+// v3.7.0: Topographic priors matrix
+// Sede anatomica/contesto del campione \u2192 priors per diagnosi tipiche di quella sede
+// Calibrazione di partenza basata su epidemiologia generale; da rifinire sui casi clinici reali
+const TOPOGRAPHIC_PRIORS = {
+  'cute': {
+    'Melanoma': 0.40,
+    'Carcinoma Squamoso (SCC)': 0.20,
+    'DLBCL': 0.02,
+    'Linfoma T Periferico': 0.02,
+    'Carcinoma Mammario (NST)': 0.02, // mts cutanee
+    'Adenocarcinoma Polmonare': 0.02, // mts
+    'Adenocarcinoma Colorettale': 0.01,
+    'Leiomiosarcoma': 0.01,
+    'Tumore Fibroso Solitario': 0.01,
+    'MPNST': 0.005
+  },
+  'linfonodo': {
+    'DLBCL': 0.20,
+    'Linfoma di Hodgkin': 0.10,
+    'Linfoma T Periferico': 0.05,
+    'Linfoma Linfoblastico': 0.03,
+    // Mts (linfonodo \u00e8 sede frequente di metastasi)
+    'Adenocarcinoma Polmonare': 0.10,
+    'Carcinoma Mammario (NST)': 0.10,
+    'Adenocarcinoma Colorettale': 0.06,
+    'Carcinoma Squamoso (SCC)': 0.05,
+    'Melanoma': 0.04,
+    'Carcinoma Prostatico': 0.03,
+    'Adenocarcinoma Pancreatico': 0.02,
+    'RCC a cellule chiare': 0.02,
+    'Carcinoma Ovarico HGSC': 0.02,
+    'Ca Endometrioide Endometriale': 0.02,
+    'Ca Tiroideo (PTC)': 0.02,
+    'Carcinoma Uroteliale': 0.02,
+    'HCC': 0.01,
+    'Mieloma/Plasmacitoma': 0.005,
+    'NEN G1-G2 (GI)': 0.005,
+    'NEN Polmonare': 0.005,
+    'Mesotelioma Epitelioide': 0.005
+  },
+  'polmone_pleura': {
+    'Adenocarcinoma Polmonare': 0.30,
+    'Carcinoma Squamoso (SCC)': 0.15,
+    'NEN Polmonare': 0.05,
+    'Mesotelioma Epitelioide': 0.10,
+    // Mts polmonari frequenti
+    'Carcinoma Mammario (NST)': 0.05,
+    'Adenocarcinoma Colorettale': 0.05,
+    'RCC a cellule chiare': 0.03,
+    'Carcinoma Uroteliale': 0.02,
+    'Melanoma': 0.02,
+    'Adenocarcinoma Pancreatico': 0.02,
+    'Sarcoma Sinoviale': 0.01,
+    'Liposarcoma Dediff.': 0.01,
+    'DLBCL': 0.02,
+    'Linfoma di Hodgkin': 0.01
+  },
+  'mammella': {
+    'Carcinoma Mammario (NST)': 0.85,
+    'DLBCL': 0.005,
+    'Leiomiosarcoma': 0.002,
+    'Liposarcoma Dediff.': 0.002,
+    'Tumore Fibroso Solitario': 0.002,
+    'Melanoma': 0.002, // mts o primitivo cute mammella
+    'Adenocarcinoma Polmonare': 0.002 // mts
+  },
+  'tubo_digerente': {
+    'Adenocarcinoma Colorettale': 0.30,
+    'GIST': 0.10,
+    'NEN G1-G2 (GI)': 0.10,
+    'Carcinoma Squamoso (SCC)': 0.05, // esofago, ano
+    'DLBCL': 0.05, // linfoma gastrico/ileale/MALT
+    'Linfoma T Periferico': 0.02,
+    'Adenocarcinoma Pancreatico': 0.02, // duodeno/ampolla
+    'Leiomiosarcoma': 0.005,
+    'Melanoma': 0.005 // mts o anale
+  },
+  'epatobiliare_pancreas': {
+    'Adenocarcinoma Pancreatico': 0.30,
+    'HCC': 0.20,
+    'Ca Acinare Pancreatico': 0.02,
+    'NEN G1-G2 (GI)': 0.10,
+    // Mts epatiche frequenti
+    'Adenocarcinoma Colorettale': 0.05,
+    'Carcinoma Mammario (NST)': 0.03,
+    'Adenocarcinoma Polmonare': 0.03,
+    'NEN Polmonare': 0.02,
+    'Carcinoma Squamoso (SCC)': 0.01,
+    'RCC a cellule chiare': 0.01,
+    'Melanoma': 0.01,
+    'GIST': 0.01,
+    'DLBCL': 0.01
+  },
+  'ginecologico': {
+    'Carcinoma Ovarico HGSC': 0.30,
+    'Ca Endometrioide Endometriale': 0.20,
+    'Carcinoma Squamoso (SCC)': 0.10, // cervice
+    'Leiomiosarcoma': 0.03, // utero
+    'Coriocarcinoma': 0.005,
+    'Yolk Sac Tumor': 0.003,
+    'Rabdomiosarcoma': 0.005, // RMS embrionale vagina/cervice
+    'Sarcoma Sinoviale': 0.001,
+    'Adenocarcinoma Colorettale': 0.02, // mts ovarico (Krukenberg-like)
+    'Carcinoma Mammario (NST)': 0.02, // mts ovarico
+    'DLBCL': 0.005
+  },
+  'urologico': {
+    'Carcinoma Prostatico': 0.25,
+    'RCC a cellule chiare': 0.20,
+    'Carcinoma Uroteliale': 0.20,
+    'Seminoma': 0.05,
+    'Yolk Sac Tumor': 0.02,
+    'Coriocarcinoma': 0.005,
+    'Adenocarcinoma Polmonare': 0.02, // mts
+    'DLBCL': 0.01,
+    'Carcinoma Squamoso (SCC)': 0.01 // pene, urotelio squamosizzato
+  },
+  'tessuti_molli': {
+    'Liposarcoma Dediff.': 0.15,
+    'Leiomiosarcoma': 0.12,
+    'MPNST': 0.05,
+    'Sarcoma Sinoviale': 0.05,
+    'Sarcoma di Ewing': 0.03, // raro extraosseo
+    'Rabdomiosarcoma': 0.05,
+    'Tumore Fibroso Solitario': 0.05,
+    'GIST': 0.03, // raramente extra-GI
+    'Melanoma': 0.02, // mts o desmoplastico
+    'Carcinoma Squamoso (SCC)': 0.02, // mts
+    'DLBCL': 0.02,
+    'Linfoma T Periferico': 0.01,
+    'Mieloma/Plasmacitoma': 0.01
+  },
+  'osso': {
+    'Sarcoma di Ewing': 0.10,
+    'Mieloma/Plasmacitoma': 0.20,
+    'DLBCL': 0.05, // linfoma osseo primitivo
+    // Mts ossee frequenti
+    'Adenocarcinoma Polmonare': 0.10,
+    'Carcinoma Mammario (NST)': 0.10,
+    'Carcinoma Prostatico': 0.10,
+    'RCC a cellule chiare': 0.05,
+    'Ca Tiroideo (PTC)': 0.03,
+    'Adenocarcinoma Colorettale': 0.03,
+    'Melanoma': 0.02,
+    'Carcinoma Uroteliale': 0.02,
+    'Leiomiosarcoma': 0.01, // raro primitivo osseo
+    'MPNST': 0.005
+  },
+  'snc': {
+    'DLBCL': 0.10, // PCNSL
+    // Mts cerebrali (le pi\u00f9 frequenti)
+    'Adenocarcinoma Polmonare': 0.30,
+    'Carcinoma Mammario (NST)': 0.15,
+    'Melanoma': 0.10,
+    'Adenocarcinoma Colorettale': 0.05,
+    'RCC a cellule chiare': 0.05,
+    'Carcinoma Squamoso (SCC)': 0.03,
+    'NEN Polmonare': 0.02,
+    'Linfoma di Hodgkin': 0.005,
+    'Adenocarcinoma Pancreatico': 0.01
+  },
+  'mts_cup': {
+    // Metastasi da primitivo ignoto: profilo bilanciato sui pi\u00f9 frequenti CUP
+    'Adenocarcinoma Polmonare': 0.15,
+    'Carcinoma Mammario (NST)': 0.12,
+    'Adenocarcinoma Colorettale': 0.10,
+    'Adenocarcinoma Pancreatico': 0.08,
+    'Carcinoma Squamoso (SCC)': 0.10,
+    'HCC': 0.04,
+    'RCC a cellule chiare': 0.05,
+    'Carcinoma Uroteliale': 0.04,
+    'Carcinoma Prostatico': 0.04,
+    'Mesotelioma Epitelioide': 0.03,
+    'Carcinoma Ovarico HGSC': 0.04,
+    'Ca Endometrioide Endometriale': 0.03,
+    'Ca Tiroideo (PTC)': 0.03,
+    'Melanoma': 0.05, // mts amelanotico
+    'NEN Polmonare': 0.03,
+    'NEN G1-G2 (GI)': 0.03,
+    'DLBCL': 0.03,
+    'Linfoma di Hodgkin': 0.02,
+    'Linfoma T Periferico': 0.01,
+    'Mieloma/Plasmacitoma': 0.01
+  }
+  // 'non_specificata' non \u00e8 nella matrice: usa dx.prior originale (vedi adjustPriorBySite)
+};
+
+// v3.7.1: label leggibili per le sedi
+const SITE_LABELS = {
+  non_specificata: 'Non specificata',
+  cute: 'Cute',
+  linfonodo: 'Linfonodo',
+  polmone_pleura: 'Polmone / pleura',
+  mammella: 'Mammella',
+  tubo_digerente: 'Tubo digerente',
+  epatobiliare_pancreas: 'Pancreas / fegato / vie biliari',
+  ginecologico: 'Ginecologico',
+  urologico: 'Urologico',
+  tessuti_molli: 'Tessuti molli',
+  osso: 'Osso',
+  snc: 'SNC',
+  mts_cup: 'Metastasi da primitivo ignoto'
+};
+function getSiteLabel(site) { return SITE_LABELS[site] || site || 'Non specificata'; }
+
+// v3.7.1: blend log tra prior generale e prior topografico
+// La sede ORIENTA ma non CONDANNA: \u03b1=0.6 \u2192 60% topografia, 40% prior generale
+// Cos\u00ec un linfoma in mammella resta riconoscibile dal pattern IHC anche se il prior topografico \u00e8 basso
+const TOPO_BLEND_ALPHA = 0.60;
+
+function adjustPriorBySite(dx) {
+  if (!topographicSite || topographicSite === 'non_specificata') return dx.prior;
+  const sitePriors = TOPOGRAPHIC_PRIORS[topographicSite];
+  if (!sitePriors) return dx.prior;
+  // Diagnosi listata in sede: usa il valore; altrimenti fallback ridotto
+  const topo = sitePriors[dx.name] !== undefined ? sitePriors[dx.name] : dx.prior * 0.10;
+  // Geometric blend: exp((1-\u03b1)\u00b7log(prior_base) + \u03b1\u00b7log(prior_topo))
+  // Robusto a valori molto piccoli, evita schiacciamento
+  return Math.exp((1 - TOPO_BLEND_ALPHA) * Math.log(Math.max(dx.prior, 1e-6)) + TOPO_BLEND_ALPHA * Math.log(Math.max(topo, 1e-6)));
+}
 
 // Morphology prior adjustment (point 1)
 function adjustPrior(dx) {
-  let p = dx.prior;
+  let p = adjustPriorBySite(dx); // v3.7.0: parti dal prior topografico
   const n = dx.name;
   if (morphology === 'linfoide') {
     if (!n.includes('Linf') && !n.includes('Mieloma') && !n.includes('DLBCL') && !n.includes('Hodgkin')) p *= 0.15;
@@ -695,7 +1000,10 @@ function adjustPrior(dx) {
     if (n.includes('Carcinoma') || n.includes('Adeno') || n.includes('HCC') || n.includes('Melanoma')) p *= 0.2;
     else if (n.includes('Linf') || n.includes('DLBCL') || n.includes('Hodgkin') || n.includes('Mieloma')) p *= 0.15;
   } else if (morphology === 'epiteliale') {
-    if (n.includes('Sarcoma') || n.includes('GIST') || n.includes('Fibroso') || n.includes('Liposarcoma') || n.includes('Leiomio') || n.includes('Rabdo') || n.includes('Ewing') || n.includes('MPNST')) p *= 0.2;
+    // v3.5.0: Mesotelioma epitelioide è epiteliale — non penalizzare
+    if (n.includes('Mesotelioma')) {
+      // no penalty — epiteliale per definizione
+    } else if (n.includes('Sarcoma') || n.includes('GIST') || n.includes('Fibroso') || n.includes('Liposarcoma') || n.includes('Leiomio') || n.includes('Rabdo') || n.includes('Ewing') || n.includes('MPNST')) p *= 0.2;
     else if (n.includes('Melanoma')) p *= 0.15;
     else if (n.includes('Linf') || n.includes('DLBCL') || n.includes('Hodgkin') || n.includes('Mieloma')) p *= 0.2;
   } else if (morphology === 'melanocitico') {
@@ -758,7 +1066,26 @@ function getCorrelationPenalty(mid, isPositive) {
 }
 
 // UI handlers
-function onMorphChange() { morphology = document.getElementById('morphSelect').value; }
+// v3.8.1: helper per capire se i risultati Bayes sono attualmente visualizzati
+function resultsAreVisible() {
+  const el = document.getElementById('lookupResults');
+  return el && el.style.display !== 'none';
+}
+
+function onMorphChange() {
+  morphology = document.getElementById('morphSelect').value;
+  // v3.8.1: ricalcola se i risultati sono visibili
+  if (lastResults.length && resultsAreVisible()) analyzeMarkers();
+}
+
+function onSiteChange() {
+  topographicSite = document.getElementById('siteSelect').value;
+  // v3.8.1: sincronizza select Cascade
+  const css = document.getElementById('cascSiteSelect');
+  if (css) css.value = topographicSite;
+  // v3.8.1: ricalcola se i risultati sono visibili
+  if (lastResults.length && resultsAreVisible()) analyzeMarkers();
+}
 function onTSChange() { tissueLimit = parseInt(document.getElementById('tsSelect').value) || 0; }
 function onTBToggle() { tumorBoardMode = document.getElementById('tbMode').checked; if (lastResults.length) { displayResults(lastResults); } }
 
@@ -772,7 +1099,9 @@ function logSumExp(lv) {
 }
 
 function computeBayes() {
-  const tested = new Set([...positiveMarkers, ...negativeMarkers]);
+  // v3.9.0: tested include anche pattern marker selezionati
+  const patternIds = Object.keys(patternMarkers);
+  const tested = new Set([...positiveMarkers, ...negativeMarkers, ...patternIds]);
   if (tested.size === 0) return [];
   const results = [];
   for (const dx of bayesDB) {
@@ -781,22 +1110,78 @@ function computeBayes() {
     for (const [mid, p] of Object.entries(dx.markers)) {
       if (!tested.has(mid)) continue;
       const d = getDisplay(mid);
+
+      // v3.9.1-final: gating pattern marker basato su markerDB.type (NON su p.type del bayesDB)
+      // Cos\u00ec, anche se domani aggiungi p53 a markerDB con type:'pattern' ma dimentichi di
+      // aggiornare la voce in qualche dx, NON viene mai trattato come binario per errore.
+      if (isPatternMarker(mid)) {
+        if (!patternMarkers[mid]) continue; // pattern non selezionato (n.i. o untested)
+        // Se il bayesDB della dx non ha modellato questo come pattern, lo dichiariamo esplicitamente
+        if (p.type !== 'pattern') {
+          const msg = '\u26a0\ufe0f '+d+' pattern marker non modellato come pattern nel bayesDB';
+          flags.push(msg);
+          reasoning.push({type:'flag', text: msg});
+          continue;
+        }
+        const observedPattern = patternMarkers[mid];
+        const probInDx = p.patternProbs[observedPattern];
+        if (probInDx === undefined) continue; // pattern non listato per questa dx
+        // LR(pattern) = P(pattern | dx) / P(pattern | not-dx)
+        let sumOther = 0; let cntOther = 0;
+        for (const otherDx of bayesDB) {
+          if (otherDx === dx) continue;
+          const om = otherDx.markers[mid];
+          if (om && om.type === 'pattern' && om.patternProbs[observedPattern] !== undefined) {
+            sumOther += om.patternProbs[observedPattern];
+            cntOther += 1;
+          }
+        }
+        const probInOther = cntOther > 0 ? (sumOther / cntOther) : 0.5;
+        const lr = probInDx / Math.max(probInOther, 0.001);
+        const corrW = (p.w || 1.0);
+        logP += corrW * Math.log(Math.max(lr, 0.001));
+        if (lr >= 2.0) reasoning.push({type:'support',text:'\u2705 '+d+' '+observedPattern+' (LR '+lr.toFixed(1)+')'});
+        else if (lr <= 0.5) reasoning.push({type:'exclude',text:'\u274c '+d+' '+observedPattern+' \u2014 contro dx (LR '+lr.toFixed(2)+')'});
+        else reasoning.push({type:'flag',text:'\u26a0\ufe0f '+d+' '+observedPattern+' \u2014 informazione debole (LR '+lr.toFixed(1)+')'});
+        continue;
+      }
+
       const isPos = positiveMarkers.has(mid);
+      // v3.5.0: gestione loss-marker (BAP1, SMAD4, MMR, INI1, ecc.)
+      // Convenzione: s = frazione che mostra LOSS nella malattia
+      // \u2192 il marker NEGATIVO (=loss osservato) supporta la diagnosi
+      const isLoss = markerDB[mid] && markerDB[mid].loss === true;
+      const lossTag = isLoss ? ' [loss]' : '';
       if (isPos) {
-        // LR+ = sensitivity / (1 - specificity)
-        const lr = p.s / Math.max(1 - p.n, 0.001);
+        // POS: marker normale = espresso; loss-marker = retained (non perso)
+        const lr = isLoss
+          ? (1 - p.s) / Math.max(p.n, 0.001)        // LR(retained): contro la diagnosi se loss-marker
+          : p.s / Math.max(1 - p.n, 0.001);          // LR+ classico
         const corrW = p.w * getCorrelationPenalty(mid, true);
         logP += corrW * Math.log(Math.max(lr, 0.001));
-        // v3.4.2: flag basato su LR+, non solo sensibilità (s bassa + n alta = marker prezioso)
-        if(lr >= 2.0) reasoning.push({type:'support',text:'\u2705 '+d+' (+) LR+ '+lr.toFixed(1)});
-        else { flags.push('\u26a0\ufe0f '+d+' POS poco discriminante (LR+ '+lr.toFixed(1)+', sens '+Math.round(p.s*100)+'%)'); reasoning.push({type:'flag',text:'\u26a0\ufe0f '+d+' (+) LR+ basso ('+lr.toFixed(1)+')'}); }
+        // v3.6.2: testo coerente — usa "retained"/"lost" per loss-marker, "+/-" per gli altri
+        if (isLoss) {
+          if (lr <= 0.5) reasoning.push({type:'exclude',text:'\u274c '+d+' retained \u2014 contro loss diagnostico (LR '+lr.toFixed(2)+')'});
+          else if (lr >= 2.0) reasoning.push({type:'support',text:'\u2705 '+d+' retained (LR '+lr.toFixed(1)+')'});
+          else { flags.push('\u26a0\ufe0f '+d+' retained poco discriminante (LR '+lr.toFixed(1)+')'); reasoning.push({type:'flag',text:'\u26a0\ufe0f '+d+' retained \u2014 informazione debole (LR '+lr.toFixed(1)+')'}); }
+        } else {
+          if (lr >= 2.0) reasoning.push({type:'support',text:'\u2705 '+d+' (+) LR '+lr.toFixed(1)});
+          else { flags.push('\u26a0\ufe0f '+d+' POS poco discriminante (LR '+lr.toFixed(1)+')'); reasoning.push({type:'flag',text:'\u26a0\ufe0f '+d+' (+) LR basso ('+lr.toFixed(1)+')'}); }
+        }
       } else {
-        // LR- = (1 - sensitivity) / specificity
-        const lr = (1 - p.s) / Math.max(p.n, 0.001);
+        // NEG: marker normale = non espresso; loss-marker = LOSS osservato → SUPPORTA diagnosi
+        const lr = isLoss
+          ? p.s / Math.max(1 - p.n, 0.001)           // LR(loss): supporta la diagnosi se loss-marker
+          : (1 - p.s) / Math.max(p.n, 0.001);        // LR- classico
         const corrW = p.w * getCorrelationPenalty(mid, false);
         logP += corrW * Math.log(Math.max(lr, 0.001));
-        if (p.s >= 0.7) { flags.push('\ud83d\udeab '+d+' NEG (atteso pos, sens '+Math.round(p.s*100)+'%)'); reasoning.push({type:'flag',text:'\ud83d\udeab '+d+' (-) atteso pos (sens '+Math.round(p.s*100)+'%)'}); }
-        else if (p.s <= 0.10) reasoning.push({type:'exclude',text:'\u274c '+d+' (-) confermato neg — LR- '+lr.toFixed(2)});
+        // v3.6.2: testo coerente con badge controllo interno per loss-marker confermati
+        if (isLoss && lr >= 2.0) {
+          const ctrl = lossControlConfirmed.has(mid) ? ' [ctrl int. OK]' : '';
+          reasoning.push({type:'support',text:'\u2705 '+d+' lost'+ctrl+' \u2192 supporta dx (LR '+lr.toFixed(1)+')'});
+        }
+        else if (!isLoss && p.s >= 0.7) { flags.push('\ud83d\udeab '+d+' NEG (atteso pos, sens '+Math.round(p.s*100)+'%)'); reasoning.push({type:'flag',text:'\ud83d\udeab '+d+' (-) atteso pos (sens '+Math.round(p.s*100)+'%)'}); }
+        else if (!isLoss && p.s <= 0.10) reasoning.push({type:'exclude',text:'\u274c '+d+' (-) confermato neg \u2014 LR- '+lr.toFixed(2)});
       }
     }
     results.push({name:dx.name,logP,reasoning,flags,markers:dx.markers});
@@ -807,25 +1192,38 @@ function computeBayes() {
 
 // INFO GAIN
 function computeInfoGain() {
-  const tested = new Set([...positiveMarkers,...negativeMarkers]);
+  // v3.8.2/v3.9.0: tested include n.i. + pattern marker (gi\u00e0 selezionati con un pattern)
+  const patternIds = Object.keys(patternMarkers);
+  const tested = new Set([...positiveMarkers, ...negativeMarkers, ...nonInterpretableMarkers, ...patternIds]);
   if (lastResults.length < 2) return [];
   const cands = new Set();
   for (const r of lastResults.slice(0,5)) {
     for (const mid of Object.keys(r.markers)) {
       if (tested.has(mid)) continue;
+      // v3.9.1: skip pattern marker dall'IG binario (richiederebbe IG multi-stato \u2014 v3.10 roadmap)
+      if (isPatternMarker(mid)) continue;
       const site = getSite(mid);
-      // v3.4.2: coerenza con getActiveIds() — IG suggerisce solo marker selezionabili in UI
+      // v3.5.0: coerenza con getActiveIds() — IG suggerisce solo marker selezionabili in UI corrente
       if (currentMode === 'fbf' && site !== 'fbf') continue;
       if (currentMode === 'all' && !(site === 'fbf' || site === 'sacco')) continue;
+      // currentMode === 'full' → tutti ammessi
       cands.add(mid);
     }
   }
   const H0 = -lastResults.reduce((s,r)=>s+(r.posterior>0?r.posterior*Math.log2(r.posterior):0),0);
   const gains = [];
   for (const mid of cands) {
-    // Weighted IG (point 4): pPos = sum posterior(dx) * sens(dx, marker)
+    // Weighted IG (point 4): pPos = sum posterior(dx) * P(POS observed | dx, marker)
+    // v3.6.0: per loss-marker, P(POS=retained) = 1 - s (perché s = % loss)
     let pPos = 0;
-    for (const r of lastResults) { const mk = r.markers[mid]; if (mk) pPos += r.posterior * mk.s; }
+    const isLoss = markerDB[mid] && markerDB[mid].loss === true;
+    for (const r of lastResults) {
+      const mk = r.markers[mid];
+      if (mk) {
+        const probPositiveObserved = isLoss ? (1 - mk.s) : mk.s;
+        pPos += r.posterior * probPositiveObserved;
+      }
+    }
     pPos = Math.max(0.05, Math.min(0.95, pPos)); // clamp
     positiveMarkers.add(mid); const rP = computeBayes(); positiveMarkers.delete(mid);
     negativeMarkers.add(mid); const rN = computeBayes(); negativeMarkers.delete(mid);
@@ -857,14 +1255,30 @@ function getActiveIds() {
   return Object.keys(markerDB).filter(id=>{
     const s=markerDB[id].site;
     if(currentMode==='fbf') return s==='fbf';
-    return s==='fbf' || s==='sacco'; // 'all' = FBF + SACCO (ND esclusi dalla UI attiva)
+    if(currentMode==='all') return s==='fbf' || s==='sacco';
+    return true; // 'full' = tutti, inclusi ND outsourcing
   }).sort(naturalSort);
 }
-function onModeChange() { currentMode=document.querySelector('input[name=siteMode]:checked').value; renderAvailableMarkers(); }
+function onModeChange() {
+  currentMode = document.querySelector('input[name=siteMode]:checked').value;
+  renderAvailableMarkers();
+  // v3.8.3: il Next Best dipende da currentMode (computeInfoGain filtra per modalit\u00e0)
+  // I risultati Bayes NON cambiano (sono sui marker gi\u00e0 testati), ma i suggerimenti s\u00ec
+  if (lastResults.length && resultsAreVisible()) {
+    displayNextBest(computeInfoGain());
+  }
+}
 
 function renderAvailableMarkers() {
   const search=(document.getElementById('markerSearch')?.value||'').toLowerCase();
-  const avail=getActiveIds().filter(id=>!positiveMarkers.has(id)&&!negativeMarkers.has(id)&&(search===''||getDisplay(id).toLowerCase().includes(search)||markerDB[id].aliases.some(a=>a.includes(search))));
+  // v3.8/v3.9.0: escludi loss-marker E pattern-marker (hanno le loro sezioni dedicate)
+  const avail=getActiveIds().filter(id=>{
+    if(markerDB[id] && markerDB[id].loss === true) return false;
+    if(isPatternMarker(id)) return false;
+    if(positiveMarkers.has(id)||negativeMarkers.has(id)) return false;
+    if(search!=='' && !getDisplay(id).toLowerCase().includes(search) && !markerDB[id].aliases.some(a=>a.includes(search))) return false;
+    return true;
+  });
   const c=document.getElementById('availableMarkers');
   c.innerHTML=avail.map(id=>{
     const m=markerDB[id];
@@ -874,22 +1288,164 @@ function renderAvailableMarkers() {
   // Legend
   const legend=document.getElementById('siteLegend');
   if(legend) {
-    legend.style.display = currentMode==='all' ? 'flex' : 'none';
-    // v3.4.2: ND non mostrati in lista attiva — nascondi voce legenda ND
+    legend.style.display = (currentMode==='all' || currentMode==='full') ? 'flex' : 'none';
     const ndLegItem = legend.querySelector('.nd-leg-item');
-    if(ndLegItem) ndLegItem.style.display = 'none';
+    if(ndLegItem) ndLegItem.style.display = currentMode==='full' ? 'flex' : 'none';
   }
+  renderLossMarkers(); // v3.8
+  renderPatternMarkers(); // v3.9.0
   renderSelectedMarkers(); updateCounts();
+}
+
+// v3.8: render dei loss-marker con UI a 3 pulsanti dedicata
+function renderLossMarkers() {
+  const c = document.getElementById('lossMarkersGrid');
+  if(!c) return;
+  const activeIds = new Set(getActiveIds());
+  // v3.8.2: includi sempre i loss-marker gi\u00e0 selezionati anche se fuori modalit\u00e0
+  // (altrimenti diventano marker "attivi ma invisibili" che influenzano il Bayes silenziosamente)
+  const lossIds = Object.keys(markerDB).filter(id =>
+    markerDB[id].loss === true && (
+      activeIds.has(id) ||
+      positiveMarkers.has(id) ||
+      negativeMarkers.has(id) ||
+      nonInterpretableMarkers.has(id)
+    )
+  );
+  if(!lossIds.length) { c.innerHTML = '<p style="color:#78716c;font-size:.78rem;font-style:italic;">Nessun loss-marker disponibile in questa modalit\u00e0.</p>'; return; }
+  c.innerHTML = lossIds.sort((a,b)=>getDisplay(a).localeCompare(getDisplay(b))).map(id => {
+    const d = getDisplay(id);
+    let state = 'untested';
+    if(positiveMarkers.has(id)) state = 'retained';
+    else if(negativeMarkers.has(id)) state = 'lost';
+    else if(nonInterpretableMarkers.has(id)) state = 'ni';
+    const cardCls = state !== 'untested' ? 'lossm-state-'+state : '';
+    const ctrlNote = (state === 'lost' && lossControlConfirmed.has(id)) ? '<div class="lossm-ctrl">\u2713 ctrl int. positivo</div>' : '';
+    // v3.8.2: badge "fuori modalit\u00e0" se il marker \u00e8 selezionato ma non disponibile nella modalit\u00e0 corrente
+    const outOfMode = !activeIds.has(id)
+      ? '<span class="lossm-tag" style="background:#fee2e2;color:#991b1b;" title="Selezionato in una modalit\u00e0 precedente, ora fuori modalit\u00e0">fuori mod.</span>'
+      : '';
+    return '<div class="lossm-card '+cardCls+' '+getSiteClass(id)+'">'+
+      '<div class="lossm-name">'+getSiteDot(id)+d+outOfMode+'<span class="lossm-tag">loss</span></div>'+
+      '<div class="lossm-buttons">'+
+        '<button class="'+(state==='retained'?'active-retained':'')+'" onclick="setLossMarker(\''+id+'\',\'retained\')" title="Colorazione mantenuta nel tumore">retained</button>'+
+        '<button class="'+(state==='lost'?'active-lost':'')+'" onclick="setLossMarker(\''+id+'\',\'lost\')" title="Colorazione persa con controllo interno positivo">lost</button>'+
+        '<button class="'+(state==='ni'?'active-ni':'')+'" onclick="setLossMarker(\''+id+'\',\'ni\')" title="Non interpretabile (controllo interno assente, errore tecnico)">n.i.</button>'+
+      '</div>'+
+      ctrlNote+
+    '</div>';
+  }).join('');
+}
+
+// v3.8.1: helper per stato corrente loss-marker
+function getLossMarkerState(id) {
+  if (positiveMarkers.has(id)) return 'retained';
+  if (negativeMarkers.has(id)) return 'lost';
+  if (nonInterpretableMarkers.has(id)) return 'ni';
+  return 'untested';
+}
+
+// v3.8: imposta lo stato di un loss-marker (con prompt controllo interno per "lost")
+// v3.8.1: clic ripetuto sullo stato attivo \u2192 untested (toggle off)
+function setLossMarker(id, state) {
+  const current = getLossMarkerState(id);
+  // Pulisci da tutti gli stati
+  positiveMarkers.delete(id);
+  negativeMarkers.delete(id);
+  nonInterpretableMarkers.delete(id);
+  lossControlConfirmed.delete(id);
+  // Toggle off: stesso stato \u2192 torna a untested
+  if (current === state) {
+    renderAvailableMarkers();
+    return;
+  }
+  if(state === 'retained') {
+    positiveMarkers.add(id);
+  } else if(state === 'lost') {
+    const ok = confirm('\u26A0\uFE0F '+getDisplay(id)+' = LOST\n\nControllo interno positivo presente?\n(linfociti/endotelio/stroma per BAP1; epitelio normale per MMR; ecc.)\n\nOK = controllo interno OK \u2192 conferma loss\nAnnulla = nessun controllo \u2192 marca come "non interpretabile"');
+    if(!ok) {
+      nonInterpretableMarkers.add(id);
+    } else {
+      negativeMarkers.add(id);
+      lossControlConfirmed.add(id);
+    }
+  } else if(state === 'ni') {
+    nonInterpretableMarkers.add(id);
+  }
+  renderAvailableMarkers();
+}
+
+// v3.9.0: render dei marker pattern (\u03b2-catenina, in futuro p53/Ki-67/MMR/HER2/PD-L1)
+function renderPatternMarkers() {
+  const c = document.getElementById('patternMarkersGrid');
+  if(!c) return;
+  const activeIds = new Set(getActiveIds());
+  // Includi sempre i marker pattern selezionati anche se fuori modalit\u00e0 (coerenza con loss-marker)
+  const pattIds = Object.keys(markerDB).filter(id =>
+    isPatternMarker(id) && (
+      activeIds.has(id) ||
+      patternMarkers[id] ||
+      (nonInterpretableMarkers.has(id) && isPatternMarker(id))
+    )
+  );
+  if(!pattIds.length) {
+    c.innerHTML = '<p style="color:#78716c;font-size:.78rem;font-style:italic;">Nessun marker pattern disponibile in questa modalit\u00e0.</p>';
+    return;
+  }
+  c.innerHTML = pattIds.sort((a,b)=>getDisplay(a).localeCompare(getDisplay(b))).map(id => {
+    const d = getDisplay(id);
+    const m = markerDB[id];
+    const patterns = m.patterns || []; // es. ['membranous', 'nuclear']
+    const state = getPatternMarkerState(id); // null | 'membranous' | 'nuclear' | 'ni'
+    const cardCls = state ? 'pattm-state-'+state : '';
+    const outOfMode = !activeIds.has(id)
+      ? '<span class="pattm-tag" style="background:#fee2e2;color:#991b1b;" title="Selezionato in una modalit\u00e0 precedente">fuori mod.</span>'
+      : '';
+    // Pulsanti pattern (3 pattern + n.i.)
+    const buttons = patterns.map(p => {
+      const active = state === p ? 'active-'+p : '';
+      return '<button class="'+active+'" onclick="setPatternMarker(\''+id+'\',\''+p+'\')" title="'+p+'">'+p+'</button>';
+    }).join('') +
+      '<button class="'+(state==='ni'?'active-ni':'')+'" onclick="setPatternMarker(\''+id+'\',\'ni\')" title="Non interpretabile">n.i.</button>';
+    return '<div class="lossm-card pattm-card '+cardCls+' '+getSiteClass(id)+'">'+
+      '<div class="lossm-name pattm-name">'+getSiteDot(id)+d+outOfMode+'<span class="pattm-tag">pattern</span></div>'+
+      '<div class="lossm-buttons pattm-buttons" style="grid-template-columns:repeat('+(patterns.length+1)+',1fr);">'+buttons+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+// v3.9.0: imposta lo stato di un marker pattern
+// state: 'membranous' | 'nuclear' | 'cytoplasmic' | ... | 'ni'
+// Toggle off: clic ripetuto sullo stato attivo \u2192 untested
+function setPatternMarker(id, state) {
+  const current = getPatternMarkerState(id);
+  // Pulisci da tutti gli stati possibili
+  delete patternMarkers[id];
+  nonInterpretableMarkers.delete(id);
+  // Toggle off
+  if (current === state) {
+    renderAvailableMarkers();
+    return;
+  }
+  if (state === 'ni') {
+    nonInterpretableMarkers.add(id);
+  } else {
+    patternMarkers[id] = state;
+  }
+  renderAvailableMarkers();
 }
 
 function renderSelectedMarkers() {
   const pp=document.getElementById('positivePanel');
   const np=document.getElementById('negativePanel');
-  pp.innerHTML=Array.from(positiveMarkers).sort(naturalSort).map(id=>{
-    return '<div class="marker-item selected-pos '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')">'+getSiteDot(id)+'<span>'+getDisplay(id)+'</span><span class="marker-badge">\u2705</span><button class="whatif-btn" title="What If negativo?" onclick="event.stopPropagation();whatIfMarker(\''+id+'\',\'pos\')">+/-?</button></div>';
+  // v3.8/v3.9.0: loss-marker E pattern-marker compaiono SOLO nelle loro sezioni dedicate
+  // v3.9.1-final: helper esplicito coerente con architettura type-system
+  const isRegularBinaryMarker = id => !isLossMarker(id) && !isPatternMarker(id);
+  pp.innerHTML=Array.from(positiveMarkers).filter(isRegularBinaryMarker).sort(naturalSort).map(id=>{
+    return '<div class="marker-item selected-pos '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')">'+getSiteDot(id)+'<span>'+getDisplay(id)+'</span><span class="marker-badge">\u2705</span><button class="whatif-btn" title="What If l\'opposto?" onclick="event.stopPropagation();whatIfMarker(\''+id+'\',\'pos\')">+/-?</button></div>';
   }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui \u2192</p>';
-  np.innerHTML=Array.from(negativeMarkers).sort(naturalSort).map(id=>{
-    return '<div class="marker-item selected-neg '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')">'+getSiteDot(id)+'<span>'+getDisplay(id)+'</span><span class="marker-badge">\u274c</span><button class="whatif-btn" title="What If positivo?" onclick="event.stopPropagation();whatIfMarker(\''+id+'\',\'neg\')">+/-?</button></div>';
+  np.innerHTML=Array.from(negativeMarkers).filter(isRegularBinaryMarker).sort(naturalSort).map(id=>{
+    return '<div class="marker-item selected-neg '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')">'+getSiteDot(id)+'<span>'+getDisplay(id)+'</span><span class="marker-badge">\u274c</span><button class="whatif-btn" title="What If l\'opposto?" onclick="event.stopPropagation();whatIfMarker(\''+id+'\',\'neg\')">+/-?</button></div>';
   }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui \u2192</p>';
 }
 
@@ -897,7 +1453,11 @@ function renderSelectedMarkers() {
 function whatIfMarker(id, currentDir) {
   if (lastResults.length === 0) { alert('Esegui prima l\'analisi.'); return; }
   const dName = getDisplay(id);
-  const flipLabel = currentDir === 'pos' ? 'NEGATIVO' : 'POSITIVO';
+  const isLoss = markerDB[id] && markerDB[id].loss === true;
+  // v3.6.0: etichette semantiche per loss-marker
+  const flipLabel = isLoss
+    ? (currentDir === 'pos' ? 'LOST' : 'RETAINED')
+    : (currentDir === 'pos' ? 'NEGATIVO' : 'POSITIVO');
   const wasPos = positiveMarkers.has(id);
   const wasNeg = negativeMarkers.has(id);
   positiveMarkers.delete(id); negativeMarkers.delete(id);
@@ -950,12 +1510,24 @@ function whatIfMarker(id, currentDir) {
   document.body.appendChild(overlay);
 }
 
+// v3.8.1: helper per coerenza loss-marker
+function isLossMarker(id) { return markerDB[id] && markerDB[id].loss === true; }
+
 function updateCounts() {
-  document.getElementById('posCount').textContent=positiveMarkers.size;
-  document.getElementById('negCount').textContent=negativeMarkers.size;
-  document.getElementById('availCount').textContent=getActiveIds().filter(id=>!positiveMarkers.has(id)&&!negativeMarkers.has(id)).length;
+  // v3.8.1/v3.9.1: i loss-marker E i pattern marker hanno sezioni dedicate, non vanno conteggiati nei pannelli generici
+  const posRegular = Array.from(positiveMarkers).filter(id => !isLossMarker(id) && !isPatternMarker(id)).length;
+  const negRegular = Array.from(negativeMarkers).filter(id => !isLossMarker(id) && !isPatternMarker(id)).length;
+  const availNonLoss = getActiveIds().filter(id =>
+    !isLossMarker(id) &&
+    !isPatternMarker(id) &&
+    !positiveMarkers.has(id) &&
+    !negativeMarkers.has(id)
+  ).length;
+  document.getElementById('posCount').textContent = posRegular;
+  document.getElementById('negCount').textContent = negRegular;
+  document.getElementById('availCount').textContent = availNonLoss;
 }
-function removeMarker(id) { positiveMarkers.delete(id); negativeMarkers.delete(id); renderAvailableMarkers(); }
+function removeMarker(id) { positiveMarkers.delete(id); negativeMarkers.delete(id); lossControlConfirmed.delete(id); nonInterpretableMarkers.delete(id); delete patternMarkers[id]; renderAvailableMarkers(); }
 
 let draggedMarker=null;
 function handleDragStart(e,id){ draggedMarker=id; e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',id); e.target.closest('.marker-item')?.classList.add('dragging'); }
@@ -968,6 +1540,25 @@ function handleDragLeave(e,t){ e.currentTarget.classList.remove(t==='positive'?'
 // ============================================================
 let lastTap = {}; // per double-tap detection
 
+// v3.6.1: track loss-marker con controllo interno positivo confermato
+let lossControlConfirmed = new Set();
+
+// v3.8: loss-marker non interpretabili (controllo interno assente / errore tecnico) \u2014 ESCLUSI dal Bayes
+let nonInterpretableMarkers = new Set();
+
+// v3.9.0: marker pattern (\u03b2-catenina, in futuro p53/Ki-67/MMR composito/HER2/PD-L1)
+// Map id \u2192 pattern selezionato (es. {'BETA_CATENIN': 'nuclear'})
+// I pattern marker NON entrano in positiveMarkers/negativeMarkers, hanno il loro Map
+let patternMarkers = {};
+
+// v3.9.0: helpers per marker pattern
+function isPatternMarker(id) { return markerDB[id] && markerDB[id].type === 'pattern'; }
+function getPatternMarkerState(id) {
+  if (patternMarkers[id]) return patternMarkers[id];
+  if (nonInterpretableMarkers.has(id) && isPatternMarker(id)) return 'ni';
+  return null;
+}
+
 function handleTap(id) {
   const now = Date.now();
   const last = lastTap[id] || 0;
@@ -978,7 +1569,17 @@ function handleTap(id) {
     return;
   }
   lastTap[id] = now;
-  // Single tap: toggle POS → NEG → rimosso
+  // v3.8: loss-marker hanno UI dedicata, no toggle qui
+  if(markerDB[id] && markerDB[id].loss === true) {
+    alert('\u2139\uFE0F '+getDisplay(id)+' \u00e8 un loss-marker.\n\nUsa la sezione dedicata "\ud83e\uddec Loss-marker" per retained/lost/non interpretabile.');
+    return;
+  }
+  // v3.9.0: pattern marker hanno UI dedicata
+  if(isPatternMarker(id)) {
+    alert('\u2139\uFE0F '+getDisplay(id)+' \u00e8 un marker pattern.\n\nUsa la sezione dedicata "\ud83c\udfa8 Marker pattern" per impostare il pattern.');
+    return;
+  }
+  // Single tap: toggle POS \u2192 NEG \u2192 rimosso
   if (positiveMarkers.has(id)) {
     positiveMarkers.delete(id);
     negativeMarkers.add(id);
@@ -994,15 +1595,58 @@ function isTouchDevice() {
   return window.matchMedia('(hover:none) and (pointer:coarse)').matches;
 }
 
-function handleDrop(e,t){ e.preventDefault(); const id=draggedMarker||e.dataTransfer.getData('text/plain'); positiveMarkers.delete(id); negativeMarkers.delete(id); if(t==='positive')positiveMarkers.add(id);else negativeMarkers.add(id); renderAvailableMarkers(); e.currentTarget.classList.remove('drag-over-pos','drag-over-neg'); }
+function handleDrop(e,t){
+  e.preventDefault();
+  const id=draggedMarker||e.dataTransfer.getData('text/plain');
+  // v3.8: i loss-marker hanno la loro UI dedicata e NON si trascinano
+  if(markerDB[id] && markerDB[id].loss === true) {
+    e.currentTarget.classList.remove('drag-over-pos','drag-over-neg');
+    alert('\u2139\uFE0F '+getDisplay(id)+' \u00e8 un loss-marker.\n\nUsa la sezione "\ud83e\uddec Loss-marker" sotto i pannelli per impostarlo come retained / lost / non interpretabile.');
+    return;
+  }
+  // v3.9.0: i pattern marker hanno la loro UI dedicata e NON si trascinano
+  if(isPatternMarker(id)) {
+    e.currentTarget.classList.remove('drag-over-pos','drag-over-neg');
+    const patterns = (markerDB[id].patterns || []).join(' / ');
+    alert('\u2139\uFE0F '+getDisplay(id)+' \u00e8 un marker pattern.\n\nUsa la sezione "\ud83c\udfa8 Marker pattern" per impostarlo come '+patterns+' / non interpretabile.');
+    return;
+  }
+  positiveMarkers.delete(id);
+  negativeMarkers.delete(id);
+  if(t==='positive')positiveMarkers.add(id);else negativeMarkers.add(id);
+  renderAvailableMarkers();
+  e.currentTarget.classList.remove('drag-over-pos','drag-over-neg');
+}
 
 function analyzeMarkers() {
-  if(positiveMarkers.size===0&&negativeMarkers.size===0){ alert('Seleziona almeno un marker!'); return; }
+  // v3.9.1: i pattern marker sono interpretabili come pos/neg/loss
+  const nPattern = Object.keys(patternMarkers).length;
+  const nInterpretable = positiveMarkers.size + negativeMarkers.size + nPattern;
+  if (nInterpretable === 0) {
+    if (nonInterpretableMarkers.size > 0) {
+      // Caso: tutti i marker testati sono n.i. \u2192 messaggio dedicato in warnBar
+      const wb = document.getElementById('warnBar');
+      const niList = Array.from(nonInterpretableMarkers).map(id => getDisplay(id)).join(', ');
+      wb.style.display = 'block';
+      // v3.9.1: messaggio generalizzato (non solo loss-marker, anche pattern n.i.)
+      wb.innerHTML = '\u26a0\ufe0f <strong>Nessun marker interpretabile.</strong> I marker marcati come n.i. ('+niList+') sono esclusi dal calcolo Bayesiano. Aggiungi almeno un marker positivo/negativo, un loss-marker retained/lost o un marker pattern interpretabile.';
+      // Pulizia residui grafici da analisi precedente
+      lastResults = [];
+      const ndBanner = document.getElementById('ndImportBanner');
+      if (ndBanner) ndBanner.style.display = 'none';
+      document.getElementById('emptyLookupState').style.display = 'block';
+      document.getElementById('lookupResults').style.display = 'none';
+      document.getElementById('nextBestSection').innerHTML = '';
+      return;
+    }
+    alert('Seleziona almeno un marker!');
+    return;
+  }
   // Warning bar (point 9)
   const wb = document.getElementById('warnBar');
-  const nTested = positiveMarkers.size + negativeMarkers.size;
-  if (nTested < 2) { wb.style.display='block'; wb.innerHTML='\u26a0\ufe0f <strong>Inferenza fragile</strong> (n='+nTested+'). Aggiungere almeno 2 marker per risultati affidabili.'; }
-  else if (nTested < 3) { wb.style.display='block'; wb.innerHTML='\ud83d\udfe1 Inferenza con '+nTested+' marker. Risultati indicativi.'; }
+  const nTested = nInterpretable;
+  if (nTested < 2) { wb.style.display='block'; wb.innerHTML='\u26a0\ufe0f <strong>Inferenza fragile</strong> (n='+nTested+'). Aggiungere almeno 2 marker interpretabili per risultati affidabili.'; }
+  else if (nTested < 3) { wb.style.display='block'; wb.innerHTML='\ud83d\udfe1 Inferenza con '+nTested+' marker interpretabili. Risultati indicativi.'; }
   else { wb.style.display='none'; }
   // v3.4.3: banner se ci sono marker ND importati dalla Cascade
   const ndBanner = document.getElementById('ndImportBanner');
@@ -1028,8 +1672,10 @@ function computeConfidence(results) {
   const top1 = results[0];
   const top2 = results[1] || {posterior:0};
   const delta = top1.posterior - top2.posterior;
-  const tested = positiveMarkers.size + negativeMarkers.size;
-  const covered = Object.keys(top1.markers).filter(m => positiveMarkers.has(m) || negativeMarkers.has(m)).length;
+  // v3.9.1: include pattern marker nei marker testati e coperti
+  const patternIds = Object.keys(patternMarkers);
+  const tested = positiveMarkers.size + negativeMarkers.size + patternIds.length;
+  const covered = Object.keys(top1.markers).filter(m => positiveMarkers.has(m) || negativeMarkers.has(m) || patternMarkers[m]).length;
   const coverage = covered / Math.max(Object.keys(top1.markers).length, 1);
   const flagPenalty = Math.min(top1.flags.length * 0.08, 0.24);
   const score = (0.55 * delta) + (0.25 * Math.min(tested/4, 1)) + (0.20 * coverage) - flagPenalty;
@@ -1046,7 +1692,7 @@ function displayResults(results) {
   // Classe di confidenza (point 2): delta between top1 and top2
   const conf = computeConfidence(results);
   const delta = results.length >= 2 ? results[0].posterior - results[1].posterior : 1;
-  c.innerHTML='<div style="margin-bottom:10px;font-size:.88rem;">Robustezza del ranking: <span class="conf-badge '+conf.cls+'">'+conf.label+' (\u0394='+Math.round(delta*100)+'%)</span>'+(morphology!=='any'?' · Morfologia: <strong>'+morphology+'</strong>':'')+'</div>'+
+  c.innerHTML='<div style="margin-bottom:10px;font-size:.88rem;">Robustezza del ranking: <span class="conf-badge '+conf.cls+'">'+conf.label+' (\u0394='+Math.round(delta*100)+'%)</span>'+(topographicSite!=='non_specificata'?' \u00b7 Sede: <strong>'+getSiteLabel(topographicSite)+'</strong>':'')+(morphology!=='any'?' \u00b7 Morfologia: <strong>'+morphology+'</strong>':'')+'</div>'+
   shown.map((dx,i)=>{
     const pct=Math.round(dx.posterior*100);
     const scoreClass=pct>=25?'high':pct>=10?'medium':'low';
@@ -1059,14 +1705,37 @@ function displayResults(results) {
     const fHTML=dx.flags.length?'<div class="flags-box"><strong style="color:var(--flag);">Contraddizioni:</strong><br>'+dx.flags.join('<br>')+'</div>':'';
     const mTags=Object.keys(dx.markers).map(mid=>{
       const d=getDisplay(mid);
-      if(positiveMarkers.has(mid))return '<span class="marker-tag pos">'+d+' +</span>';
-      if(negativeMarkers.has(mid))return '<span class="marker-tag neg">'+d+' -</span>';
+      // v3.6.1: per loss-marker mostra retained/lost + flag controllo interno
+      const isLoss = markerDB[mid] && markerDB[mid].loss === true;
+      // v3.9.0: pattern marker (\u03b2-catenina, ecc.)
+      if(patternMarkers[mid]) {
+        return '<span class="marker-tag" style="background:#ede9fe;color:#6b21a8;border:1px solid #c4b5fd;font-weight:600;">'+d+' '+patternMarkers[mid]+'</span>';
+      }
+      if(positiveMarkers.has(mid)) {
+        const lbl = isLoss ? 'retained' : '+';
+        return '<span class="marker-tag pos">'+d+' '+lbl+'</span>';
+      }
+      if(negativeMarkers.has(mid)) {
+        const lbl = isLoss ? 'lost' : '-';
+        const ctrl = (isLoss && lossControlConfirmed.has(mid)) ? ' <span style="font-size:.62rem;color:#065f46;" title="Controllo interno positivo confermato">[ctrl int. OK]</span>' : '';
+        return '<span class="marker-tag neg">'+d+' '+lbl+ctrl+'</span>';
+      }
+      // v3.8.1: distingui non-interpretabile da non-testato
+      if(nonInterpretableMarkers.has(mid)) {
+        return '<span class="marker-tag" style="background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1;" title="Non interpretabile (escluso dal Bayes)">'+d+' n.i.</span>';
+      }
       return '<span class="marker-tag untested">'+d+' ?</span>';
     }).join('');
-    return '<div class="diagnosis-result '+scoreClass+'"><div class="dx-header"><div class="dx-name">'+(i+1)+'. '+dx.name+fsBadge+'</div><div class="dx-score '+scoreClass+'">'+pct+'%</div></div><div class="dx-reasoning">'+(rHTML||'<em>Nessun marker testato</em>')+'</div>'+fHTML+'<div class="marker-list">'+mTags+'</div></div>';
+    return '<div class="diagnosis-result '+scoreClass+'"><div class="dx-header"><div class="dx-name">'+(i+1)+'. '+dx.name+fsBadge+'</div><div class="dx-score '+scoreClass+'">'+pct+'%</div></div><div class="dx-reasoning">'+(rHTML||'<em>Nessun marker modellato per questa diagnosi</em>')+'</div>'+fHTML+'<div class="marker-list">'+mTags+'</div></div>';
   }).join('')+
-  '<div class="audit-stamp">'+BAYES_VERSION+' | Morfologia: '+(morphology==='any'?'n.s.':morphology)+' | Marker testati: '+(positiveMarkers.size+negativeMarkers.size)+' | '+new Date().toISOString().slice(0,16)+'</div>'+
-  '<div style="margin-top:8px;font-size:.76rem;color:var(--subtext);padding:6px 10px;background:#f8fafc;border-radius:6px;border:1px solid var(--border);">⚠️ Le percentuali sono posteriori <strong>relative al modello</strong> (solo le diagnosi presenti nel DB). Non equivalgono a probabilità cliniche assolute. Assente classe &ldquo;altro/non modellato&rdquo;. Visualizzate le prime '+shown.length+' diagnosi su '+bayesDB.length+' modellate.</div>';
+  // v3.8.1: avviso esplicito per i loss-marker non interpretabili
+  (nonInterpretableMarkers.size > 0
+    ? '<div style="margin-top:8px;font-size:.78rem;color:#92400e;padding:8px 12px;background:#fffbeb;border-radius:6px;border:1px solid #fde68a;">\u26a0\ufe0f <strong>Marker non interpretabili:</strong> '+Array.from(nonInterpretableMarkers).map(id=>getDisplay(id)).join(', ')+'. Esclusi dal calcolo Bayesiano (controllo interno assente o errore tecnico).</div>'
+    : '')+
+  '<div class="audit-stamp">'+BAYES_VERSION+' | Sede: '+(topographicSite==='non_specificata'?'n.s.':getSiteLabel(topographicSite))+' | Morfologia: '+(morphology==='any'?'n.s.':morphology)+' | Marker testati: '+(positiveMarkers.size+negativeMarkers.size+Object.keys(patternMarkers).length)+(nonInterpretableMarkers.size>0?' (+ '+nonInterpretableMarkers.size+' n.i.)':'')+(Object.keys(patternMarkers).length>0?' (incl. '+Object.keys(patternMarkers).length+' pattern)':'')+' | '+new Date().toISOString().slice(0,16)+'</div>'+
+  '<div style="margin-top:8px;font-size:.76rem;color:var(--subtext);padding:6px 10px;background:#f8fafc;border-radius:6px;border:1px solid var(--border);">\u26a0\ufe0f Le percentuali sono posteriori <strong>relative al modello</strong> (solo le diagnosi presenti nel DB). Non equivalgono a probabilit\u00e0 cliniche assolute. Assente classe "altro/non modellato". Visualizzate le prime '+shown.length+' diagnosi su '+bayesDB.length+' modellate.</div>'+
+  '<div style="margin-top:6px;font-size:.74rem;color:var(--subtext);padding:6px 10px;background:#fef3c7;border-radius:6px;border:1px solid #fde68a;">\ud83e\uddec <strong>Loss-marker</strong> (BAP1, SMAD4, MMR, INI1, H3K27me3, ecc.): retained = colorazione mantenuta nel tumore; lost = colorazione persa con controllo interno positivo (= supporta dx); n.i. = non interpretabile (escluso dal Bayes).</div>'+
+  '<div style="margin-top:6px;font-size:.74rem;color:var(--subtext);padding:6px 10px;background:#faf5ff;border-radius:6px;border:1px solid #e9d5ff;">\ud83c\udfa8 <strong>Marker pattern</strong> (\u03b2-Catenina, in futuro p53/Ki-67/MMR): la localizzazione subcellulare cambia il significato (es. \u03b2-catenina membranous = pattern usuale, non indicativo di attivazione nucleare; nuclear = suggerisce attivazione Wnt/CTNNB1/APC, da interpretare nel contesto morfologico-clinico-molecolare).</div>';
 }
 
 function igLabel(ig) {
@@ -1082,7 +1751,7 @@ function displayNextBest(gains) {
   s.innerHTML='<div class="next-best">'
     +'<h3>\ud83c\udfaf Prossimo Marker Suggerito (Guadagno Informativo)</h3>'
     +'<p style="font-size:.83rem;color:var(--subtext);margin-bottom:8px;">'
-    +(currentMode==='fbf'?'Solo FBF.':'Inclusi SACCO.')
+    +(currentMode==='fbf'?'Solo FBF.':currentMode==='all'?'Inclusi SACCO.':'Inclusi SACCO + outsourcing/ND.')
     +' <span style="cursor:help;border-bottom:1px dashed #666;" title="Il Guadagno Informativo (IG, in bit) misura quanto un marker ridurrebbe l\'incertezza diagnostica se eseguito ora. 1 bit = dimezza l\'incertezza. Valori > 0.5 bit sono altamente discriminanti; < 0.05 bit sono praticamente irrilevanti nel contesto attuale.">Cosa significa IG? \u2139\ufe0f</span>'
     +'</p>'
     +gains.map((g,i)=>{
@@ -1091,7 +1760,7 @@ function displayNextBest(gains) {
         +'<span class="gain-score">#'+(i+1)+'</span>'
         +'<strong>'+g.display+'</strong>'
         +(g.site==='sacco'?'<span class="sacco-tag" style="margin-left:4px;">SACCO</span>':'')
-        /* nd branch rimosso v3.4.3: IG non suggerisce più ND in inverse mode */''
+        +(g.site==='nd'?'<span class="sacco-tag" style="margin-left:4px;background:#fee2e2;color:#991b1b;">ND</span>':'')
         +'<span style="margin-left:auto;display:flex;align-items:center;gap:6px;">'
         +'<span class="ig-badge" style="font-size:.72rem;padding:1px 6px;border-radius:4px;background:'+lbl.color+'22;color:'+lbl.color+';border:1px solid '+lbl.color+'55;cursor:help;" title="'+lbl.tip+'">'+lbl.text+'</span>'
         +'<span style="font-size:.78rem;color:var(--gain);">'+g.gain.toFixed(3)+' bit</span>'
@@ -1102,7 +1771,14 @@ function displayNextBest(gains) {
 }
 
 function resetLookup() {
-  positiveMarkers.clear(); negativeMarkers.clear(); lastResults=[];
+  positiveMarkers.clear(); negativeMarkers.clear(); lossControlConfirmed.clear(); nonInterpretableMarkers.clear(); lastResults=[];
+  patternMarkers = {}; // v3.9.0
+  topographicSite = 'non_specificata';
+  morphology = 'any';
+  const ss = document.getElementById('siteSelect'); if(ss) ss.value = 'non_specificata';
+  const ms = document.getElementById('morphSelect'); if(ms) ms.value = 'any';
+  // v3.7.1: sincronizza anche il selettore Cascade
+  const css = document.getElementById('cascSiteSelect'); if(css) css.value = 'non_specificata';
   document.getElementById('markerSearch').value=''; renderAvailableMarkers();
   document.getElementById('emptyLookupState').style.display='block';
   document.getElementById('lookupResults').style.display='none';
@@ -1114,8 +1790,16 @@ function resetLookup() {
 // QUIZ
 function nextQuizRound() {
   currentQuizDx=bayesDB[Math.floor(Math.random()*bayesDB.length)];
-  const pm=Object.entries(currentQuizDx.markers).filter(([_,p])=>p.s>=0.60).sort((a,b)=>b[1].s-a[1].s).slice(0,4).map(([id])=>getDisplay(id));
+  // v3.6.0: distingui marker "positive observation" da "loss observation"
+  const pm=Object.entries(currentQuizDx.markers).filter(([_,p])=>p.s>=0.60).sort((a,b)=>b[1].s-a[1].s).slice(0,4).map(([id])=>{
+    const isLoss = markerDB[id] && markerDB[id].loss === true;
+    return isLoss ? (getDisplay(id)+' <em style="color:#dc2626">loss</em>') : getDisplay(id);
+  });
   document.getElementById('quizMarkersList').innerHTML=pm.map(m=>'<span class="marker-chip">'+m+'</span>').join('');
+  // Cambia il titolo del set se ci sono loss-marker
+  const hasLoss = Object.entries(currentQuizDx.markers).filter(([_,p])=>p.s>=0.60).some(([id]) => markerDB[id] && markerDB[id].loss === true);
+  const titleEl = document.querySelector('.markers-display h3');
+  if(titleEl) titleEl.textContent = hasLoss ? 'Pattern IHC osservato:' : 'Marker POSITIVI:';
   const opts=[...bayesDB].sort(()=>Math.random()-.5).filter(d=>d.name!==currentQuizDx.name).slice(0,3);
   opts.push(currentQuizDx); opts.sort(()=>Math.random()-.5);
   document.getElementById('quizOptions').innerHTML=opts.map((dx,i)=>"<div class='dx-option' onclick=\"selectAnswer("+i+",'"+dx.name.replace(/'/g,"\\'")+"')\">"+dx.name+"</div>").join('');
@@ -1128,7 +1812,10 @@ function selectAnswer(i,name) {
   quizStats.total++;
   if(ok){ quizStats.correct++; quizStats.streak++; fb.className='feedback correct'; fb.innerHTML='\u2705 CORRETTO! <strong>'+currentQuizDx.name+'</strong>'; }
   else { quizStats.streak=0; fb.className='feedback incorrect';
-    const tp=Object.entries(currentQuizDx.markers).filter(([_,p])=>p.s>=0.6).map(([id])=>getDisplay(id)).join(', ');
+    const tp=Object.entries(currentQuizDx.markers).filter(([_,p])=>p.s>=0.6).map(([id])=>{
+      const isLoss = markerDB[id] && markerDB[id].loss === true;
+      return isLoss ? (getDisplay(id)+' loss') : getDisplay(id);
+    }).join(', ');
     fb.innerHTML='\u274c Era <strong>'+currentQuizDx.name+'</strong> — '+tp; }
   document.getElementById('correctCount').textContent=quizStats.correct;
   document.getElementById('totalCount').textContent=quizStats.total;
@@ -1147,9 +1834,15 @@ function switchTab(t, btn=null) {
     const map={cascade:0,inverse:1,quiz:2};
     document.querySelectorAll('.tab-btn')[map[t]]?.classList.add('active');
   }
+  // v3.5.0: lazy init quiz al primo accesso
+  if(t === 'quiz' && !currentQuizDx) nextQuizRound();
 }
 
-(function init(){ renderAvailableMarkers(); nextQuizRound(); })();
+(function init(){
+  renderAvailableMarkers();
+  // v3.5.0: quiz lazy — render solo se la tab quiz è attiva
+  if(document.getElementById('quiz-tab')?.classList.contains('active')) nextQuizRound();
+})();
 
 // ============================
 // CASCADE WIZARD (5 steps)
@@ -1174,15 +1867,27 @@ function interpretScreening(screen) {
   const vim = screen.VIMENTINA || '?';
   const s = screen.S100 || '?';
   const cd = screen.CD45 || '?';
-  
-  if(cd === '+') return { morph:'linfoide', hint:'CD45+ → Linfoide. Pannello linfomi.' };
-  if(s === '+' && ck === '-') return { morph:'melanocitico', hint:'S100+/CK− → Melanocitico o neurale. Pannello melanoma/MPNST.' };
-  if(ck === '+' && vim === '-') return { morph:'epiteliale', hint:'CK+/Vim− → Epiteliale classico. Procedi con CK secondo livello.' };
-  if(ck === '+' && vim === '+') return { morph:'epiteliale', hint:'CK+/Vim+ → Epiteliale (RCC, endometrio, sarcomatoide, mesotelio, sinoviale). CK secondo livello.' };
-  if(ck === '-' && vim === '+' && s === '-') return { morph:'mesenchimale', hint:'CK−/Vim+/S100− → Mesenchimale. Pannello sarcomi.' };
-  if(ck === '-' && vim === '+' && s === '+') return { morph:'melanocitico', hint:'CK−/Vim+/S100+ → Melanocitico o neurale.' };
-  if(ck === '-' && vim === '-' && cd === '-') return { morph:'germinale', hint:'Tutto negativo → Considera germinale, NEN, o anaplastico.' };
-  return { morph:null, hint:'Pattern non dirimente. Seleziona la categoria più probabile o prosegui.' };
+
+  // v3.5.0: marker dominanti standalone (non richiedono che gli altri siano testati)
+  if(cd === '+') return { morph:'linfoide', hint:'CD45+ \u2192 Linfoide. Pannello linfomi.' };
+  if(ck === '+' && vim === '-') return { morph:'epiteliale', hint:'CK+/Vim\u2212 \u2192 Epiteliale classico. Procedi con CK secondo livello.' };
+  if(ck === '+' && vim === '+') return { morph:'epiteliale', hint:'CK+/Vim+ \u2192 Epiteliale (RCC, endometrio, sarcomatoide, mesotelio, sinoviale). CK secondo livello.' };
+  if(ck === '+') return { morph:'epiteliale', hint:'CK+ (Vim non testato) \u2192 Epiteliale probabile. Considera testare Vim.' };
+
+  // S100+ con CK non positivo (anche non testato) \u2192 melanocitico/neurale
+  if(s === '+' && ck !== '+') {
+    const ckHint = ck === '?' ? ' (CK non testato \u2014 verifica per escludere TNBC SOX10+)' : '';
+    return { morph:'melanocitico', hint:'S100+/CK'+(ck==='-'?'\u2212':' n.t.')+' \u2192 Melanocitico o neurale.'+ckHint };
+  }
+
+  // Vim+/CK- pattern mesenchimale/melanocitico
+  if(ck === '-' && vim === '+' && s === '-') return { morph:'mesenchimale', hint:'CK\u2212/Vim+/S100\u2212 \u2192 Mesenchimale. Pannello sarcomi.' };
+  if(ck === '-' && vim === '+' && s === '+') return { morph:'melanocitico', hint:'CK\u2212/Vim+/S100+ \u2192 Melanocitico o neurale.' };
+
+  // Tutto negativo \u2192 null phenotype: NON assegnare linea automaticamente (v3.7.1)
+  if(ck === '-' && vim === '-' && cd === '-') return { morph:'indifferenziato', hint:'Profilo null phenotype: non assegnare linea. Verifica controllo tecnico e considera SALL4, INSM1, desmina/miogenina, NKX2.2, INI1/BRG1, NUT, SOX10. DD: germinale, sarcoma round cell, INI1/BRG1-deficient, NUT carcinoma, linfoma con antigeni deboli, errore tecnico/preanalitico.' };
+
+  return { morph:null, hint:'Pattern non dirimente o screening incompleto. Seleziona la categoria pi\u00f9 probabile o completa il pannello.' };
 }
 
 const CASC_PANELS = {
@@ -1243,6 +1948,9 @@ function cascSelectMorph(id, btn=null) {
   cascState.bigFour = {};
   cascState.panelMarkers = {};
   cascState.screenMorph = null;
+  lossControlConfirmed.clear(); // v3.6.2: nuova morfologia = nuovo caso
+  nonInterpretableMarkers.clear(); // v3.8.1: idem
+  patternMarkers = {}; // v3.9.0: idem
   document.querySelectorAll('.morph-btn').forEach(b => b.classList.remove('selected'));
   if(btn) btn.classList.add('selected');
   
@@ -1255,13 +1963,34 @@ function cascRenderScreening() {
   const c = document.getElementById('screenGrid');
   c.innerHTML = SCREENING_PANEL.map(mid => {
     const d = getDisplay(mid);
+    const cur = cascState.screen[mid];
+    // v3.6.0: ripristina classi visive se stato già presente
+    const cPos = cur === '+' ? 'sel-pos' : '';
+    const cNeg = cur === '-' ? 'sel-neg' : '';
+    const cUnk = (cur === '?' || !cur) ? 'sel-unk' : '';
     return '<div class="bf-card"><div class="bf-name">'+d+'</div><div class="bf-toggles">'+
-      '<button onclick="cascSetScreen(\''+mid+'\',\'+\',this)" id="sc_'+mid+'_pos">+</button>'+
-      '<button onclick="cascSetScreen(\''+mid+'\',\'-\',this)" id="sc_'+mid+'_neg">−</button>'+
-      '<button onclick="cascSetScreen(\''+mid+'\',\'?\',this)" id="sc_'+mid+'_unk" class="sel-unk">?</button>'+
+      '<button onclick="cascSetScreen(\''+mid+'\',\'+\',this)" id="sc_'+mid+'_pos" class="'+cPos+'">+</button>'+
+      '<button onclick="cascSetScreen(\''+mid+'\',\'-\',this)" id="sc_'+mid+'_neg" class="'+cNeg+'">−</button>'+
+      '<button onclick="cascSetScreen(\''+mid+'\',\'?\',this)" id="sc_'+mid+'_unk" class="'+cUnk+'">?</button>'+
     '</div></div>';
   }).join('');
-  document.getElementById('screenHint').textContent = 'Seleziona i risultati dello screening per orientare la diagnosi.';
+  // v3.6.0: ricalcola hint sulla base dello stato corrente
+  if(Object.keys(cascState.screen).length > 0) {
+    const interp = interpretScreening(cascState.screen);
+    const hintEl = document.getElementById('screenHint');
+    if(interp.morph) {
+      const morphLabel = CASC_MORPHOLOGIES.find(m=>m.id===interp.morph)?.label || interp.morph;
+      hintEl.innerHTML = '<strong>→ '+morphLabel+'</strong>: '+interp.hint;
+      hintEl.style.background = '#d1fae5';
+      hintEl.style.color = '#065f46';
+    } else {
+      hintEl.innerHTML = interp.hint;
+      hintEl.style.background = '#fef3c7';
+      hintEl.style.color = '#92400e';
+    }
+  } else {
+    document.getElementById('screenHint').textContent = 'Seleziona i risultati dello screening per orientare la diagnosi.';
+  }
 }
 
 function cascSetScreen(mid, val, btn) {
@@ -1286,19 +2015,22 @@ function cascSetScreen(mid, val, btn) {
 }
 
 function cascFromScreening() {
+  // v3.6.0: ricostruisci panelMarkers da zero per evitare valori obsoleti
+  cascState.panelMarkers = {};
+
   // Record screening markers
   for(const [mid, val] of Object.entries(cascState.screen)) {
     if(val === '+') cascState.panelMarkers[mid] = '+';
     else if(val === '-') cascState.panelMarkers[mid] = '-';
   }
-  
+
   // Determine morphology from screening if user picked "indifferenziato"
   const interp = interpretScreening(cascState.screen);
   if(cascState.morph === 'indifferenziato' && interp.morph) {
     cascState.screenMorph = interp.morph;
     cascState.morph = interp.morph;
   }
-  
+
   // Epiteliale → go to Big Four CK (Step 3)
   if(cascState.morph === 'epiteliale') {
     cascShowStep(3);
@@ -1315,10 +2047,15 @@ function cascRenderBigFour() {
   const c = document.getElementById('bigFourGrid');
   c.innerHTML = BIG_FOUR.map(mid => {
     const d = getDisplay(mid);
+    const cur = cascState.bigFour[mid];
+    // v3.6.0: ripristina classi visive se stato già presente
+    const cPos = cur === '+' ? 'sel-pos' : '';
+    const cNeg = cur === '-' ? 'sel-neg' : '';
+    const cUnk = (cur === '?' || !cur) ? 'sel-unk' : '';
     return '<div class="bf-card"><div class="bf-name">'+d+'</div><div class="bf-toggles">'+
-      '<button onclick="cascSetBF(\''+mid+'\',\'+\')" id="bf_'+mid+'_pos">+</button>'+
-      '<button onclick="cascSetBF(\''+mid+'\',\'-\')" id="bf_'+mid+'_neg">−</button>'+
-      '<button onclick="cascSetBF(\''+mid+'\',\'?\')" id="bf_'+mid+'_unk" class="sel-unk">?</button>'+
+      '<button onclick="cascSetBF(\''+mid+'\',\'+\')" id="bf_'+mid+'_pos" class="'+cPos+'">+</button>'+
+      '<button onclick="cascSetBF(\''+mid+'\',\'-\')" id="bf_'+mid+'_neg" class="'+cNeg+'">−</button>'+
+      '<button onclick="cascSetBF(\''+mid+'\',\'?\')" id="bf_'+mid+'_unk" class="'+cUnk+'">?</button>'+
     '</div></div>';
   }).join('');
 }
@@ -1333,11 +2070,49 @@ function cascSetBF(mid, val) {
 
 function cascAdvance(toStep) {
   if (toStep === 4) {
-    // Apply Big Four to panelMarkers
+    // v3.6.2: preserva marker mirati pertinenti al pannello attivo
+    const previousPanelMarkers = {...(cascState.panelMarkers || {})};
+    const previousLossControl = new Set(lossControlConfirmed);
+    const previousNonInterp = new Set(nonInterpretableMarkers); // v3.8.1
+
+    cascState.panelMarkers = {};
+    // Apply screening (locked)
+    for(const [mid, val] of Object.entries(cascState.screen)) {
+      if(val === '+') cascState.panelMarkers[mid] = '+';
+      else if(val === '-') cascState.panelMarkers[mid] = '-';
+    }
+    // Apply Big Four (locked)
     for(const [mid, val] of Object.entries(cascState.bigFour)) {
       if(val === '+') cascState.panelMarkers[mid] = '+';
       else if(val === '-') cascState.panelMarkers[mid] = '-';
     }
+
+    // v3.6.2/v3.8.1: ripristina marker mirati pertinenti al pannello attivo + ni
+    const morph = cascState.morph;
+    const panels = CASC_PANELS[morph] || CASC_PANELS['indifferenziato'];
+    let panelKey = '_default';
+    if(morph === 'epiteliale') {
+      const pattern = cascGetBFPattern();
+      if(panels[pattern]) panelKey = pattern;
+    }
+    const activePanel = panels[panelKey] || panels['_default'];
+    const activePanelIds = new Set(activePanel.markers);
+    const lockedIds = getLockedCascadeMarkers();
+
+    for (const [mid, val] of Object.entries(previousPanelMarkers)) {
+      if (!lockedIds.has(mid) && activePanelIds.has(mid) && !cascState.panelMarkers[mid]) {
+        cascState.panelMarkers[mid] = val; // val pu\u00f2 essere '+', '-', o 'ni'
+        // v3.8.1: conserva sia controllo interno che ni
+        if (previousLossControl.has(mid)) lossControlConfirmed.add(mid);
+        else lossControlConfirmed.delete(mid);
+        if (previousNonInterp.has(mid)) nonInterpretableMarkers.add(mid);
+        else nonInterpretableMarkers.delete(mid);
+      } else if (!activePanelIds.has(mid) && !lockedIds.has(mid)) {
+        lossControlConfirmed.delete(mid);
+        nonInterpretableMarkers.delete(mid);
+      }
+    }
+
     cascShowStep(4);
     cascRenderPanel();
     document.getElementById('panelBackBtn').setAttribute('onclick','cascBack(3)');
@@ -1362,7 +2137,21 @@ function cascGetBFPattern() {
   if(cdx2 === '+') return 'CDX2+';
   const ck7 = bf.CK7 || '?';
   const ck20 = bf.CK20 || '?';
+  // v3.5.0: distingui "non testato" da "negativo" — fallback al pannello generico
+  if(ck7 === '?' || ck20 === '?') return '_default';
   return 'CK7'+(ck7==='+'?'+':'-')+'/CK20'+(ck20==='+'?'+':'-');
+}
+
+// v3.6.1: marker bloccati perché già fissati dallo screening / Big Four
+function getLockedCascadeMarkers() {
+  const locked = new Set();
+  for (const [mid, val] of Object.entries(cascState.screen || {})) {
+    if (val === '+' || val === '-') locked.add(mid);
+  }
+  for (const [mid, val] of Object.entries(cascState.bigFour || {})) {
+    if (val === '+' || val === '-') locked.add(mid);
+  }
+  return locked;
 }
 
 function cascRenderPanel() {
@@ -1371,11 +2160,14 @@ function cascRenderPanel() {
   let panelKey = '_default';
   let summaryHTML = '';
   
-  // Summary of screening
+  // Summary of screening — v3.6.1: etichette retained/lost per loss-marker
   const scrSummary = SCREENING_PANEL.map(m => {
     const v = cascState.screen[m] || '?';
     const cls = v==='+'?'pos':v==='-'?'neg':'';
-    return '<span class="marker-tag '+cls+'">'+getDisplay(m)+' '+v+'</span>';
+    const isLoss = markerDB[m] && markerDB[m].loss === true;
+    let lbl = v;
+    if(isLoss) lbl = v==='+'?'retained':v==='-'?'lost':'?';
+    return '<span class="marker-tag '+cls+'">'+getDisplay(m)+' '+lbl+'</span>';
   }).join(' ');
   summaryHTML = '<div style="margin-bottom:8px;font-size:.85rem;">Screening: '+scrSummary+'</div>';
   
@@ -1385,7 +2177,10 @@ function cascRenderPanel() {
     const bfSummary = BIG_FOUR.map(m => {
       const v = cascState.bigFour[m] || '?';
       const cls = v==='+'?'pos':v==='-'?'neg':'';
-      return '<span class="marker-tag '+cls+'">'+getDisplay(m)+' '+v+'</span>';
+      const isLoss = markerDB[m] && markerDB[m].loss === true;
+      let lbl = v;
+      if(isLoss) lbl = v==='+'?'retained':v==='-'?'lost':'?';
+      return '<span class="marker-tag '+cls+'">'+getDisplay(m)+' '+lbl+'</span>';
     }).join(' ');
     summaryHTML += '<div style="margin-bottom:8px;font-size:.85rem;">Big Four: '+bfSummary+'</div>';
   }
@@ -1394,72 +2189,211 @@ function cascRenderPanel() {
   document.getElementById('cascPanelHint').textContent = panel.hint;
   document.getElementById('cascPanelSummary').innerHTML = summaryHTML;
   
-  // Show all markers in panel (fbf, sacco, nd) - semaforo will indicate availability
-  const alreadySet = new Set(Object.keys(cascState.panelMarkers));
-  const available = panel.markers.filter(mid => markerDB[mid] && !alreadySet.has(mid));
+  // v3.6.1: distingui marker LOCKED (da screening/big four) da marker del pannello mirato
+  // I LOCKED non devono apparire (sono nel riepilogo); i panelMarkers selezionati restano sempre visibili e modificabili
+  const locked = getLockedCascadeMarkers();
+  // v3.9.1: pattern marker NON supportati in Cascade in questa release \u2014 esclusi dal pannello mirato
+  const available = panel.markers.filter(mid => markerDB[mid] && !locked.has(mid) && !isPatternMarker(mid));
   
   const c = document.getElementById('panelGrid');
-  c.innerHTML = '<div class="site-legend"><span><span class="site-dot dot-fbf"></span>FBF</span><span><span class="site-dot dot-sacco"></span>SACCO</span><span><span class="site-dot dot-nd"></span>Non disp.</span></div>' +
+  c.innerHTML = '<div class="site-legend" style="grid-column:1 / -1;"><span><span class="site-dot dot-fbf"></span>FBF</span><span><span class="site-dot dot-sacco"></span>SACCO</span><span><span class="site-dot dot-nd"></span>Non disp.</span></div>' +
     available.map(mid => {
     const d = getDisplay(mid);
     const st = cascState.panelMarkers[mid];
+    const isLoss = markerDB[mid] && markerDB[mid].loss === true;
+
+    // v3.8.2: per loss-marker nel pannello mirato \u2192 3 pulsanti dedicati (simmetria con Ricerca Inversa)
+    if(isLoss) {
+      let state = 'untested';
+      if(st === '+') state = 'retained';
+      else if(st === '-') state = 'lost';
+      else if(st === 'ni') state = 'ni';
+      const cardCls = state !== 'untested' ? 'lossm-state-'+state : '';
+      const ctrlNote = (state === 'lost' && lossControlConfirmed.has(mid)) ? '<div class="lossm-ctrl">\u2713 ctrl int. positivo</div>' : '';
+      return '<div class="lossm-card '+cardCls+' '+getSiteClass(mid)+'" style="grid-column:auto;">'+
+        '<div class="lossm-name">'+getSiteDot(mid)+d+'<span class="lossm-tag">loss</span></div>'+
+        '<div class="lossm-buttons">'+
+          '<button class="'+(state==='retained'?'active-retained':'')+'" onclick="cascSetPanelLossState(\''+mid+'\',\'retained\')" title="Colorazione mantenuta">retained</button>'+
+          '<button class="'+(state==='lost'?'active-lost':'')+'" onclick="cascSetPanelLossState(\''+mid+'\',\'lost\')" title="Colorazione persa con controllo interno positivo">lost</button>'+
+          '<button class="'+(state==='ni'?'active-ni':'')+'" onclick="cascSetPanelLossState(\''+mid+'\',\'ni\')" title="Non interpretabile">n.i.</button>'+
+        '</div>'+
+        ctrlNote+
+      '</div>';
+    }
+
+    // Marker normale: click ciclico
     const cls = st==='+'?'pm-pos':st==='-'?'pm-neg':'';
-    return '<div class="panel-marker '+cls+' '+getSiteClass(mid)+'" onclick="cascTogglePanel(\''+mid+'\',this)" data-mid="'+mid+'">'+getSiteDot(mid)+d+(st?' '+(st==='+'?'✅':'❌'):'')+'</div>';
+    let stLabel = '';
+    if(st === '+') stLabel = ' \u2705';
+    else if(st === '-') stLabel = ' \u274c';
+    return '<div class="panel-marker '+cls+' '+getSiteClass(mid)+'" onclick="cascTogglePanel(\''+mid+'\',this)" data-mid="'+mid+'">'+getSiteDot(mid)+d+stLabel+'</div>';
   }).join('');
-  
-  if(!available.length) c.innerHTML = '<p style="color:var(--subtext);text-align:center;padding:16px;">Tutti i marker del pannello sono già stati impostati nello screening/CK.</p>';
+
+  if(!available.length) c.innerHTML = '<p style="color:var(--subtext);text-align:center;padding:16px;">Tutti i marker del pannello sono gi\u00e0 stati impostati nello screening/CK.</p>';
+}
+
+// v3.8.2: handler dedicato per i 3 pulsanti loss-marker nel pannello mirato Cascade
+// Stessa semantica di setLossMarker (toggle off, prompt ctrl interno, simmetria con Ricerca Inversa)
+function cascSetPanelLossState(mid, state) {
+  const curStateMap = { '+':'retained', '-':'lost', 'ni':'ni' };
+  const cur = cascState.panelMarkers[mid];
+  const current = curStateMap[cur] || 'untested';
+
+  // Toggle off: stesso stato \u2192 torna a untested
+  if (current === state) {
+    delete cascState.panelMarkers[mid];
+    lossControlConfirmed.delete(mid);
+    nonInterpretableMarkers.delete(mid);
+    cascRenderPanel();
+    return;
+  }
+
+  // Pulisci flag accessori
+  lossControlConfirmed.delete(mid);
+  nonInterpretableMarkers.delete(mid);
+
+  if (state === 'retained') {
+    cascState.panelMarkers[mid] = '+';
+  } else if (state === 'lost') {
+    const ok = confirm('\u26A0\uFE0F '+getDisplay(mid)+' = LOST\n\nControllo interno positivo presente?\n(linfociti/endotelio/stroma per BAP1; epitelio normale per MMR; ecc.)\n\nOK = controllo interno OK \u2192 conferma loss\nAnnulla = nessun controllo \u2192 marca come "non interpretabile"');
+    if (!ok) {
+      cascState.panelMarkers[mid] = 'ni';
+      nonInterpretableMarkers.add(mid);
+    } else {
+      cascState.panelMarkers[mid] = '-';
+      lossControlConfirmed.add(mid);
+    }
+  } else if (state === 'ni') {
+    cascState.panelMarkers[mid] = 'ni';
+    nonInterpretableMarkers.add(mid);
+  }
+  cascRenderPanel();
 }
 
 function cascTogglePanel(mid, el) {
+  // v3.8.2: i loss-marker hanno la propria UI a 3 pulsanti (cascSetPanelLossState)
+  // Questa funzione gestisce solo i marker NORMALI con click ciclico standard
   const cur = cascState.panelMarkers[mid];
-  if(!cur) { cascState.panelMarkers[mid] = '+'; el.className='panel-marker pm-pos '+getSiteClass(mid); el.innerHTML=getSiteDot(mid)+getDisplay(mid)+' ✅'; }
-  else if(cur==='+') { cascState.panelMarkers[mid] = '-'; el.className='panel-marker pm-neg '+getSiteClass(mid); el.innerHTML=getSiteDot(mid)+getDisplay(mid)+' ❌'; }
-  else { delete cascState.panelMarkers[mid]; el.className='panel-marker '+getSiteClass(mid); el.innerHTML=getSiteDot(mid)+getDisplay(mid); }
+  if(!cur) {
+    cascState.panelMarkers[mid] = '+';
+    el.className='panel-marker pm-pos '+getSiteClass(mid);
+    el.innerHTML=getSiteDot(mid)+getDisplay(mid)+' \u2705';
+  } else if(cur==='+') {
+    cascState.panelMarkers[mid] = '-';
+    el.className='panel-marker pm-neg '+getSiteClass(mid);
+    el.innerHTML=getSiteDot(mid)+getDisplay(mid)+' \u274c';
+  } else {
+    delete cascState.panelMarkers[mid];
+    el.className='panel-marker '+getSiteClass(mid);
+    el.innerHTML=getSiteDot(mid)+getDisplay(mid);
+  }
 }
 
 function cascComputeResults() {
   const savedPos = new Set(positiveMarkers);
   const savedNeg = new Set(negativeMarkers);
   const savedMorph = morphology;
-  
+  const savedNI = new Set(nonInterpretableMarkers); // v3.8.1: snapshot
+
   positiveMarkers.clear();
   negativeMarkers.clear();
+  // v3.8.1: ricostruisci nonInterpretableMarkers da panelMarkers ('ni')
+  nonInterpretableMarkers.clear();
   for(const [mid, val] of Object.entries(cascState.panelMarkers)) {
     if(val === '+') positiveMarkers.add(mid);
     else if(val === '-') negativeMarkers.add(mid);
+    else if(val === 'ni') nonInterpretableMarkers.add(mid);
+    // val === 'ni' viene IGNORATO dal Bayes (non aggiunto a pos/neg)
   }
   morphology = cascState.morph || 'any';
-  
-  const results = computeBayes();
-  
+
+  // v3.8.3: distingui "nessun marker interpretabile" da "nessuna dx compatibile"
+  // Se non c'\u00e8 nemmeno un + o un - (solo n.i. o nulla), il Bayes non ha informazione su cui lavorare
+  const nInterpretable = positiveMarkers.size + negativeMarkers.size;
+
+  // v3.8.1: avviso loss-marker non interpretabili
+  const niList = Array.from(nonInterpretableMarkers).map(id => getDisplay(id)).join(', ');
+  const niHTML = niList
+    ? '<div style="margin-top:8px;font-size:.78rem;color:#92400e;padding:8px 12px;background:#fffbeb;border-radius:6px;border:1px solid #fde68a;">\u26a0\ufe0f <strong>Marker non interpretabili:</strong> '+niList+'. Esclusi dal calcolo Bayesiano (controllo interno assente o errore tecnico).</div>'
+    : '';
+
   const c = document.getElementById('cascResults');
+
+  if(nInterpretable === 0) {
+    // v3.8.3: nessun marker interpretabile \u2192 messaggio dedicato (non "incompatibile")
+    c.innerHTML = '<div class="empty-state" style="padding:20px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">'+
+      '<p><strong>\u26a0\ufe0f Nessun marker interpretabile disponibile.</strong></p>'+
+      '<p style="margin-top:8px;">Il pannello contiene '+(nonInterpretableMarkers.size>0?'solo loss-marker non interpretabili (esclusi dal Bayes)':'nessun marker testato')+'. Aggiungi almeno un marker positivo o negativo (o un loss-marker retained/lost) per ottenere un ranking diagnostico.</p>'+
+      '</div>'+niHTML;
+    document.getElementById('cascAudit').textContent = BAYES_VERSION+' | Cascade: '+cascState.morph+' | Pos:0 Neg:0'+(nonInterpretableMarkers.size>0?' n.i.:'+nonInterpretableMarkers.size:'')+' | '+new Date().toISOString().slice(0,16);
+    // Restore globali
+    positiveMarkers = savedPos;
+    negativeMarkers = savedNeg;
+    morphology = savedMorph;
+    nonInterpretableMarkers.clear();
+    for(const id of savedNI) nonInterpretableMarkers.add(id);
+    for(const [mid, val] of Object.entries(cascState.panelMarkers)) {
+      if(val === 'ni') nonInterpretableMarkers.add(mid);
+    }
+    return;
+  }
+
+  const results = computeBayes();
+
   if(!results.length) {
-    c.innerHTML = '<div class="empty-state"><p>Nessuna diagnosi compatibile con questo profilo.</p></div>';
+    c.innerHTML = '<div class="empty-state"><p>Nessuna diagnosi compatibile con questo profilo.</p></div>'+niHTML;
   } else {
     c.innerHTML = results.slice(0, 8).map((dx,i) => {
       const pct = Math.round(dx.posterior * 100);
       const cls = pct>=25?'high':pct>=10?'medium':'low';
       const rHTML = dx.reasoning.map(r => '<span class="'+r.type+'">'+r.text+'</span>').join('<br>');
-      const fHTML = dx.flags.length ? '<div style="margin-top:4px;padding:4px 8px;background:#fef2f2;border-radius:6px;font-size:.8rem;"><strong style="color:var(--flag);">🚩</strong> '+dx.flags.join(' | ')+'</div>' : '';
-      return '<div class="diagnosis-result '+cls+'"><div class="dx-header"><div class="dx-name">'+(i+1)+'. '+dx.name+'</div><div class="dx-score '+cls+'">'+pct+'%</div></div><div class="dx-reasoning">'+rHTML+'</div>'+fHTML+'</div>';
-    }).join('');
+      const fHTML = dx.flags.length ? '<div style="margin-top:4px;padding:4px 8px;background:#fef2f2;border-radius:6px;font-size:.8rem;"><strong style="color:var(--flag);">\ud83d\udea9</strong> '+dx.flags.join(' | ')+'</div>' : '';
+      const mTags = Object.keys(dx.markers).map(mid => {
+        const d = getDisplay(mid);
+        const isLoss = markerDB[mid] && markerDB[mid].loss === true;
+        if(positiveMarkers.has(mid)) {
+          return '<span class="marker-tag pos">'+d+' '+(isLoss?'retained':'+')+'</span>';
+        }
+        if(negativeMarkers.has(mid)) {
+          const ctrl = (isLoss && lossControlConfirmed.has(mid)) ? ' <span style="font-size:.62rem;color:#065f46;" title="Controllo interno OK">[ctrl int. OK]</span>' : '';
+          return '<span class="marker-tag neg">'+d+' '+(isLoss?'lost':'-')+ctrl+'</span>';
+        }
+        // v3.8.1: distingui n.i. da non testato
+        if(nonInterpretableMarkers.has(mid)) {
+          return '<span class="marker-tag" style="background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1;">'+d+' n.i.</span>';
+        }
+        return '<span class="marker-tag untested">'+d+' ?</span>';
+      }).join('');
+      return '<div class="diagnosis-result '+cls+'"><div class="dx-header"><div class="dx-name">'+(i+1)+'. '+dx.name+'</div><div class="dx-score '+cls+'">'+pct+'%</div></div><div class="dx-reasoning">'+rHTML+'</div>'+fHTML+'<div class="marker-list">'+mTags+'</div></div>';
+    }).join('') + niHTML;
   }
-  
+
   const nPos = Object.values(cascState.panelMarkers).filter(v=>v==='+').length;
   const nNeg = Object.values(cascState.panelMarkers).filter(v=>v==='-').length;
-  document.getElementById('cascAudit').textContent = BAYES_VERSION+' | Cascade: '+cascState.morph+' | Pos:'+nPos+' Neg:'+nNeg+' | '+new Date().toISOString().slice(0,16);
-  
+  const nNI = Object.values(cascState.panelMarkers).filter(v=>v==='ni').length;
+  document.getElementById('cascAudit').textContent = BAYES_VERSION+' | Cascade: '+cascState.morph+' | Pos:'+nPos+' Neg:'+nNeg+(nNI>0?' n.i.:'+nNI:'')+' | '+new Date().toISOString().slice(0,16);
+
   positiveMarkers = savedPos;
   negativeMarkers = savedNeg;
   morphology = savedMorph;
+  // v3.8.1: ripristina anche ni
+  nonInterpretableMarkers.clear();
+  for(const id of savedNI) nonInterpretableMarkers.add(id);
+  // E ricostruisci dai panelMarkers per coerenza con quanto mostrato
+  for(const [mid, val] of Object.entries(cascState.panelMarkers)) {
+    if(val === 'ni') nonInterpretableMarkers.add(mid);
+  }
 }
 
 function cascToInverse() {
+  // v3.8.3: ricostruisci esplicitamente tutti i Set (non dipendere da stato globale residuo)
   positiveMarkers.clear();
   negativeMarkers.clear();
+  nonInterpretableMarkers.clear();
   for(const [mid, val] of Object.entries(cascState.panelMarkers)) {
     if(val === '+') positiveMarkers.add(mid);
     else if(val === '-') negativeMarkers.add(mid);
+    else if(val === 'ni') nonInterpretableMarkers.add(mid);
   }
   const mSel = document.getElementById('morphSelect');
   if(mSel) mSel.value = cascState.morph || 'any';
@@ -1469,8 +2403,24 @@ function cascToInverse() {
   analyzeMarkers();
 }
 
+// v3.7.1: handler Sede in Cascade — sincronizza con il select della Ricerca Inversa
+function cascSetSite(site) {
+  topographicSite = site || 'non_specificata';
+  const ss = document.getElementById('siteSelect');
+  if (ss) ss.value = topographicSite;
+  // v3.8.1: se siamo gi\u00e0 ai risultati, ricalcola
+  if (cascState.step === 5) cascComputeResults();
+}
+
 function cascReset() {
   cascState = { morph:null, screen:{}, bigFour:{}, panelMarkers:{}, step:1, screenMorph:null };
+  lossControlConfirmed.clear(); // v3.6.2
+  nonInterpretableMarkers.clear(); // v3.8
+  patternMarkers = {}; // v3.9.0
+  topographicSite = 'non_specificata';
+  // Sincronizza UI di entrambe le tab
+  const ss = document.getElementById('siteSelect'); if (ss) ss.value = 'non_specificata';
+  const css = document.getElementById('cascSiteSelect'); if (css) css.value = 'non_specificata';
   cascShowStep(1);
   document.querySelectorAll('.morph-btn').forEach(b => b.classList.remove('selected'));
 }
@@ -1481,14 +2431,17 @@ cascInit();
 (function updateBadges() {
   const nFBF = Object.values(markerDB).filter(m=>m.site==='fbf').length;
   const nSACCO = Object.values(markerDB).filter(m=>m.site==='sacco').length;
+  const nND = Object.values(markerDB).filter(m=>m.site==='nd').length;
   const el1 = document.getElementById('badgeFBF');
   const el2 = document.getElementById('badgeSACCO');
   const lFBF = document.getElementById('labelFBF');
   const lALL = document.getElementById('labelALL');
+  const lFULL = document.getElementById('labelFULL');
   if(el1) el1.textContent = nFBF + ' FBF';
   if(el2) el2.textContent = '+' + nSACCO + ' SACCO';
   if(lFBF) lFBF.textContent = 'Solo FBF (' + nFBF + ')';
   if(lALL) lALL.textContent = 'FBF + SACCO (' + (nFBF + nSACCO) + ')';
+  if(lFULL) lFULL.textContent = '+ Outsourcing (' + nND + ' ND)';
 })();
 
 
