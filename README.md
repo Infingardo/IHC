@@ -1,412 +1,167 @@
-# IHC Cascade CUP - Bayesian Diagnostic Tool for Carcinoma of Unknown Primary
+# 🧬 IHC Hub v3.4.3
 
-[![Version](https://img.shields.io/badge/version-2.17.0-blue.svg)](https://github.com/infingardo/ihc-cascade)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-production--ready-success.svg)]()
-
-**A scientifically validated, web-based tool for immunohistochemistry-based differential diagnosis of Carcinoma of Unknown Primary (CUP) using Bayesian probability theory.**
-
-Developed by **Dr. Filippo Bianchi**, Director of Anatomical Pathology, ASST Fatebenefratelli-Sacco, Milano.
+**Motore di supporto alla diagnosi differenziale in Anatomia Patologica**  
+Sviluppato per uso interno · SC Anatomia Patologica · ASST Fatebenefratelli-Sacco, Milano
 
 ---
 
-## 🎯 Overview
+## Cosa fa
 
-IHC Cascade CUP implements **Vollmer's Bayesian theorem (2009)** to calculate diagnostic probabilities from immunohistochemistry (IHC) profiles, incorporating:
+IHC Hub è uno strumento di orientamento diagnostico basato su inferenza bayesiana applicata al profilo immunoistochimico. Dato un set di marker positivi e negativi, calcola le probabilità posteriori per 33 diagnosi differenziali e suggerisce il prossimo marker con il massimo guadagno informativo.
 
-- **Mortality-based priors P(Dx)** reflecting real-world CUP epidemiology
-- **Sex-stratified calculations** (different prevalence patterns for M/F)
-- **Epistemic humility framework** with transparent caveats for common pitfalls
-- **Quality control alerts** for pre-analytical and technical issues
-- **Morphology-first workflow** (Rosai school principle: "the slide doesn't lie")
+**Non sostituisce il giudizio del patologo.** Le percentuali prodotte sono posteriori relative al modello interno — non probabilità cliniche assolute.
 
-### Key Formula
+---
+
+## Struttura del tool
+
+### Tre moduli principali
+
+| Modulo | Funzione |
+|--------|----------|
+| **IHC Cascade** | Workflow guidato in 5 passi: morfologia EE → screening (CK/Vim/S100/CD45) → Big Four CK → pannello mirato → diagnosi |
+| **Ricerca Inversa** | Input libero: trascina marker in POS/NEG, analisi Bayes immediata, suggerimento next marker |
+| **Quiz** | Training: profilo IHC → risposta a scelta multipla su diagnosi più probabile |
+
+### Semaforo disponibilità marker
+
+| Colore | Significato |
+|--------|-------------|
+| 🟢 Verde | Disponibile FBF (eseguibile internamente) |
+| 🟡 Giallo | Disponibile SACCO (inviare al presidio) |
+| 🔴 Rosso | Non disponibile localmente (outsourcing / ND) |
+
+---
+
+## Motore bayesiano
+
+### Algoritmo
+
+Per ogni diagnosi `d` con prior `p(d)` e set di marker testati `M`:
 
 ```
-P(Diagnosis | IHC pattern) = [P(IHC | Diagnosis) × P(Diagnosis)] / Σ[P(IHC | Dx_i) × P(Dx_i)]
+log P(d|M) = log p(d) + Σ_m w_m · c_m · log LR_m
 ```
 
-Where:
-- **P(IHC | Diagnosis)** = Likelihood (sensitivity-based, from database)
-- **P(Diagnosis)** = Prior probability (mortality rates from Vollmer 2009)
-- **Σ** = Normalization across all 18 differential diagnoses
+dove:
+- `LR+_m = sens / (1 − spec)` per marker positivo
+- `LR−_m = (1 − sens) / spec` per marker negativo  
+- `w_m` = peso clinico del marker (1.0 baseline, fino a 1.6 per marker altamente specifici)
+- `c_m` = fattore di penalizzazione per ridondanza informativa tra marker correlati
 
----
+### Correzione correlazione
 
-## ✨ Features
+17 gruppi di marker correlati con penalizzazione progressiva (1°, 2°+ membro già testato nella stessa direzione). Esempi:
+- `[CD20, PAX5, CD79A]` → penaltyPos [0.65, 0.45]
+- `[HEPPAR, ARGINASI, GLYPICAN3]` → penaltyPos [0.70, 0.50]
+- `[CROMOGRANINA, SINAPTOFISINA, CD56]` → penaltyPos [0.60, 0.40]
 
-### Core Diagnostic Engine
-- **64 IHC markers** with validated sensitivities
-- **18 diagnoses database** (coverage: 80-90% of common CUPs)
-- **Bayesian probability calculator** with real-time ranking
-- **Morphology STEP 1** workflow (IHC follows, never precedes)
+### Filtro morfologico
 
-### Quality Assurance
-- **8 Technical QC alerts** (fixation, antigen retrieval, controls)
-- **7 Big Four futility alerts** (tissue-sparing strategies)
-- **7 Site-specific alerts** (morphology-location correlation)
-- **3 Epistemic alerts** (philosophical reminders on IHC limitations)
+La morfologia EE modula i prior prima del calcolo: selezionando "Linfoide" le entità non linfomatose ricevono prior × 0.15. Riduce il rumore, non sostituisce il pannello.
 
-### Intelligence & Caveats
-- **5 Database caveats** validated by NotebookLM 2026:
-  - Arginase-1 metabolic upregulation (not lineage-specific)
-  - INSM1 neuroendocrine plasticity
-  - NKX3.1 post-ADT expression changes
-  - TRPS1 peritoneal ambiguity (ovarian vs breast)
-  - H3K27me3 loss interpretation pitfalls
+### Robustezza del ranking
 
-### User Experience
-- **Enhanced visualization**: Prior badges, likelihood breakdown, color-coded confidence
-- **Console debug logging**: Browser DevTools integration for troubleshooting
-- **Professional report export**: HTML, plain text, styled preview
-- **Diagnosis prominence**: Main diagnosis highlighted in green box at top
-
----
-
-## 📊 Scientific Validation
-
-### Primary Reference
-**Vollmer RT (2009).** *Differential diagnosis in immunohistochemistry with Bayes theorem.* **Am J Clin Pathol** 131(5):723-730. [DOI: 10.1309/AJCPKF4L6UKBIYSP](https://doi.org/10.1309/AJCPKF4L6UKBIYSP)
-
-### Additional References
-- **ImmunoGenius (2021).** Mobile Bayesian IHC app, 584 antibodies, 2009 neoplasms. *Diagnostic Pathology*
-- **Kaufman O et al (2002).** Prior probability in IHC diagnosis. *Pathologe* 23:183-197
-- **NotebookLM AI (2026).** Epistemic validation of diagnostic caveats
-
-### Code Review
-- **DeepSeek AI**: Error handling, edge cases, safe fixes validation
-
----
-
-## 🚀 Quick Start
-
-### No Installation Required
-**IHC Cascade runs entirely in your web browser** (Chrome, Firefox, Safari, Edge).
-
-1. **Download** `ihc_v2.17_COMPLETE.html`
-2. **Open** in any modern browser
-3. **Start diagnosing** immediately!
-
-### Usage Workflow
+Metrica composita (non calibrata, uso interno):
 
 ```
-STEP 0: Clinical Data
-├─ Sex (M/F) → affects Bayesian priors
-├─ Age → contextual interpretation
-└─ Tumor site → morphology correlation
-
-STEP 1: Morphology (MANDATORY FIRST)
-├─ Architecture (solid, glandular, nested, etc)
-├─ Cytology (pleomorphic, monotonous, clear cell, etc)
-└─ Differentiation patterns
-
-STEP 2: IHC Panel
-├─ Mark positive/negative markers
-├─ Optional: quick panels (carcinoma, NET, sarcoma)
-└─ Bayes calculator updates real-time
-
-OUTPUT: Ranked Differential Diagnoses
-├─ Top 5 diagnoses with Bayesian probabilities
-├─ Prior P(Dx) badges (mortality-based)
-├─ Likelihood breakdown (formula transparency)
-├─ Quality alerts & epistemic caveats
-└─ Exportable professional report
+score = 0.55·Δ(top1−top2) + 0.25·min(n_tested/4, 1) + 0.20·coverage − flag_penalty
 ```
+
+Soglie: Alta ≥ 0.45 · Intermedia ≥ 0.25 · Incerta < 0.25
+
+### Guadagno informativo (next marker)
+
+Information gain ponderato sul posteriore corrente. Suggerisce il marker che massimizza la riduzione di entropia della distribuzione diagnostica. Solo marker selezionabili nella modalità UI attiva (FBF o FBF+SACCO).
 
 ---
 
-## 📚 Database Coverage
+## Archivio marker
 
-### 18 Diagnoses with Complete Immunoprofiles
+| Sede | N | Note |
+|------|---|------|
+| FBF (locale) | 143 | Disponibili internamente |
+| SACCO | 77 | Invio al presidio |
+| ND / outsourcing | 16 | Non in lista attiva UI |
+| **Totale markerDB** | **236** | Inclusi alias e sinonimi |
 
-| Category | Diagnoses | Coverage |
-|----------|-----------|----------|
-| **Carcinomas** | Breast, Lung ADC, Colorectal, Pancreas, Ovarian HGSC, Prostate, Urothelial, HCC, Thyroid PTC (9) | ~75% CUP |
-| **Neuroendocrine** | NET GI (1) | ~3% CUP |
-| **Sarcomas** | Synovial Sarcoma, GIST, Rhabdomyosarcoma, MPNST (4) | ~2% CUP |
-| **Others** | Melanoma, RCC, DLBCL, Mesothelioma (4) | ~10% CUP |
-
-**Total CUP coverage: ~80-90%** of common presentations
-
-### Marker Categories (64 total)
-
-- **Epithelial**: CK7, CK20, CK5/6, CK19, CAM5.2, AE1/AE3, EMA
-- **Lineage-specific**: TTF1, Napsin A, CDX2, SATB2, GATA3, PAX8, WT1, ER, PR, PSA, NKX3.1, Thyroglobulin
-- **Neuroendocrine**: Synaptophysin, Chromogranin, CD56, INSM1
-- **Mesenchymal**: Vimentin, Desmin, SMA, S100, SOX10
-- **Special**: Arginase-1, Glypican-3, CA19-9, Calcitonin, TRPS1, PRAME, TLE1, CD117, DOG1, HMB45, Melan-A
+**33 entità diagnostiche modellate** (carcinomi, linfomi, sarcomi, tumori germinali, NEN, melanoma, mesotelioma, tumori epatici, tiroidei, prostatici, renali).
 
 ---
 
-## 🎓 Example Cases
+## Workflow consigliato
 
-### Case 1: Lung Adenocarcinoma (Female, 55yo)
+### Caso nuovo con morfologia definita
 
-**Input:**
-- CK7: **POS**
-- TTF1: **POS**
-- Napsin A: **POS**
-- CK20: **NEG**
-- CDX2: **NEG**
-
-**Output:**
 ```
-1. Adenocarcinoma Polmonare   [P(Dx): 14.6%]  28%
-   ████████░░░░░░░░
-   ✅ Match positivi: CK7, TTF1, Napsin A (3/3)
-   ⊖ Negativi confermati: 2
-   📊 Likelihood: 95.0% | Prior: 14.6% → Bayes: 28%
-
-2. Carcinoma Tiroideo         [P(Dx): 0.4%]   12%
-   ████░░░░░░░░░░░░
-   ✅ Match positivi: TTF1 (1/3)
-   📊 Likelihood: 33.3% | Prior: 0.4% → Bayes: 12%
+Cascade → Step 1 (morfologia EE)
+        → Step 2 (screening CK/Vim/S100/CD45)
+        → Step 3 (Big Four, solo se epiteliale)
+        → Step 4 (pannello mirato)
+        → Step 5 (diagnosi differenziale)
+        → [opzionale] Apri in Ricerca Inversa per affinare
 ```
 
-**Diagnosis:** Lung primary (TTF1+/Napsin A+ specific, thyroid excluded by Thyroglobulin−)
+### Revisione caso / consulenza
+
+```
+Ricerca Inversa → imposta morfologia
+               → trascina marker noti in POS/NEG
+               → ANALIZZA
+               → segui suggerimento next marker
+               → [What If] testa scenari alternativi
+```
+
+### Nota sul workflow Cascade → Inverse
+
+Quando si usa "Apri in Ricerca Inversa" dalla Cascade, i marker ND/outsourcing vengono trasferiti come selezionati. Un banner giallo avvisa della loro presenza — non sono selezionabili manualmente in Ricerca Inversa ma influenzano il calcolo.
 
 ---
 
-### Case 2: Peritoneal Carcinomatosis - TRPS1 Pitfall
+## Limitazioni dichiarate
 
-**Input:**
-- CK7: **POS**
-- TRPS1: **POS**
-- PAX8: **POS**
-- WT1: **POS**
-- ER: **POS**
+1. **Probabilità relative al modello**: le percentuali rappresentano il ranking interno tra le 33 entità modellate. Non coprono diagnosi assenti dal database.
 
-**Output:**
-```
-1. Carcinoma Ovarico HGSC      [P(Dx): 7.4%]   45%
-2. Carcinoma Mammario          [P(Dx): 19.4%]  38%
+2. **Calibrazione empirica**: prior, sensibilità e specificità sono handcrafted, non derivate da coorti validate. Il tool è concepito per orientamento, non per decisione autonoma.
 
-⚠️ EPISTEMIC ALERT:
-TRPS1+ in peritoneal CK7+/PAX8+ context: AMBIGUITY!
-Workflow: PAX8+/WT1+ → Ovarian HGSC (even if TRPS1+)
-          PAX8−/WT1−/GATA3+ → Breast
-TRPS1 alone is NOT lineage-specific in peritoneal setting!
-```
+3. **Assenza di classe "altro"**: un caso raro non modellato può produrre un top1 ad alta "robustezza" perché non ha competitors — non perché sia correttamente diagnosticato.
 
-**Diagnosis:** Ovarian HGSC (PAX8+/WT1+ triad overrides TRPS1 ambiguity)
+4. **Qualità preanalitica non modellata**: clone anticorpale, fissazione, cutoff, sede bioptica non sono parametri del modello.
+
+5. **`aliasIndex`**: implementato ma non attivo nel flusso corrente. Scaffolding per futura funzionalità di input libero (es. parser `TTF1+, CK7+, CK20-`).
 
 ---
 
-## 🔬 Technical Details
+## Changelog
 
-### Architecture
-- **Single-file HTML** (no dependencies, no server required)
-- **Pure JavaScript** (ES6+, runs in all modern browsers)
-- **Responsive design** (desktop, tablet, mobile)
-- **Offline-capable** (save locally, use anytime)
-
-### Browser Compatibility
-- ✅ Chrome 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ Edge 90+
-
-### File Size
-- **221 KB** single HTML file
-- **4,746 lines** of code
-- **~5 MB RAM** usage (lightweight)
-
-### Console Logging
-Open browser DevTools (F12) to see diagnostic logs:
-```javascript
-[Bayes] Sex: female, Pos: 3, Neg: 2
-[Bayes] Normalization: 0.2847
-[Bayes] Top 3: ['Adenocarcinoma Polmonare: 28%', ...]
-```
+| Versione | Data | Principali modifiche |
+|----------|------|----------------------|
+| v3.4.3 | Mar 2026 | Banner ND marker importati da Cascade; rimosso ramo morto `nd` in `displayNextBest()`; allineamento commenti interni |
+| v3.4.2 | Mar 2026 | `computeInfoGain()` filtra ND coerentemente con UI; legenda ND nascosta in inverse mode; nota esplicita ND in cascade step 4; "Robustezza del ranking"; disclaimer top-N |
+| v3.4.1 | Mar 2026 | Fix `switchTab()` / `cascSelectMorph()` da `event.target`; bonifica 9 ID in `correlatedGroups`; `getSite()` default `'nd'`; `computeConfidence()` composita; flag basata su LR+ |
+| v3.4 | Feb 2026 | Motore LR bayesiano; filtro morfologico; classe di confidenza; punteggio criticità; IG pesato; risparmio tessuto; modalità Tumor Board; What If |
 
 ---
 
-## 📖 Methodology
+## Stress test suggeriti
 
-### Bayesian Probability Calculation
+Casi trappola utili per validazione:
 
-**Step 1: Likelihood Calculation**
-```javascript
-P(IHC pattern | Diagnosis) = 
-  (Matched positives / Expected positives) × 
-  (Matched negatives / Expected negatives) ×
-  (1 - Violation penalty)
-```
-
-**Step 2: Prior Application**
-```javascript
-Numerator = Likelihood × Prior
-Prior = Mortality rate (Vollmer Table 1, sex-stratified)
-```
-
-**Step 3: Normalization**
-```javascript
-P(Dx | IHC) = Numerator / Σ(Numerator_i) × 100%
-```
-
-**Step 4: Ranking**
-- Sort by descending probability
-- Return top 5 with >1% probability
-
-### Prior Data Sources
-
-Priors derived from **US cancer mortality statistics** (Vollmer 2009), reflecting metastatic tumor prevalence:
-
-| Diagnosis | Female P(Dx) | Male P(Dx) |
-|-----------|--------------|------------|
-| Breast | **19.4%** | 0.2% |
-| Lung ADC | **14.6%** | 11.1% |
-| Colorectal | 12.3% | 11.0% |
-| Prostate | 0% | **13.0%** |
-| Pancreas | 8.0% | 7.9% |
-| Ovarian | 7.4% | 0% |
+| Profilo | Atteso | Trappola |
+|---------|--------|----------|
+| CK+, CD45−, S100−, Vim−, CK7+, CK20−, TTF1+, Napsina+ | ADK polmonare | vs Ca tiroideo (TTF1 condiviso) |
+| CK+, CK7−, CK20−, Heppar+, Arginasi+, Glypican3+ | HCC | vs Yolk sac (Glypican3 condiviso) |
+| CD30+, CD15+, CD45−, PAX5 debole+ | Hodgkin classico | vs ALCL (CD30 condiviso) |
+| STAT6+, CD34+, BCL2+ | TFS | robustezza alta giustificata? |
+| CK+, Vim+, WT1+, Calretinina+, D240+, CEA−, BerEP4− | Mesotelioma | vs Ca ovarico sieroso (PAX8/WT1) |
+| Tutto negativo | — | test classe "altro non modellato" |
 
 ---
 
-## 🛠️ Development
+## Autore e contesto
 
-### Version History
+Sviluppato da Dr. Filippo Bianchi, Direttore f.f. SC Anatomia Patologica  
+ASST Fatebenefratelli-Sacco · Presidio FBF-Melloni-Territorio · Milano
 
-- **v2.17.0** (Current): Enhanced safe - try-catch + visualization + console logging
-- **v2.16.2**: Bayes Vollmer formula + mortality-based priors
-- **v2.15.0**: Probability calculator ("Bayes game")
-- **v2.14.0**: Database expansion to 18 diagnoses
-- **v2.13.0**: Epistemic humility framework (NotebookLM)
-- **v2.11.0**: QC alerts + Big Four futility
-- **v2.10.0**: Morphology STEP 1 workflow
-- **v2.0.0**: Initial IHC cascade tool
-
-### Contributing
-
-We welcome contributions! Priority areas:
-
-1. **Additional diagnoses** (with validated immunoprofiles)
-2. **Marker sensitivity updates** (recent literature)
-3. **Translations** (currently Italian/English mixed)
-4. **Accessibility improvements**
-
-Please open an issue or pull request on GitHub.
-
----
-
-## 📋 Limitations & Disclaimers
-
-### Tool Limitations
-- **Not a substitute for pathologist judgment** - IHC is ancillary to morphology
-- **Database limited to 18 diagnoses** - rare entities may not be covered
-- **Sensitivity data** from literature (may vary by laboratory/antibody clone)
-- **No molecular data integration** (NGS, FISH, etc. not included)
-- **Requires morphological correlation** - tool cannot interpret H&E alone
-
-### Clinical Use
-⚠️ **FOR EDUCATIONAL AND RESEARCH USE**
-
-This tool is designed to:
-- ✅ **Support** differential diagnosis reasoning
-- ✅ **Teach** Bayesian thinking in pathology
-- ✅ **Facilitate** panel selection strategies
-- ❌ **NOT replace** expert pathologist interpretation
-- ❌ **NOT provide** definitive diagnoses
-
-Always correlate with:
-- Clinical history and imaging
-- Complete morphological examination
-- Molecular/cytogenetic studies when indicated
-- Multidisciplinary tumor board discussion
-
----
-
-## 📞 Contact & Support
-
-**Author:** Dr. Filippo Bianchi  
-**Institution:** SC Anatomia Patologica, ASST Fatebenefratelli-Sacco, Milano  
-**GitHub:** [@infingardo](https://github.com/infingardo)  
-
-### Bug Reports
-Open an issue on GitHub with:
-- Browser version
-- Input data (markers tested)
-- Expected vs actual output
-- Console logs (F12 → Console tab)
-
-### Feature Requests
-Suggestions welcome! Particularly interested in:
-- Additional rare diagnoses
-- Molecular marker integration
-- Export format preferences
-- Workflow optimizations
-
----
-
-## 📜 License
-
-**MIT License** - Free for academic, research, and clinical use.
-
-```
-Copyright (c) 2026 Dr. Filippo Bianchi
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
-```
-
----
-
-## 🙏 Acknowledgments
-
-- **Vollmer RT** - Bayesian IHC framework (2009 AJCP paper)
-- **ImmunoGenius team** - Mobile Bayesian IHC concept validation
-- **NotebookLM AI (Google)** - Epistemic caveat validation
-- **DeepSeek AI** - Code review and safety improvements
-- **Claude AI (Anthropic)** - Implementation assistant
-- **Pathology colleagues** - Clinical feedback and testing
-
----
-
-## 📊 Citation
-
-If you use IHC Cascade in research or education, please cite:
-
-```bibtex
-@software{ihc_cascade_2026,
-  author = {Bianchi, Filippo},
-  title = {IHC Cascade CUP: Bayesian Diagnostic Tool for Carcinoma of Unknown Primary},
-  year = {2026},
-  url = {https://github.com/infingardo/ihc-cascade},
-  version = {2.17.0}
-}
-```
-
-And the foundational paper:
-
-```bibtex
-@article{vollmer2009,
-  author = {Vollmer, Robin T},
-  title = {Differential diagnosis in immunohistochemistry with Bayes theorem},
-  journal = {American Journal of Clinical Pathology},
-  volume = {131},
-  number = {5},
-  pages = {723--730},
-  year = {2009},
-  doi = {10.1309/AJCPKF4L6UKBIYSP}
-}
-```
-
----
-
-## 🌟 Star History
-
-If you find this tool useful, please ⭐ **star the repository** on GitHub!
-
----
-
-**Built with scientific rigor 🔬 | Guided by epistemic humility 🤔 | Validated by AI 🤖**
-
-*"Il vetrino non mente, il reagente sì" - The principle of morphology-first pathology*
+Uso didattico e orientativo interno. Non validato per uso clinico autonomo.  
+Feedback: `filippo.bianchi@asst-fbf-sacco.it`
