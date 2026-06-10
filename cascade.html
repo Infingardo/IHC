@@ -3877,8 +3877,9 @@
           return [];
         }
         
-        // Get sex for P(Dx) prior
-        const sex = document.querySelector('input[name="sex"]:checked')?.value || 'female';
+        // Get sex for P(Dx) prior — BUG2 FIX: legge patientSex select, non input[name="sex"]
+        const _sexVal = document.getElementById('patientSex')?.value;
+        const sex = _sexVal === 'M' ? 'male' : _sexVal === 'F' ? 'female' : 'unknown';
         
         console.log(`[Bayes] Sex: ${sex}, Pos: ${positiveMarkers.length}, Neg: ${negativeMarkers.length}`);
         
@@ -3925,8 +3926,14 @@
           // Combined likelihood: P(IHC pattern | Dx)
           const likelihood = positiveLikelihood * negativeLikelihood;
           
-          // ⭐ Bayes: Get prior P(Dx) from prevalenceData
-          const prior = prevalenceData[diagnosis.name]?.[sex] || 0.01; // Default 1% if missing
+          // ⭐ Bayes: Get prior P(Dx) from prevalenceData — BUG2 FIX: unknown sex = media M+F
+          let prior;
+          if (sex === 'unknown') {
+            const _dxData = prevalenceData[diagnosis.name];
+            prior = _dxData ? (_dxData.male + _dxData.female) / 2 : 0.01;
+          } else {
+            prior = prevalenceData[diagnosis.name]?.[sex] ?? 0.01;
+          }
           
           return {
             name: diagnosis.name,
@@ -3994,20 +4001,37 @@
         };
       }
       
-      // Get clinical data
-      const sede = document.getElementById('sede')?.value || 'Non specificata';
-      const sesso = document.querySelector('input[name="sesso"]:checked')?.value || 'Non specificato';
-      const eta = document.getElementById('eta')?.value || 'Non specificata';
+      // Get clinical data — BUG1 FIX: ID corretti (biopsySite, patientSex, patientAge)
+      const _sedeEl = document.getElementById('biopsySite');
+      const sede = (_sedeEl?.value && _sedeEl.selectedIndex > 0)
+        ? (_sedeEl.options[_sedeEl.selectedIndex]?.text || 'Non specificata')
+        : 'Non specificata';
+      const _sessoVal = document.getElementById('patientSex')?.value;
+      const sesso = _sessoVal === 'M' ? 'Maschio' : _sessoVal === 'F' ? 'Femmina' : 'Non specificato';
+      const eta = document.getElementById('patientAge')?.value || 'Non specificata';
       
-      // Get morphology
+      // Get morphology — BUG1 FIX: ID corretti per tutte le checkbox EE presenti nel DOM
       const morphologies = [];
-      if (document.getElementById('clear_cell')?.checked) morphologies.push('Clear cell');
-      if (document.getElementById('signet_ring')?.checked) morphologies.push('Signet-ring');
-      if (document.getElementById('lepidic')?.checked) morphologies.push('Lepidico');
-      if (document.getElementById('squamous')?.checked) morphologies.push('Squamoso');
-      if (document.getElementById('small_cell')?.checked) morphologies.push('Small cell');
-      if (document.getElementById('necrosi')?.checked) morphologies.push('Necrosi');
-      if (document.getElementById('mitosi')?.checked) morphologies.push('Mitosi elevate');
+      // Architettura
+      if (document.getElementById('arch_gland')?.checked)    morphologies.push('Ghiandolare');
+      if (document.getElementById('arch_solid')?.checked)    morphologies.push('Solida');
+      if (document.getElementById('arch_trabec')?.checked)   morphologies.push('Trabecolare');
+      if (document.getElementById('arch_micropap')?.checked) morphologies.push('Micropapillare');
+      if (document.getElementById('arch_lepidic')?.checked)  morphologies.push('Lepidico');
+      // Citologia
+      if (document.getElementById('cyto_clear')?.checked)    morphologies.push('Clear cell');
+      if (document.getElementById('cyto_signet')?.checked)   morphologies.push('Signet-ring');
+      if (document.getElementById('cyto_srbc')?.checked)     morphologies.push('Small round blue cell (SRBC)');
+      if (document.getElementById('cyto_spindle')?.checked)  morphologies.push('Spindle cell');
+      // Differenziazione
+      if (document.getElementById('diff_squamous')?.checked) morphologies.push('Squamoso');
+      if (document.getElementById('diff_mucin')?.checked)    morphologies.push('Produzione muco');
+      // Caratteristiche speciali
+      if (document.getElementById('pigment')?.checked)       morphologies.push('Pigmento melanina');
+      if (document.getElementById('zellballen')?.checked)    morphologies.push('Zellballen (nidi)');
+      if (document.getElementById('vascolar')?.checked)      morphologies.push('Vascolare anastomosante');
+      if (document.getElementById('necro')?.checked)         morphologies.push('Necrosi');
+      if (document.getElementById('mitosi')?.checked)        morphologies.push('Mitosi elevate');
       const morphText = morphologies.length > 0 ? morphologies.join(', ') : 'Non specificata';
       
       // Get positive markers
