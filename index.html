@@ -753,7 +753,11 @@ const bayesDB = [
 {name:'Mieloma/Plasmacitoma',prior:0.02,markers:{'CD138':{s:0.95,n:0.92,w:1.4},'MUM1':{s:0.9,n:0.7,w:1.0},'CD20':{s:0.05,n:0.85,w:0.7},'PAX5':{s:0.05,n:0.85,w:0.7},'CD3':{s:0.01,n:0.95,w:0.6}}},
 {name:'Seminoma',prior:0.02,markers:{'SALL4':{s:0.9,n:0.9,w:1.3},'PLAP':{s:0.85,n:0.92,w:1.2},'CD117':{s:0.85,n:0.7,w:0.7},'AFP':{s:0.01,n:0.98,w:1.0}}},
 {name:'Yolk Sac Tumor',prior:0.01,markers:{'AFP':{s:0.9,n:0.95,w:1.4},'SALL4':{s:0.85,n:0.85,w:1.1},'GLYPICAN3':{s:0.8,n:0.85,w:1.0},'CD30':{s:0.01,n:0.9,w:0.7}}},
-{name:'Coriocarcinoma',prior:0.005,markers:{'HCG':{s:0.95,n:0.98,w:1.5},'CKAE':{s:0.9,n:0.3,w:0.3}}}
+{name:'Coriocarcinoma',prior:0.005,markers:{'HCG':{s:0.95,n:0.98,w:1.5},'CKAE':{s:0.9,n:0.3,w:0.3}}},
+// v3.9.2: nuove entità CUP-rilevanti
+{name:'Merkel Cell Carcinoma',prior:0.01,markers:{'CK20':{s:0.90,n:0.85,w:1.3},'INSM1':{s:0.95,n:0.90,w:1.3},'SINAPTOFISINA':{s:0.90,n:0.60,w:0.8},'CROMOGRANINA':{s:0.60,n:0.60,w:0.5},'CK7':{s:0.10,n:0.70,w:0.8},'TTF1':{s:0.05,n:0.85,w:1.0},'CKAE':{s:0.85,n:0.30,w:0.3}}},
+{name:'Carcinoma Adrenocorticale',prior:0.005,markers:{'SF1_S':{s:0.90,n:0.95,w:1.5},'INIBINA_A':{s:0.80,n:0.85,w:1.2},'MELANA':{s:0.70,n:0.80,w:1.0},'CALRETININA':{s:0.70,n:0.60,w:0.6},'SINAPTOFISINA':{s:0.60,n:0.50,w:0.4},'CKAE':{s:0.30,n:0.40,w:0.5},'EMA':{s:0.05,n:0.85,w:0.9},'PAX8':{s:0.02,n:0.85,w:1.0},'CROMOGRANINA':{s:0.05,n:0.70,w:0.6}}},
+{name:'Fibromatosi Desmoide',prior:0.005,markers:{'BETA_CATENIN':{type:'pattern',patternProbs:{'membranous':0.15,'nuclear':0.85},w:1.3},'ACTINA_SMA':{s:0.50,n:0.50,w:0.5},'DESMINA':{s:0.10,n:0.70,w:0.6},'CD34':{s:0.05,n:0.60,w:0.7},'STAT6':{s:0.02,n:0.85,w:1.0},'CD117':{s:0.02,n:0.70,w:0.6},'DOG1':{s:0.02,n:0.80,w:0.7},'CKAE':{s:0.02,n:0.60,w:0.8},'S100':{s:0.02,n:0.70,w:0.6}}}
 ];
 
 // STATE
@@ -783,7 +787,8 @@ const TOPOGRAPHIC_PRIORS = {
     'Adenocarcinoma Colorettale': 0.01,
     'Leiomiosarcoma': 0.01,
     'Tumore Fibroso Solitario': 0.01,
-    'MPNST': 0.005
+    'MPNST': 0.005,
+    'Merkel Cell Carcinoma': 0.05 // neoplasia cutanea NEN
   },
   'linfonodo': {
     'DLBCL': 0.20,
@@ -844,7 +849,8 @@ const TOPOGRAPHIC_PRIORS = {
     'Linfoma T Periferico': 0.02,
     'Adenocarcinoma Pancreatico': 0.02, // duodeno/ampolla
     'Leiomiosarcoma': 0.005,
-    'Melanoma': 0.005 // mts o anale
+    'Melanoma': 0.005, // mts o anale
+    'Fibromatosi Desmoide': 0.02 // sede mesenterica / radice del mesentere
   },
   'epatobiliare_pancreas': {
     'Adenocarcinoma Pancreatico': 0.30,
@@ -899,7 +905,8 @@ const TOPOGRAPHIC_PRIORS = {
     'Carcinoma Squamoso (SCC)': 0.02, // mts
     'DLBCL': 0.02,
     'Linfoma T Periferico': 0.01,
-    'Mieloma/Plasmacitoma': 0.01
+    'Mieloma/Plasmacitoma': 0.01,
+    'Fibromatosi Desmoide': 0.06 // tessuti molli profondi / parete addominale
   },
   'osso': {
     'Sarcoma di Ewing': 0.10,
@@ -951,7 +958,9 @@ const TOPOGRAPHIC_PRIORS = {
     'DLBCL': 0.03,
     'Linfoma di Hodgkin': 0.02,
     'Linfoma T Periferico': 0.01,
-    'Mieloma/Plasmacitoma': 0.01
+    'Mieloma/Plasmacitoma': 0.01,
+    'Merkel Cell Carcinoma': 0.02, // raro ma CUP-rilevante (stadio IV)
+    'Carcinoma Adrenocorticale': 0.02 // surrene — sede mts frequente
   }
   // 'non_specificata' non \u00e8 nella matrice: usa dx.prior originale (vedi adjustPriorBySite)
 };
