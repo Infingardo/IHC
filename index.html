@@ -2317,9 +2317,9 @@ function cascComputeResults() {
 
   positiveMarkers.clear();
   negativeMarkers.clear();
-  // Cascade non usa pattern marker né lossControlConfirmed: isola i globali
+  // Cascade non usa pattern marker: isola il globale
+  // P2b FIX: lossControlConfirmed NON va azzerato — computeBayes() non lo usa e il render badge ne ha bisogno
   patternMarkers = {};
-  lossControlConfirmed = new Set();
   // v3.8.1: ricostruisci nonInterpretableMarkers da panelMarkers ('ni')
   nonInterpretableMarkers.clear();
   for(const [mid, val] of Object.entries(cascState.panelMarkers)) {
@@ -2355,9 +2355,7 @@ function cascComputeResults() {
     morphology = savedMorph;
     nonInterpretableMarkers.clear();
     for(const id of savedNI) nonInterpretableMarkers.add(id);
-    for(const [mid, val] of Object.entries(cascState.panelMarkers)) {
-      if(val === 'ni') nonInterpretableMarkers.add(mid);
-    }
+    // P2b FIX: non re-iniettare i n.i. Cascade nel globale condiviso con Ricerca Inversa
     lossControlConfirmed.clear(); for(const id of savedLCC) lossControlConfirmed.add(id);
     patternMarkers = savedPM;
     return;
@@ -2404,10 +2402,7 @@ function cascComputeResults() {
   // v3.8.1: ripristina anche ni
   nonInterpretableMarkers.clear();
   for(const id of savedNI) nonInterpretableMarkers.add(id);
-  // E ricostruisci dai panelMarkers per coerenza con quanto mostrato
-  for(const [mid, val] of Object.entries(cascState.panelMarkers)) {
-    if(val === 'ni') nonInterpretableMarkers.add(mid);
-  }
+  // P2b FIX: non re-iniettare i n.i. Cascade nel globale condiviso con Ricerca Inversa
   // P2b FIX: ripristina lossControlConfirmed e patternMarkers
   lossControlConfirmed.clear(); for(const id of savedLCC) lossControlConfirmed.add(id);
   patternMarkers = savedPM;
