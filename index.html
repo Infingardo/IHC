@@ -1648,6 +1648,15 @@ function analyzeMarkers() {
       document.getElementById('nextBestSection').innerHTML = '';
       return;
     }
+    // P1 FIX: svuota UI prima di avvisare — evita che risultati vecchi restino visibili
+    lastResults = [];
+    document.getElementById('emptyLookupState').style.display = 'block';
+    document.getElementById('lookupResults').style.display = 'none';
+    document.getElementById('nextBestSection').innerHTML = '';
+    const _ndB = document.getElementById('ndImportBanner');
+    if (_ndB) _ndB.style.display = 'none';
+    const _wb = document.getElementById('warnBar');
+    if (_wb) _wb.style.display = 'none';
     alert('Seleziona almeno un marker!');
     return;
   }
@@ -1957,9 +1966,9 @@ function cascSelectMorph(id, btn=null) {
   cascState.bigFour = {};
   cascState.panelMarkers = {};
   cascState.screenMorph = null;
-  lossControlConfirmed.clear(); // v3.6.2: nuova morfologia = nuovo caso
-  nonInterpretableMarkers.clear(); // v3.8.1: idem
-  patternMarkers = {}; // v3.9.0: idem
+  // P2a FIX: non toccare i globali condivisi con Ricerca Inversa.
+  // cascComputeResults() salva/ripristina lossControlConfirmed e patternMarkers
+  // e ricostruisce nonInterpretableMarkers da cascState.panelMarkers ad ogni run.
   document.querySelectorAll('.morph-btn').forEach(b => b.classList.remove('selected'));
   if(btn) btn.classList.add('selected');
   
@@ -2303,9 +2312,14 @@ function cascComputeResults() {
   const savedNeg = new Set(negativeMarkers);
   const savedMorph = morphology;
   const savedNI = new Set(nonInterpretableMarkers); // v3.8.1: snapshot
+  const savedLCC = new Set(lossControlConfirmed);   // P2b FIX: snapshot
+  const savedPM = {...patternMarkers};               // P2b FIX: snapshot
 
   positiveMarkers.clear();
   negativeMarkers.clear();
+  // Cascade non usa pattern marker né lossControlConfirmed: isola i globali
+  patternMarkers = {};
+  lossControlConfirmed = new Set();
   // v3.8.1: ricostruisci nonInterpretableMarkers da panelMarkers ('ni')
   nonInterpretableMarkers.clear();
   for(const [mid, val] of Object.entries(cascState.panelMarkers)) {
@@ -2335,7 +2349,7 @@ function cascComputeResults() {
       '<p style="margin-top:8px;">Il pannello contiene '+(nonInterpretableMarkers.size>0?'solo loss-marker non interpretabili (esclusi dal Bayes)':'nessun marker testato')+'. Aggiungi almeno un marker positivo o negativo (o un loss-marker retained/lost) per ottenere un ranking diagnostico.</p>'+
       '</div>'+niHTML;
     document.getElementById('cascAudit').textContent = BAYES_VERSION+' | Cascade: '+cascState.morph+' | Pos:0 Neg:0'+(nonInterpretableMarkers.size>0?' n.i.:'+nonInterpretableMarkers.size:'')+' | '+new Date().toISOString().slice(0,16);
-    // Restore globali
+    // Restore globali — P2b FIX: include lossControlConfirmed e patternMarkers
     positiveMarkers = savedPos;
     negativeMarkers = savedNeg;
     morphology = savedMorph;
@@ -2344,6 +2358,8 @@ function cascComputeResults() {
     for(const [mid, val] of Object.entries(cascState.panelMarkers)) {
       if(val === 'ni') nonInterpretableMarkers.add(mid);
     }
+    lossControlConfirmed.clear(); for(const id of savedLCC) lossControlConfirmed.add(id);
+    patternMarkers = savedPM;
     return;
   }
 
@@ -2392,6 +2408,9 @@ function cascComputeResults() {
   for(const [mid, val] of Object.entries(cascState.panelMarkers)) {
     if(val === 'ni') nonInterpretableMarkers.add(mid);
   }
+  // P2b FIX: ripristina lossControlConfirmed e patternMarkers
+  lossControlConfirmed.clear(); for(const id of savedLCC) lossControlConfirmed.add(id);
+  patternMarkers = savedPM;
 }
 
 function cascToInverse() {
