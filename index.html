@@ -257,13 +257,14 @@
 <body>
 <div class="container">
   <header>
-    <h1>🧬 IHC Hub v3.9.1</h1>
+    <h1>🧬 IHC Hub v3.9.3</h1>
     <p class="version">Motore Bayesiano · Filtro Morfologico · Classi di Confidenza · Risparmio Tessuto · Tumor Board</p>
     <div class="header-badges">
       <span class="badge fbf" id="badgeFBF">143 FBF</span>
       <span class="badge sacco" id="badgeSACCO">+29 SACCO</span>
       <span class="badge engine">Motore Bayesiano</span>
-      <span class="badge version">v3.9.1</span>
+      <span class="badge version">v3.9.3</span>
+      <button onclick="showValidationModal()" title="Valida coerenza bayesDB / markerDB" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;border-radius:6px;padding:2px 10px;font-size:.75rem;cursor:pointer;font-weight:500">🔍 Audit DB</button>
     </div>
   </header>
 
@@ -771,7 +772,149 @@ let morphology = 'any';
 let tissueLimit = 0;
 let tumorBoardMode = false;
 let topographicSite = 'non_specificata'; // v3.7.0
-const BAYES_VERSION = 'FBF v3.9.1-final \u2013 Mag 2026 (pattern marker architecture fixed)';
+const BAYES_VERSION = 'FBF v3.9.3 \u2013 Giu 2026 (state isolation + DB validator)';
+
+// v3.9.3: DB validator \u2014 rileva incoerenze silenti in bayesDB/markerDB/TOPOGRAPHIC_PRIORS
+function validateDB() {
+  const issues = [];
+  const allDxNames = new Set(bayesDB.map(d => d.name));
+  const usedMarkers = new Set();
+  let totalPrior = 0;
+
+  for (const dx of bayesDB) {
+    totalPrior += dx.prior;
+    if (dx.prior <= 0 || dx.prior > 1)
+      issues.push({level:'ERROR', entity:dx.name, marker:'-', detail:`Prior fuori range: ${dx.prior}`});
+
+    for (const [mid, mp] of Object.entries(dx.markers)) {
+      usedMarkers.add(mid);
+      if (!markerDB[mid]) {
+        issues.push({level:'ERROR', entity:dx.name, marker:mid, detail:'ID non trovato in markerDB'});
+        continue;
+      }
+      if (mp.type === 'pattern') {
+        const sum = Object.values(mp.patternProbs || {}).reduce((a,b)=>a+b, 0);
+        if (Math.abs(sum - 1) > 0.015)
+          issues.push({level:'ERROR', entity:dx.name, marker:mid, detail:`patternProbs somma ${sum.toFixed(3)} \u2260 1`});
+        if (markerDB[mid].type !== 'pattern')
+          issues.push({level:'WARN', entity:dx.name, marker:mid, detail:'bayesDB type:pattern ma markerDB non ha type:pattern'});
+        if (mp.w <= 0 || mp.w > 3)
+          issues.push({level:'WARN', entity:dx.name, marker:mid, detail:`Peso w=${mp.w} insolito (atteso 0<w\u22643)`});
+      } else {
+        if (mp.s < 0 || mp.s > 1)
+          issues.push({level:'ERROR', entity:dx.name, marker:mid, detail:`s=${mp.s} fuori [0,1]`});
+        if (mp.n < 0 || mp.n > 1)
+          issues.push({level:'ERROR', entity:dx.name, marker:mid, detail:`n=${mp.n} fuori [0,1]`});
+        if (mp.w <= 0 || mp.w > 3)
+          issues.push({level:'WARN', entity:dx.name, marker:mid, detail:`Peso w=${mp.w} insolito`});
+        // Coerenza loss semantics: se s \u00e8 alta ma loss:true non \u00e8 impostato in markerDB
+        // (informativo \u2014 non tutti i marker ad alta s sono oncosoppressori)
+      }
+    }
+  }
+
+  // Somma prior globale
+  if (Math.abs(totalPrior - 1) > 0.20)
+    issues.push({level:'WARN', entity:'(globale)', marker:'-', detail:`Somma prior = ${totalPrior.toFixed(3)} (atteso \u2248 1.0, \u0394=${(totalPrior-1).toFixed(3)})`});
+  else if (Math.abs(totalPrior - 1) > 0.05)
+    issues.push({level:'INFO', entity:'(globale)', marker:'-', detail:`Somma prior = ${totalPrior.toFixed(3)} \u2014 leggera deviazione da 1 (non critica)`});
+
+  // TOPOGRAPHIC_PRIORS: nomi diagnosi referenziati esistono in bayesDB?
+  for (const [site, priors] of Object.entries(TOPOGRAPHIC_PRIORS)) {
+    for (const dxName of Object.keys(priors)) {
+      if (!allDxNames.has(dxName))
+        issues.push({level:'WARN', entity:`TOPOGRAPHIC[${site}]`, marker:'-', detail:`Diagnosi "${dxName}" non trovata in bayesDB`});
+    }
+  }
+
+  // Marker orfani: in markerDB ma non usati in nessuna entit\u00e0 bayesDB
+  const orphans = Object.keys(markerDB).filter(mid => !usedMarkers.has(mid));
+  if (orphans.length)
+    issues.push({level:'INFO', entity:'(markerDB)', marker:'-', detail:`${orphans.length} marker non usati in bayesDB: ${orphans.slice(0,8).join(', ')}${orphans.length>8?'\u2026':''}`});
+
+  const errors = issues.filter(i=>i.level==='ERROR').length;
+  const warns  = issues.filter(i=>i.level==='WARN').length;
+  const infos  = issues.filter(i=>i.level==='INFO').length;
+
+  return {
+    version: BAYES_VERSION,
+    timestamp: new Date().toISOString(),
+    status: errors > 0 ? 'FAIL' : warns > 0 ? 'WARN' : 'OK',
+    stats: {
+      entities: bayesDB.length,
+      uniqueMarkersInBayes: usedMarkers.size,
+      totalMarkersInDB: Object.keys(markerDB).length,
+      orphanMarkers: orphans.length,
+      totalPrior: +totalPrior.toFixed(4),
+      errors, warns, infos
+    },
+    issues
+  };
+}
+
+function showValidationModal() {
+  const report = validateDB();
+  const lvlStyle = {
+    ERROR: 'background:#fee2e2;color:#991b1b;font-weight:600',
+    WARN:  'background:#fef3c7;color:#92400e;font-weight:600',
+    INFO:  'background:#dbeafe;color:#1e40af;font-weight:400'
+  };
+  const statusColor = report.status === 'OK' ? '#065f46' : report.status === 'WARN' ? '#92400e' : '#991b1b';
+  const statusIcon  = report.status === 'OK' ? '\u2705' : report.status === 'WARN' ? '\u26a0\ufe0f' : '\u274c';
+
+  const rows = report.issues.length
+    ? report.issues.map(i =>
+        `<tr>
+          <td style="padding:4px 8px;"><span style="font-size:.7rem;padding:2px 6px;border-radius:4px;${lvlStyle[i.level]}">${i.level}</span></td>
+          <td style="padding:4px 8px;font-size:.78rem;max-width:160px;word-break:break-word">${i.entity}</td>
+          <td style="padding:4px 8px;font-size:.78rem;font-family:monospace">${i.marker}</td>
+          <td style="padding:4px 8px;font-size:.78rem">${i.detail}</td>
+        </tr>`).join('')
+    : `<tr><td colspan="4" style="padding:12px;text-align:center;color:#065f46;font-size:.85rem;">\u2705 Nessun problema rilevato</td></tr>`;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'validationOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
+  overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:24px;max-width:760px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="margin:0;font-size:1.05rem">\ud83d\udd0d DB Audit Report</h3>
+        <button onclick="document.getElementById('validationOverlay').remove()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#6b7280">\u2715</button>
+      </div>
+      <div style="background:#f9fafb;border-radius:8px;padding:12px;margin-bottom:16px;font-size:.8rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px">
+        <div><strong style="color:${statusColor}">${statusIcon} ${report.status}</strong></div>
+        <div>Entit\u00e0: <strong>${report.stats.entities}</strong></div>
+        <div>Marker in Bayes: <strong>${report.stats.uniqueMarkersInBayes}</strong></div>
+        <div>Marker in DB: <strong>${report.stats.totalMarkersInDB}</strong></div>
+        <div>Orfani: <strong>${report.stats.orphanMarkers}</strong></div>
+        <div>Prior \u03a3: <strong>${report.stats.totalPrior}</strong></div>
+        <div style="color:#991b1b">Errori: <strong>${report.stats.errors}</strong></div>
+        <div style="color:#92400e">Warning: <strong>${report.stats.warns}</strong></div>
+        <div style="color:#1e40af">Info: <strong>${report.stats.infos}</strong></div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:.78rem">
+        <thead><tr style="background:#f3f4f6;font-size:.72rem;text-align:left">
+          <th style="padding:6px 8px">Livello</th><th style="padding:6px 8px">Entit\u00e0</th><th style="padding:6px 8px">Marker</th><th style="padding:6px 8px">Dettaglio</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end;font-size:.78rem;color:#6b7280">
+        <span>${report.version} | ${report.timestamp.slice(0,16)}</span>
+        <button onclick="exportValidationReport()" style="background:#1d4ed8;color:#fff;border:none;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:.75rem">\ud83d\udce5 Esporta JSON</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function exportValidationReport() {
+  const report = validateDB();
+  const blob = new Blob([JSON.stringify(report, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ihc_audit_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
 
 // v3.7.0: Topographic priors matrix
 // Sede anatomica/contesto del campione \u2192 priors per diagnosi tipiche di quella sede
