@@ -1107,7 +1107,7 @@ function logSumExp(lv) {
   return mx + Math.log(s);
 }
 
-function computeBayes() {
+function computeBayes(lccOverride) {
   // v3.9.0: tested include anche pattern marker selezionati
   const patternIds = Object.keys(patternMarkers);
   const tested = new Set([...positiveMarkers, ...negativeMarkers, ...patternIds]);
@@ -1186,7 +1186,7 @@ function computeBayes() {
         logP += corrW * Math.log(Math.max(lr, 0.001));
         // v3.6.2: testo coerente con badge controllo interno per loss-marker confermati
         if (isLoss && lr >= 2.0) {
-          const ctrl = lossControlConfirmed.has(mid) ? ' [ctrl int. OK]' : '';
+          const ctrl = (lccOverride || lossControlConfirmed).has(mid) ? ' [ctrl int. OK]' : '';
           reasoning.push({type:'support',text:'\u2705 '+d+' lost'+ctrl+' \u2192 supporta dx (LR '+lr.toFixed(1)+')'});
         }
         else if (!isLoss && p.s >= 0.7) { flags.push('\ud83d\udeab '+d+' NEG (atteso pos, sens '+Math.round(p.s*100)+'%)'); reasoning.push({type:'flag',text:'\ud83d\udeab '+d+' (-) atteso pos (sens '+Math.round(p.s*100)+'%)'}); }
@@ -2352,7 +2352,7 @@ function cascComputeResults() {
     return;
   }
 
-  const results = computeBayes();
+  const results = computeBayes(cascState.lossControlConfirmed); // P3 FIX: usa cascState.lcc per reasoning coerente
 
   if(!results.length) {
     c.innerHTML = '<div class="empty-state"><p>Nessuna diagnosi compatibile con questo profilo.</p></div>'+niHTML;
@@ -2427,7 +2427,7 @@ function cascSetSite(site) {
 function cascReset() {
   // P2 FIX: LCC e NI appartengono a cascState — non toccare i globali di Ricerca Inversa
   cascState = { morph:null, screen:{}, bigFour:{}, panelMarkers:{}, step:1, screenMorph:null, lossControlConfirmed: new Set(), nonInterpretableMarkers: new Set() };
-  patternMarkers = {}; // v3.9.0 — isolamento Cascade
+  // P3 FIX: patternMarkers è globale di Ricerca Inversa — cascReset() non deve toccarlo
   topographicSite = 'non_specificata';
   // Sincronizza UI di entrambe le tab
   const ss = document.getElementById('siteSelect'); if (ss) ss.value = 'non_specificata';
