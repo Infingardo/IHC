@@ -1,4 +1,5 @@
 import re
+import os
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import ParagraphStyle
@@ -49,7 +50,7 @@ solo_sacco = [
     "IgA", "IgD", "IgM", "INI-1", "IRTA1/FCRL4", "LEF1",
     "MUC1", "MUC2", "MUC4", "MUC6", "MyoD1", "NeuN", "NRAS", "OCT 3/4",
     "OCT-2", "Pan-TRK", "Parvovirus B19", "Perforin", "PLA2R1",
-    "Pneumocistis Carinii", "POLE", "PTH", "RB1 (SP384)", "ROS1 (SP384)",
+    "Pneumocistis Carinii", "POLE", "PTH", "ROS1 (SP384)",
     "SAR COV2", "SDHB", "SF1", "SOX2", "SV40", "TIA1", "TB", "TFEB",
     "Toxoplasma Gondii", "TREPONEMA SPIROCHETE", "Tri-Methyl-Histone H3",
     "WT49", "ZAP70", "Surfactante SPB"
@@ -76,8 +77,9 @@ for i in range(0, len(all_abs_display), 3):
         row.append("")
     rows_flat.append(row)
 
+OUTPUT_PDF = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Pannello_AB_aggiornato.pdf")
 doc = SimpleDocTemplate(
-    "/mnt/user-data/outputs/Pannello_AB_aggiornato.pdf",
+    OUTPUT_PDF,
     pagesize=A4,
     leftMargin=1.5*cm, rightMargin=1.5*cm,
     topMargin=2*cm, bottomMargin=2*cm

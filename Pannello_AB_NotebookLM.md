@@ -1,0 +1,452 @@
+# Pannello Anticorpi – SC Anatomia Patologica FBF–Sacco
+
+Totale anticorpi: 219 (FBF + Sacco: 144; Solo Sacco: 75).
+
+Ogni anticorpo riporta la disponibilita scritta per esteso. "FBF + Sacco" = disponibile in entrambe le sedi. "Solo Sacco" = disponibile solo presso il Sacco.
+
+## Elenco alfabetico completo
+
+- CD1a — Disponibilita: FBF + Sacco
+- CD2 — Disponibilita: FBF + Sacco
+- CD3 — Disponibilita: FBF + Sacco
+- CD4 — Disponibilita: FBF + Sacco
+- CD5 — Disponibilita: FBF + Sacco
+- CD7 — Disponibilita: FBF + Sacco
+- CD8 — Disponibilita: FBF + Sacco
+- CD10 — Disponibilita: FBF + Sacco
+- CD11c — Disponibilita: Solo Sacco
+- CD14 — Disponibilita: FBF + Sacco
+- CD15 — Disponibilita: FBF + Sacco
+- CD16 — Disponibilita: Solo Sacco
+- CD19 — Disponibilita: FBF + Sacco
+- CD20 — Disponibilita: FBF + Sacco
+- CD21 — Disponibilita: FBF + Sacco
+- CD23 — Disponibilita: FBF + Sacco
+- CD30 — Disponibilita: FBF + Sacco
+- CD31 — Disponibilita: FBF + Sacco
+- CD34 — Disponibilita: FBF + Sacco
+- CD38 — Disponibilita: FBF + Sacco
+- CD43 — Disponibilita: Solo Sacco
+- CD44 — Disponibilita: FBF + Sacco
+- CD45 (LCA) — Disponibilita: FBF + Sacco
+- CD56 — Disponibilita: FBF + Sacco
+- CD57 — Disponibilita: Solo Sacco
+- CD61 — Disponibilita: FBF + Sacco
+- CD68 KP1 — Disponibilita: FBF + Sacco
+- CD68 PGM1 — Disponibilita: FBF + Sacco
+- CD79a — Disponibilita: FBF + Sacco
+- CD99 — Disponibilita: FBF + Sacco
+- CD117/cKIT — Disponibilita: FBF + Sacco
+- CD123 — Disponibilita: Solo Sacco
+- CD138 — Disponibilita: FBF + Sacco
+- CD146 — Disponibilita: Solo Sacco
+- CD163 — Disponibilita: FBF + Sacco
+- ACTINA HHF35 — Disponibilita: FBF + Sacco
+- ACTINA m.l. (muscolo liscio) — Disponibilita: FBF + Sacco
+- AFP/ALF (alfafetoproteina) — Disponibilita: FBF + Sacco
+- ALK (D5F3) — Disponibilita: FBF + Sacco
+- ALK 1 — Disponibilita: Solo Sacco
+- Amiloide A — Disponibilita: Solo Sacco
+- Amiloide P — Disponibilita: Solo Sacco
+- ANDROGENI — Disponibilita: FBF + Sacco
+- ANIDRASI CARBONICA (CAIX) — Disponibilita: FBF + Sacco
+- ANNEXIN A1 — Disponibilita: FBF + Sacco
+- ANTI-BRAF — Disponibilita: Solo Sacco
+- ARGINASI-1 — Disponibilita: FBF + Sacco
+- ARID1A — Disponibilita: Solo Sacco
+- Aspergillus — Disponibilita: Solo Sacco
+- ATRX — Disponibilita: FBF + Sacco
+- BAP1 (C-4) — Disponibilita: Solo Sacco
+- Bcl1 (Ciclina D1) — Disponibilita: FBF + Sacco
+- Bcl10 — Disponibilita: FBF + Sacco
+- Bcl2 — Disponibilita: FBF + Sacco
+- Bcl6 — Disponibilita: FBF + Sacco
+- Betacatenina — Disponibilita: FBF + Sacco
+- BRAF V600E — Disponibilita: Solo Sacco
+- BRG1/SMARCA4 — Disponibilita: FBF + Sacco
+- c-FOS — Disponibilita: Solo Sacco
+- c-myc — Disponibilita: FBF + Sacco
+- Ca125 — Disponibilita: FBF + Sacco
+- Calbindin — Disponibilita: Solo Sacco
+- Calcitonina — Disponibilita: FBF + Sacco
+- Caldesmone — Disponibilita: FBF + Sacco
+- Calponina — Disponibilita: FBF + Sacco
+- Calretinina — Disponibilita: FBF + Sacco
+- Candida Albicans — Disponibilita: Solo Sacco
+- CDK4 — Disponibilita: FBF + Sacco
+- CDX2 — Disponibilita: FBF + Sacco
+- CEA Monoclonale — Disponibilita: FBF + Sacco
+- CEA Policlonale — Disponibilita: Solo Sacco
+- Chymotripsina (antichimotripsina) — Disponibilita: Solo Sacco
+- CK CAM5.2 — Disponibilita: FBF + Sacco
+- CK MNF116 — Disponibilita: Solo Sacco
+- CK PAN — Disponibilita: FBF + Sacco
+- CK19 — Disponibilita: FBF + Sacco
+- CK20 — Disponibilita: FBF + Sacco
+- CK34betaE12 — Disponibilita: FBF + Sacco
+- CK5/6 — Disponibilita: FBF + Sacco
+- CK7 — Disponibilita: FBF + Sacco
+- Claudina 4 — Disponibilita: Solo Sacco
+- Claudina-18 — Disponibilita: FBF + Sacco
+- CMITA1 — Disponibilita: Solo Sacco
+- CMV — Disponibilita: FBF + Sacco
+- Collagene IV — Disponibilita: Solo Sacco
+- Cromogranina — Disponibilita: FBF + Sacco
+- CTRL Mon NEG (FOLR1/CLND18 RxDx) — Disponibilita: FBF + Sacco
+- D2-40 (podoplanina) — Disponibilita: FBF + Sacco
+- Desmina — Disponibilita: FBF + Sacco
+- DNAJB9 — Disponibilita: Solo Sacco
+- DOG1 — Disponibilita: FBF + Sacco
+- E-caderina EP700Y — Disponibilita: FBF + Sacco
+- EBER — Disponibilita: Solo Sacco
+- EBV-LMP1 — Disponibilita: Solo Sacco
+- EMA — Disponibilita: FBF + Sacco
+- EP-CAM (ber-EP4) — Disponibilita: FBF + Sacco
+- ERG — Disponibilita: FBF + Sacco
+- Estrogeni (ER) — Disponibilita: FBF + Sacco
+- Fattore VIII — Disponibilita: FBF + Sacco
+- FATTORE XIII — Disponibilita: FBF + Sacco
+- FOLR1 Rx Dx Assay — Disponibilita: Solo Sacco
+- FOSB — Disponibilita: Solo Sacco
+- FOSFOISTONE-H3 — Disponibilita: FBF + Sacco
+- FOXL2 — Disponibilita: Solo Sacco
+- Fumarato Idratasi — Disponibilita: FBF + Sacco
+- Galectina 3 — Disponibilita: FBF + Sacco
+- Gastrina — Disponibilita: Solo Sacco
+- GATA 3 — Disponibilita: FBF + Sacco
+- GCDFP15 — Disponibilita: Solo Sacco
+- GFAP — Disponibilita: FBF + Sacco
+- Glicoforina — Disponibilita: FBF + Sacco
+- GLUT 1 — Disponibilita: FBF + Sacco
+- GLUTAMINA SINTETASI — Disponibilita: FBF + Sacco
+- Glypican3 — Disponibilita: FBF + Sacco
+- Granzyme B — Disponibilita: Solo Sacco
+- HBME 1 (Mesothelial cell) — Disponibilita: Solo Sacco
+- hCG — Disponibilita: FBF + Sacco
+- HCL DBA44 — Disponibilita: Solo Sacco
+- Hepatocyte/HSA (specific antigen) — Disponibilita: FBF + Sacco
+- HER2 (c-erb B2) — Disponibilita: FBF + Sacco
+- HGAL — Disponibilita: FBF + Sacco
+- HHV8 (orf73) — Disponibilita: FBF + Sacco
+- HIV p24 — Disponibilita: Solo Sacco
+- HMB45 (Melanosome) — Disponibilita: FBF + Sacco
+- hPL — Disponibilita: Solo Sacco
+- HPV — Disponibilita: FBF + Sacco
+- HSV I (Herpesvirus 1) — Disponibilita: Solo Sacco
+- HSV II (Herpesvirus 1/2) — Disponibilita: Solo Sacco
+- HU/HUD — Disponibilita: FBF + Sacco
+- IDH1 — Disponibilita: FBF + Sacco
+- IgA — Disponibilita: Solo Sacco
+- IgD — Disponibilita: Solo Sacco
+- IgG — Disponibilita: FBF + Sacco
+- IgG4 — Disponibilita: FBF + Sacco
+- IgM — Disponibilita: Solo Sacco
+- INI-1 — Disponibilita: Solo Sacco
+- Inibina alpha — Disponibilita: FBF + Sacco
+- IRTA1/FCRL4 — Disponibilita: Solo Sacco
+- KAPPA — Disponibilita: FBF + Sacco
+- Ki67 — Disponibilita: FBF + Sacco
+- LAMBDA — Disponibilita: FBF + Sacco
+- LEF1 — Disponibilita: Solo Sacco
+- MAMMOGLOBINA — Disponibilita: FBF + Sacco
+- MDM2 — Disponibilita: FBF + Sacco
+- Melan A (MART 1) — Disponibilita: FBF + Sacco
+- Mieloperossidasi — Disponibilita: FBF + Sacco
+- Miogenina — Disponibilita: FBF + Sacco
+- MLH1 — Disponibilita: FBF + Sacco
+- MSH2 — Disponibilita: FBF + Sacco
+- MSH6 — Disponibilita: FBF + Sacco
+- MUC1 — Disponibilita: Solo Sacco
+- MUC2 — Disponibilita: Solo Sacco
+- MUC4 — Disponibilita: Solo Sacco
+- MUC6 — Disponibilita: Solo Sacco
+- MUM1 — Disponibilita: FBF + Sacco
+- MyoD1 — Disponibilita: Solo Sacco
+- Napsin A — Disponibilita: FBF + Sacco
+- NeuN — Disponibilita: Solo Sacco
+- Neurofilamenti (NF) — Disponibilita: FBF + Sacco
+- NKX3 — Disponibilita: FBF + Sacco
+- NRAS — Disponibilita: Solo Sacco
+- NSE — Disponibilita: FBF + Sacco
+- OCT 3/4 — Disponibilita: Solo Sacco
+- OCT-2 — Disponibilita: Solo Sacco
+- OLIG2 — Disponibilita: FBF + Sacco
+- p16 — Disponibilita: FBF + Sacco
+- p40 — Disponibilita: FBF + Sacco
+- p53 — Disponibilita: FBF + Sacco
+- p57 — Disponibilita: FBF + Sacco
+- p63 — Disponibilita: FBF + Sacco
+- Pan-TRK — Disponibilita: Solo Sacco
+- Parvovirus B19 — Disponibilita: Solo Sacco
+- PAX5 — Disponibilita: FBF + Sacco
+- PAX8 — Disponibilita: FBF + Sacco
+- PDL1 (SP142) — Disponibilita: FBF + Sacco
+- PDL1 (SP263) — Disponibilita: FBF + Sacco
+- Perforin — Disponibilita: Solo Sacco
+- PHH3 — Disponibilita: FBF + Sacco
+- PLA2R1 — Disponibilita: Solo Sacco
+- PLAP — Disponibilita: FBF + Sacco
+- PML-RAR1 — Disponibilita: FBF + Sacco
+- PMS2 — Disponibilita: FBF + Sacco
+- Pneumocistis Carinii — Disponibilita: Solo Sacco
+- POLE — Disponibilita: Solo Sacco
+- PRAME — Disponibilita: FBF + Sacco
+- Progesterone (PR) — Disponibilita: FBF + Sacco
+- PSA — Disponibilita: FBF + Sacco
+- PSAP — Disponibilita: FBF + Sacco
+- PTEN — Disponibilita: FBF + Sacco
+- PTH — Disponibilita: Solo Sacco
+- RACEMASI (P504S AMACR) — Disponibilita: FBF + Sacco
+- RCC — Disponibilita: FBF + Sacco
+- ROS1 (SP384) — Disponibilita: Solo Sacco
+- S100 — Disponibilita: FBF + Sacco
+- SALL4 — Disponibilita: FBF + Sacco
+- SAR COV2 — Disponibilita: Solo Sacco
+- SATB2 — Disponibilita: FBF + Sacco
+- SDHB — Disponibilita: Solo Sacco
+- SF1 — Disponibilita: Solo Sacco
+- Sinaptofisina — Disponibilita: FBF + Sacco
+- SOX10 — Disponibilita: FBF + Sacco
+- SOX11 — Disponibilita: FBF + Sacco
+- SOX2 — Disponibilita: Solo Sacco
+- STAT6 — Disponibilita: FBF + Sacco
+- Surfactante SPB — Disponibilita: Solo Sacco
+- SV40 — Disponibilita: Solo Sacco
+- TB — Disponibilita: Solo Sacco
+- TdT — Disponibilita: FBF + Sacco
+- TFEB — Disponibilita: Solo Sacco
+- TIA1 — Disponibilita: Solo Sacco
+- Tiroglobulina — Disponibilita: FBF + Sacco
+- Toxoplasma Gondii — Disponibilita: Solo Sacco
+- TREPONEMA SPIROCHETE — Disponibilita: Solo Sacco
+- Tri-Methyl-Histone H3 — Disponibilita: Solo Sacco
+- TTF1 — Disponibilita: FBF + Sacco
+- Vimentina — Disponibilita: FBF + Sacco
+- WT1 — Disponibilita: FBF + Sacco
+- WT49 — Disponibilita: Solo Sacco
+- ZAP70 — Disponibilita: Solo Sacco
+
+## Solo FBF + Sacco
+
+- CD1a
+- CD2
+- CD3
+- CD4
+- CD5
+- CD7
+- CD8
+- CD10
+- CD14
+- CD15
+- CD19
+- CD20
+- CD21
+- CD23
+- CD30
+- CD31
+- CD34
+- CD38
+- CD44
+- CD45 (LCA)
+- CD56
+- CD61
+- CD68 KP1
+- CD68 PGM1
+- CD79a
+- CD99
+- CD117/cKIT
+- CD138
+- CD163
+- ACTINA HHF35
+- ACTINA m.l. (muscolo liscio)
+- AFP/ALF (alfafetoproteina)
+- ALK (D5F3)
+- ANDROGENI
+- ANIDRASI CARBONICA (CAIX)
+- ANNEXIN A1
+- ARGINASI-1
+- ATRX
+- Bcl1 (Ciclina D1)
+- Bcl10
+- Bcl2
+- Bcl6
+- Betacatenina
+- BRG1/SMARCA4
+- c-myc
+- Ca125
+- Calcitonina
+- Caldesmone
+- Calponina
+- Calretinina
+- CDK4
+- CDX2
+- CEA Monoclonale
+- CK CAM5.2
+- CK PAN
+- CK19
+- CK20
+- CK34betaE12
+- CK5/6
+- CK7
+- Claudina-18
+- CMV
+- Cromogranina
+- CTRL Mon NEG (FOLR1/CLND18 RxDx)
+- D2-40 (podoplanina)
+- Desmina
+- DOG1
+- E-caderina EP700Y
+- EMA
+- EP-CAM (ber-EP4)
+- ERG
+- Estrogeni (ER)
+- Fattore VIII
+- FATTORE XIII
+- FOSFOISTONE-H3
+- Fumarato Idratasi
+- Galectina 3
+- GATA 3
+- GFAP
+- Glicoforina
+- GLUT 1
+- GLUTAMINA SINTETASI
+- Glypican3
+- hCG
+- Hepatocyte/HSA (specific antigen)
+- HER2 (c-erb B2)
+- HGAL
+- HHV8 (orf73)
+- HMB45 (Melanosome)
+- HPV
+- HU/HUD
+- IDH1
+- IgG
+- IgG4
+- Inibina alpha
+- KAPPA
+- Ki67
+- LAMBDA
+- MAMMOGLOBINA
+- MDM2
+- Melan A (MART 1)
+- Mieloperossidasi
+- Miogenina
+- MLH1
+- MSH2
+- MSH6
+- MUM1
+- Napsin A
+- Neurofilamenti (NF)
+- NKX3
+- NSE
+- OLIG2
+- p16
+- p40
+- p53
+- p57
+- p63
+- PAX5
+- PAX8
+- PDL1 (SP142)
+- PDL1 (SP263)
+- PHH3
+- PLAP
+- PML-RAR1
+- PMS2
+- PRAME
+- Progesterone (PR)
+- PSA
+- PSAP
+- PTEN
+- RACEMASI (P504S AMACR)
+- RCC
+- S100
+- SALL4
+- SATB2
+- Sinaptofisina
+- SOX10
+- SOX11
+- STAT6
+- TdT
+- Tiroglobulina
+- TTF1
+- Vimentina
+- WT1
+
+## Solo Sacco
+
+- CD11c
+- CD16
+- CD43
+- CD57
+- CD123
+- CD146
+- ALK 1
+- Amiloide A
+- Amiloide P
+- ANTI-BRAF
+- ARID1A
+- Aspergillus
+- BAP1 (C-4)
+- BRAF V600E
+- c-FOS
+- Calbindin
+- Candida Albicans
+- CEA Policlonale
+- Chymotripsina (antichimotripsina)
+- CK MNF116
+- Claudina 4
+- CMITA1
+- Collagene IV
+- DNAJB9
+- EBER
+- EBV-LMP1
+- FOLR1 Rx Dx Assay
+- FOSB
+- FOXL2
+- Gastrina
+- GCDFP15
+- Granzyme B
+- HBME 1 (Mesothelial cell)
+- HCL DBA44
+- HIV p24
+- hPL
+- HSV I (Herpesvirus 1)
+- HSV II (Herpesvirus 1/2)
+- IgA
+- IgD
+- IgM
+- INI-1
+- IRTA1/FCRL4
+- LEF1
+- MUC1
+- MUC2
+- MUC4
+- MUC6
+- MyoD1
+- NeuN
+- NRAS
+- OCT 3/4
+- OCT-2
+- Pan-TRK
+- Parvovirus B19
+- Perforin
+- PLA2R1
+- Pneumocistis Carinii
+- POLE
+- PTH
+- ROS1 (SP384)
+- SAR COV2
+- SDHB
+- SF1
+- SOX2
+- Surfactante SPB
+- SV40
+- TB
+- TFEB
+- TIA1
+- Toxoplasma Gondii
+- TREPONEMA SPIROCHETE
+- Tri-Methyl-Histone H3
+- WT49
+- ZAP70
