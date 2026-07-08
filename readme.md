@@ -173,6 +173,7 @@ Quando si usa "Apri in Ricerca Inversa" dalla Cascade, i marker ND/outsourcing v
 
 | Versione | Data | Principali modifiche |
 |----------|------|----------------------|
+| v3.9.4 | Lug 2026 | Ricerca Inversa mobile-friendly: bottoni espliciti **+/−** sui marker disponibili (niente drag&drop né ciclo pos→neg→off ambiguo); tile selezionate con controlli **⇄ inverti** e **✕ rimuovi**; fix scroll-vs-tap (lo scorrimento della lista non attiva più i marker); barra azioni fissa con conteggio POS/NEG live e Analizza/Reset; lista "Disponibili" in cima su mobile; testi adattati a touch. Desktop invariato (drag&drop preservato) |
 | v3.9.2 | Giu 2026 | Aggiunte 3 entità CUP-rilevanti: Merkel Cell Carcinoma, Carcinoma Adrenocorticale, Fibromatosi Desmoide; aggiornati TOPOGRAPHIC_PRIORS (cute, tessuti_molli, tubo_digerente, mts_cup) |
 | v3.9.1 | Mag 2026 | Bug fix architettura pattern marker: `analyzeMarkers` accetta β-cat da sola; `computeBayes` protetto (pattern mai trattato come binario); `computeInfoGain` esclude pattern; `computeConfidence`/`updateCounts` includono pattern; β-cat sinoviale ricalibrata (w 1.2→0.7, probs 0.30/0.70→0.45/0.55) |
 | v3.9.0 | Mag 2026 | Architettura pattern-marker: UI dedicata per β-catenina (membranous/nuclear); `computeBayes` usa `patternProbs` come likelihood diretta; type-system pronto per p53/Ki-67/MMR composito |

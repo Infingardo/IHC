@@ -216,6 +216,52 @@
       .whatif-btn{min-height:28px;padding:3px 7px}
     }
 
+    /* ============================================================
+       v3.9.4 — Ricerca Inversa mobile-friendly
+       Bottoni espliciti +/- (niente drag&drop, niente ciclo ambiguo)
+       + barra azioni fissa. Nessun impatto su desktop.
+       ============================================================ */
+    .marker-item .touch-set,.marker-item .touch-x{display:none}
+    #mobileBar{display:none}
+    @media(hover:none) and (pointer:coarse){
+      /* Su touch il tile non si "afferra": si usano i bottoni */
+      .marker-item{cursor:default}
+      /* Disponibili: sigla a tutta larghezza in alto; bottoni +/- ancorati in basso a destra.
+         Il padding-bottom riserva la fascia dei bottoni → non coprono mai l'etichetta. */
+      #availableMarkers .marker-item{position:relative;align-items:flex-start;min-height:58px;padding:7px 9px 34px 9px}
+      #availableMarkers .marker-item>span:not(.site-dot){flex:1;min-width:0;white-space:normal;line-height:1.25}
+      #availableMarkers .marker-item .touch-set{position:absolute;bottom:5px;min-width:30px;min-height:28px}
+      #availableMarkers .marker-item .touch-neg{right:6px}
+      #availableMarkers .marker-item .touch-pos{right:40px}
+      .marker-item .touch-set{display:inline-flex;align-items:center;justify-content:center;
+        min-width:30px;min-height:30px;border-radius:7px;border:1px solid var(--border);
+        background:var(--card);font-weight:800;font-size:1rem;line-height:1;cursor:pointer;flex:none}
+      .marker-item .touch-pos{color:#065f46;border-color:#6ee7b7}
+      .marker-item .touch-neg{color:#991b1b;border-color:#fca5a5}
+      .marker-item .touch-flip{color:var(--subtext);font-size:.9rem}
+      .marker-item .touch-x{display:inline-flex;align-items:center;justify-content:center;
+        min-width:30px;min-height:30px;border-radius:6px;border:1px solid var(--border);
+        background:var(--card);color:var(--subtext);font-weight:700;cursor:pointer;flex:none}
+    }
+    @media(max-width:768px){
+      /* Lista "Disponibili" in cima: si tocca lì, i pannelli POS/NEG stanno subito sotto */
+      #availableMarkersWrap{order:-1}
+      /* caselle più larghe: sigla + bottoni +/- senza sovrapporsi (~2 colonne) */
+      #availableMarkers{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));max-height:52vh}
+      .marker-item .whatif-btn{display:none}   /* What-If: solo desktop, troppo affollato su mobile */
+      /* Barra azioni fissa: conteggio live + Analizza sempre raggiungibili */
+      #mobileBar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;
+        align-items:center;gap:8px;padding:8px 10px;background:var(--card);
+        border-top:1px solid var(--border);box-shadow:0 -2px 12px var(--shadow)}
+      #mobileBar .mb-chip{padding:4px 10px;border-radius:20px;background:var(--bg);
+        font-size:.82rem;font-weight:800}
+      #mobileBar .mb-pos{color:var(--pos)}
+      #mobileBar .mb-neg{color:var(--neg)}
+      #mobileBar .btn{flex:1;padding:11px 8px;font-size:.9rem}
+      #mobileBar .btn-reset{flex:0 0 auto}
+      body.mb-pad{padding-bottom:72px}
+    }
+
     /* Morphology selector */
     .morph-selector{display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:12px;padding:8px;background:var(--card);border-radius:10px;border:1px solid var(--border);flex-wrap:wrap}
     .morph-selector select{padding:5px 10px;border:2px solid var(--accent);border-radius:8px;font-size:.88rem;font-weight:600;background:var(--card);cursor:pointer}
@@ -257,13 +303,13 @@
 <body>
 <div class="container">
   <header>
-    <h1>🧬 IHC Hub v3.9.3</h1>
+    <h1>🧬 IHC Hub v3.9.4</h1>
     <p class="version">Motore Bayesiano · Filtro Morfologico · Classi di Confidenza · Risparmio Tessuto · Tumor Board</p>
     <div class="header-badges">
       <span class="badge fbf" id="badgeFBF">143 FBF</span>
       <span class="badge sacco" id="badgeSACCO">+29 SACCO</span>
       <span class="badge engine">Motore Bayesiano</span>
-      <span class="badge version">v3.9.3</span>
+      <span class="badge version">v3.9.4</span>
       <button onclick="showValidationModal()" title="Valida coerenza bayesDB / markerDB" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;border-radius:6px;padding:2px 10px;font-size:.75rem;cursor:pointer;font-weight:500">🔍 Audit DB</button>
     </div>
   </header>
@@ -323,8 +369,8 @@
     </div>
     <div class="info-box"><span>💡</span><div><strong>v3.9.1:</strong> Bug fix architettura pattern marker — <code>analyzeMarkers</code> accetta β-cat da sola · <code>computeBayes</code> protetto: pattern marker mai trattato come binario · <code>computeInfoGain</code> esclude pattern (IG multi-stato in v3.10) · <code>computeConfidence</code> e <code>updateCounts</code> includono pattern marker · messaggi generalizzati ("Marker non interpretabili") · β-cat sinoviale ricalibrata (w 1.2→0.7, probs 0.30/0.70→0.45/0.55) · Cascade non supporta pattern marker in questa release (esclusi dal pannello mirato). Architettura type-system pronta per p53/Ki-67/MMR.</div></div>
     <div class="lookup-container">
-      <div class="marker-panel positive"><h2>✅ Positivi <span class="marker-count" id="posCount">0</span></h2><div class="marker-grid" id="positivePanel" ondrop="handleDrop(event,'positive')" ondragover="handleDragOver(event,'positive')" ondragleave="handleDragLeave(event,'positive')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui →</p></div></div>
-      <div class="marker-panel negative"><h2>❌ Negativi <span class="marker-count" id="negCount" style="background:var(--neg);">0</span></h2><div class="marker-grid" id="negativePanel" ondrop="handleDrop(event,'negative')" ondragover="handleDragOver(event,'negative')" ondragleave="handleDragLeave(event,'negative')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui →</p></div></div>
+      <div class="marker-panel positive"><h2>✅ Positivi <span class="marker-count" id="posCount">0</span></h2><div class="marker-grid" id="positivePanel" ondrop="handleDrop(event,'positive')" ondragover="handleDragOver(event,'positive')" ondragleave="handleDragLeave(event,'positive')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Tocca <b>+</b> sui marker o trascina qui</p></div></div>
+      <div class="marker-panel negative"><h2>❌ Negativi <span class="marker-count" id="negCount" style="background:var(--neg);">0</span></h2><div class="marker-grid" id="negativePanel" ondrop="handleDrop(event,'negative')" ondragover="handleDragOver(event,'negative')" ondragleave="handleDragLeave(event,'negative')"><p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Tocca <b>−</b> sui marker o trascina qui</p></div></div>
       <div id="availableMarkersWrap" style="grid-column:1/-1;padding:16px;background:var(--card);border:3px dashed var(--fbf);border-radius:12px;">
         <h3 style="margin-bottom:8px;color:var(--fbf);display:flex;align-items:center;gap:6px;">📋 Disponibili <span class="marker-count" id="availCount">0</span><input type="text" id="markerSearch" placeholder="Cerca..." oninput="renderAvailableMarkers()" style="margin-left:auto;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-size:.83rem;width:160px;"></h3>
         <div id="siteLegend" class="site-legend" style="display:none;"><span><span class="site-dot dot-fbf"></span>FBF</span><span><span class="site-dot dot-sacco"></span>SACCO</span><span class="nd-leg-item" style="display:none;"><span class="site-dot dot-nd"></span>Non disponibile</span></div>
@@ -345,7 +391,14 @@
     <div id="warnBar" class="warn-bar"></div>
     <div id="ndImportBanner" style="display:none;padding:8px 14px;background:#fef3c7;border-left:4px solid #f59e0b;border-radius:8px;font-size:.83rem;margin-bottom:10px;"></div>
     <div id="lookupResults" style="display:none;"><div class="results-container"><h2>📊 Risultati — Analisi Bayesiana</h2><div id="diagnosisResults"></div></div><div id="nextBestSection"></div></div>
-    <div id="emptyLookupState" class="empty-state"><h2>👈 Trascina i marker</h2><p>POS e NEG → ANALIZZA</p></div>
+    <div id="emptyLookupState" class="empty-state"><h2>Seleziona i marker</h2><p>💻 Trascina POS / NEG · 📱 tocca <b>+</b> / <b>−</b> → ANALIZZA</p></div>
+    <!-- v3.9.4: barra azioni fissa su mobile (conteggio live + Analizza sempre a portata di pollice) -->
+    <div id="mobileBar">
+      <span class="mb-chip mb-pos">POS <span id="mbPos">0</span></span>
+      <span class="mb-chip mb-neg">NEG <span id="mbNeg">0</span></span>
+      <button class="btn btn-analyze" onclick="analyzeMarkers()">🔍 Analizza</button>
+      <button class="btn btn-reset" onclick="resetLookup()">🔄</button>
+    </div>
   </div>
 
   <!-- QUIZ -->
@@ -1436,8 +1489,12 @@ function renderAvailableMarkers() {
   const c=document.getElementById('availableMarkers');
   c.innerHTML=avail.map(id=>{
     const m=markerDB[id];
-    const touchAttr = 'ontouchstart="event.preventDefault();handleTap(\''+id+'\')" ';
-    return '<div class="marker-item '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondragend="handleDragEnd(event)" '+touchAttr+'>'+getSiteDot(id)+'<span style="font-size:.8rem;">'+m.display+'</span></div>';
+    // v3.9.4: niente ondragstart-touch (rompeva lo scroll della lista); bottoni espliciti +/- su touch
+    return '<div class="marker-item '+getSiteClass(id)+'" data-mid="'+id+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondragend="handleDragEnd(event)">'
+      +getSiteDot(id)+'<span style="font-size:.8rem;">'+m.display+'</span>'
+      +'<button class="touch-set touch-pos" title="Positivo" aria-label="Imposta positivo" onclick="setMarkerState(\''+id+'\',\'pos\')">+</button>'
+      +'<button class="touch-set touch-neg" title="Negativo" aria-label="Imposta negativo" onclick="setMarkerState(\''+id+'\',\'neg\')">−</button>'
+      +'</div>';
   }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;">Nessun marker</p>';
   // Legend
   const legend=document.getElementById('siteLegend');
@@ -1595,12 +1652,15 @@ function renderSelectedMarkers() {
   // v3.8/v3.9.0: loss-marker E pattern-marker compaiono SOLO nelle loro sezioni dedicate
   // v3.9.1-final: helper esplicito coerente con architettura type-system
   const isRegularBinaryMarker = id => !isLossMarker(id) && !isPatternMarker(id);
+  // v3.9.4: su touch bottoni espliciti \u21c4 (inverti) e \u2715 (rimuovi); niente ciclo-tap ambiguo
+  const touchCtrls = id => '<button class="touch-set touch-flip" title="Inverti pos/neg" aria-label="Inverti" onclick="event.stopPropagation();flipMarker(\''+id+'\')">\u21c4</button>'
+    +'<button class="touch-x" title="Rimuovi" aria-label="Rimuovi" onclick="event.stopPropagation();removeMarker(\''+id+'\')">\u2715</button>';
   pp.innerHTML=Array.from(positiveMarkers).filter(isRegularBinaryMarker).sort(naturalSort).map(id=>{
-    return '<div class="marker-item selected-pos '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')">'+getSiteDot(id)+'<span>'+getDisplay(id)+'</span><span class="marker-badge">\u2705</span><button class="whatif-btn" title="What If l\'opposto?" onclick="event.stopPropagation();whatIfMarker(\''+id+'\',\'pos\')">+/-?</button></div>';
-  }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui \u2192</p>';
+    return '<div class="marker-item selected-pos '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')">'+getSiteDot(id)+'<span>'+getDisplay(id)+'</span><span class="marker-badge">\u2705</span><button class="whatif-btn" title="What If l\'opposto?" onclick="event.stopPropagation();whatIfMarker(\''+id+'\',\'pos\')">+/-?</button>'+touchCtrls(id)+'</div>';
+  }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Tocca <b>+</b> sui marker o trascina qui</p>';
   np.innerHTML=Array.from(negativeMarkers).filter(isRegularBinaryMarker).sort(naturalSort).map(id=>{
-    return '<div class="marker-item selected-neg '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')">'+getSiteDot(id)+'<span>'+getDisplay(id)+'</span><span class="marker-badge">\u274c</span><button class="whatif-btn" title="What If l\'opposto?" onclick="event.stopPropagation();whatIfMarker(\''+id+'\',\'neg\')">+/-?</button></div>';
-  }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Trascina qui \u2192</p>';
+    return '<div class="marker-item selected-neg '+getSiteClass(id)+'" draggable="true" ondragstart="handleDragStart(event,\''+id+'\')" ondblclick="removeMarker(\''+id+'\')">'+getSiteDot(id)+'<span>'+getDisplay(id)+'</span><span class="marker-badge">\u274c</span><button class="whatif-btn" title="What If l\'opposto?" onclick="event.stopPropagation();whatIfMarker(\''+id+'\',\'neg\')">+/-?</button>'+touchCtrls(id)+'</div>';
+  }).join('')||'<p style="color:var(--subtext);text-align:center;padding:12px;grid-column:1/-1;">Tocca <b>\u2212</b> sui marker o trascina qui</p>';
 }
 
 
@@ -1680,6 +1740,9 @@ function updateCounts() {
   document.getElementById('posCount').textContent = posRegular;
   document.getElementById('negCount').textContent = negRegular;
   document.getElementById('availCount').textContent = availNonLoss;
+  // v3.9.4: contatori barra mobile
+  const mbP = document.getElementById('mbPos'); if (mbP) mbP.textContent = posRegular;
+  const mbN = document.getElementById('mbNeg'); if (mbN) mbN.textContent = negRegular;
 }
 function removeMarker(id) { positiveMarkers.delete(id); negativeMarkers.delete(id); lossControlConfirmed.delete(id); nonInterpretableMarkers.delete(id); delete patternMarkers[id]; renderAvailableMarkers(); }
 
@@ -1742,6 +1805,29 @@ function handleTap(id) {
   } else {
     positiveMarkers.add(id);
   }
+  renderAvailableMarkers();
+}
+
+// v3.9.4: impostazione ESPLICITA dello stato (bottoni +/- su touch).
+// Niente ciclo pos→neg→off: ogni bottone imposta il suo stato, ri-toccarlo lo azzera.
+function setMarkerState(id, dir) {
+  if (positiveMarkers.has(id) === false && negativeMarkers.has(id) === false) {
+    // marker non ancora testato → imposta lo stato richiesto
+    (dir === 'pos' ? positiveMarkers : negativeMarkers).add(id);
+  } else if (dir === 'pos') {
+    if (positiveMarkers.has(id)) { positiveMarkers.delete(id); }        // già POS → azzera
+    else { negativeMarkers.delete(id); positiveMarkers.add(id); }       // era NEG → passa a POS
+  } else {
+    if (negativeMarkers.has(id)) { negativeMarkers.delete(id); }        // già NEG → azzera
+    else { positiveMarkers.delete(id); negativeMarkers.add(id); }       // era POS → passa a NEG
+  }
+  renderAvailableMarkers();
+}
+
+// v3.9.4: inverti pos↔neg da una tile selezionata (bottone ⇄ su touch)
+function flipMarker(id) {
+  if (positiveMarkers.has(id)) { positiveMarkers.delete(id); negativeMarkers.add(id); }
+  else if (negativeMarkers.has(id)) { negativeMarkers.delete(id); positiveMarkers.add(id); }
   renderAvailableMarkers();
 }
 
@@ -1999,6 +2085,8 @@ function switchTab(t, btn=null) {
   }
   // v3.5.0: lazy init quiz al primo accesso
   if(t === 'quiz' && !currentQuizDx) nextQuizRound();
+  // v3.9.4: spazio per la barra fissa solo nella Ricerca Inversa (su mobile)
+  document.body.classList.toggle('mb-pad', t === 'inverse');
 }
 
 (function init(){
@@ -2602,17 +2690,9 @@ cascInit();
 
 
 
-// Touch delegate per pannelli POS/NEG su mobile
-document.addEventListener('touchend', function(e) {
-  const item = e.target.closest('.selected-pos, .selected-neg');
-  if (!item) return;
-  if (e.target.closest('.whatif-btn')) return;
-  e.preventDefault();
-  // Estrai id dal draggable data — lo cerco nell'ondragstart
-  const drag = item.getAttribute('ondragstart') || '';
-  const m = drag.match(/handleDragStart\(event,'([^']+)'\)/);
-  if (m) handleTap(m[1]);
-}, { passive: false });
+// v3.9.4: rimosso il touch-delegate che ciclava lo stato al tocco della tile (pos→neg→off).
+// Era ambiguo: un tocco accidentale cambiava il marker. Ora sulle tile selezionate ci sono
+// bottoni espliciti ⇄ (inverti) e ✕ (rimuovi), gestiti via onclick.
 
 </script>
 </body>
