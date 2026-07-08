@@ -227,10 +227,11 @@
       /* Su touch il tile non si "afferra": si usano i bottoni */
       .marker-item{cursor:default}
       #availableMarkers .marker-item{padding-right:4px}
-      #availableMarkers .marker-item>span{flex:1;min-width:0}
+      /* solo l'ETICHETTA si espande e tronca con "…"; il pallino (.site-dot) resta piccolo */
+      #availableMarkers .marker-item>span:not(.site-dot){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       .marker-item .touch-set{display:inline-flex;align-items:center;justify-content:center;
-        min-width:32px;min-height:32px;border-radius:7px;border:1px solid var(--border);
-        background:var(--card);font-weight:800;font-size:1.05rem;line-height:1;cursor:pointer;flex:none}
+        min-width:30px;min-height:30px;border-radius:7px;border:1px solid var(--border);
+        background:var(--card);font-weight:800;font-size:1rem;line-height:1;cursor:pointer;flex:none}
       .marker-item .touch-pos{color:#065f46;border-color:#6ee7b7}
       .marker-item .touch-neg{color:#991b1b;border-color:#fca5a5}
       .marker-item .touch-flip{color:var(--subtext);font-size:.9rem}
@@ -241,7 +242,8 @@
     @media(max-width:768px){
       /* Lista "Disponibili" in cima: si tocca lì, i pannelli POS/NEG stanno subito sotto */
       #availableMarkersWrap{order:-1}
-      #availableMarkers{max-height:52vh}
+      /* caselle più larghe: sigla + bottoni +/- senza sovrapporsi (~2 colonne) */
+      #availableMarkers{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));max-height:52vh}
       .marker-item .whatif-btn{display:none}   /* What-If: solo desktop, troppo affollato su mobile */
       /* Barra azioni fissa: conteggio live + Analizza sempre raggiungibili */
       #mobileBar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;
