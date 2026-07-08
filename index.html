@@ -226,9 +226,13 @@
     @media(hover:none) and (pointer:coarse){
       /* Su touch il tile non si "afferra": si usano i bottoni */
       .marker-item{cursor:default}
-      #availableMarkers .marker-item{padding-right:4px}
-      /* solo l'ETICHETTA si espande e tronca con "…"; il pallino (.site-dot) resta piccolo */
-      #availableMarkers .marker-item>span:not(.site-dot){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      /* Disponibili: sigla a tutta larghezza in alto; bottoni +/- ancorati in basso a destra.
+         Il padding-bottom riserva la fascia dei bottoni → non coprono mai l'etichetta. */
+      #availableMarkers .marker-item{position:relative;align-items:flex-start;min-height:58px;padding:7px 9px 34px 9px}
+      #availableMarkers .marker-item>span:not(.site-dot){flex:1;min-width:0;white-space:normal;line-height:1.25}
+      #availableMarkers .marker-item .touch-set{position:absolute;bottom:5px;min-width:30px;min-height:28px}
+      #availableMarkers .marker-item .touch-neg{right:6px}
+      #availableMarkers .marker-item .touch-pos{right:40px}
       .marker-item .touch-set{display:inline-flex;align-items:center;justify-content:center;
         min-width:30px;min-height:30px;border-radius:7px;border:1px solid var(--border);
         background:var(--card);font-weight:800;font-size:1rem;line-height:1;cursor:pointer;flex:none}
